@@ -1,27 +1,30 @@
 import copy
-import threading
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from functools import wraps
-from multiprocessing.pool import ThreadPool as PoolThreadPool, Pool
 import multiprocessing
-from typing import Callable, List, Tuple, Any, Iterable, Generator
 import os
+import threading
+from concurrent.futures import Future, ThreadPoolExecutor, as_completed
+from functools import wraps
+from multiprocessing.pool import Pool
+from multiprocessing.pool import ThreadPool as PoolThreadPool
+from typing import Any, Callable, Generator, Iterable, List, Tuple
+
 from tqdm import tqdm
 
 from utils.logging.logger import get_logger
 
-
 logger = get_logger(__name__)
 
 
-def cancel_on_timeout_with_multiprocessing(seconds, message):
+def cancel_on_timeout_with_multiprocessing(
+    seconds: int, message: str
+) -> Callable[[Callable[[Any, Any], Any]], Callable[[Any, Any], Any]]:
     """Timeout decorator, parameter in seconds."""
 
-    def decorator(func):
+    def decorator(func: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
         """Wrap the original function."""
 
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             """Closure for function."""
             with PoolThreadPool(processes=1) as pool:
                 async_result = pool.apply_async(func, args, kwargs)
@@ -39,7 +42,9 @@ def cancel_on_timeout_with_multiprocessing(seconds, message):
     return decorator
 
 
-def _get_future_results_as_completed(futures: List) -> Generator:
+def _get_future_results_as_completed(
+    futures: List[Future[Any]],
+) -> Generator[Any, None, None]:
     """
     This function gets the results from the futures with as_completed.
     :param futures: list, the list of futures
@@ -50,10 +55,10 @@ def _get_future_results_as_completed(futures: List) -> Generator:
 
 
 def multithread_loop(
-    process_function: Callable,
-    process_args: List | Tuple[List | Tuple],
-    process_args_static: List | Tuple[Any] = None,
-) -> List:
+    process_function: Callable[[Any, Any], Any],
+    process_args: Iterable[Iterable[Any]],
+    process_args_static: Iterable[Any] | None = None,
+) -> List[Any]:
     """
     This function processes a loop of a given process_function with the given process_args in a ThreadPoolExecutor.
     :param process_function: function, the function that processes the given process_args
@@ -96,11 +101,11 @@ def multithread_loop(
 
 
 def multiprocess_loop(
-    process_function: Callable,
-    process_args: List | Tuple[List | Tuple],
-    process_args_static: List | Tuple = None,
-    deepcopy_static_args: List | Tuple = None,
-) -> List:
+    process_function: Callable[[Any, Any], Any],
+    process_args: Iterable[Iterable[Any]],
+    process_args_static: Iterable[Any] | None = None,
+    deepcopy_static_args: Iterable[Any] | None = None,
+) -> List[Any]:
     """
     This function processes a loop of a given process_function with the given process_args in a ThreadPoolExecutor.
     :param process_function: function, the function that processes the given process_args
@@ -116,7 +121,8 @@ def multiprocess_loop(
         bc of the way the debugger works. In that case just reduce the max_processes to 1,
         and it will run like a single loop and the debugger shouldn't cause any problems.
     """
-
+    process_args: List[List[Any]]
+    max_processes: int
     process_args, max_processes = _prepare_multiprocess_loop(
         threads=False,
         process_func=process_function,
@@ -147,24 +153,25 @@ def multiprocess_loop(
 
 
 def _process_function_for_imap_with_args_unpacking(
-    func_order_args: Tuple | List,
-) -> Any:
+    func_order_args: Tuple[Callable[[Any, Any], Any], int, List[Any]],
+) -> Tuple[int, Any]:
     """
     This function processes the given function with the given arguments.
     :param func_order_args: tuple, the tuple of the function, the order, and the arguments
     The order is a number that is the index of the process_args, so we can reorder the results later to the original order
     """
     func, order, args = func_order_args[0], func_order_args[1], func_order_args[2:]
-    return order, func(*args)
+    result: Any = func(*args)
+    return order, result
 
 
 def _prepare_multiprocess_loop(
     threads: bool,
-    process_func: Callable,
-    process_args: List | Tuple[List | Tuple],
-    process_args_static: List | Tuple = None,
-    deepcopy_static_args: List | Tuple = None,
-) -> Tuple:
+    process_func: Callable[[Any, Any], Any],
+    process_args: Iterable[Iterable[Any]],
+    process_args_static: Iterable[Any] | None = None,
+    deepcopy_static_args: Iterable[Any] | None = None,
+) -> Tuple[List[List[Any]], int]:
     """
     This function prepares the process_args for the multiprocess loop.
     :param threads: bool, if the loop is for threads else for processes
@@ -212,11 +219,11 @@ def _prepare_multiprocess_loop(
 
 
 def _get_multiprocess_results_with_tqdm(
-    results: Iterable,
-    process_func: Callable,
-    process_args: List | Tuple[List | Tuple],
+    results: Iterable[Any],
+    process_func: Callable[[Any, Any], Any],
+    process_args: List[List[Any]],
     threads: bool,
-) -> List:
+) -> List[Any]:
     """
     This function creates a progress bar for the multiprocessing loop.
     :param results: iterable, the iterable of results from the process_function
@@ -250,11 +257,11 @@ def _find_max_pools_for_multiprocessing(threads: bool, length_process_args: int)
     if threads:
         logger.info("Using ThreadPoolExecutor for multithreading.")
         active_tasks = threading.active_count()
-        max_tasks = os.cpu_count() * 4
+        max_tasks = int(os.cpu_count()) * 4
     else:
         logger.info("Using Pool for multiprocessing.")
         active_tasks = len(multiprocessing.active_children())
-        max_tasks = os.cpu_count()
+        max_tasks = int(os.cpu_count())
 
     available_tasks = max_tasks - active_tasks
     max_pools = min(max_tasks, available_tasks)
@@ -269,9 +276,9 @@ def _find_max_pools_for_multiprocessing(threads: bool, length_process_args: int)
 
 
 def _extend_process_args_with_const_args(
-    process_args: List[List | Tuple],
-    process_args_static: List | Tuple,
-    deepcopy_static_args: List | Tuple = False,
+    process_args: List[List[Any]],
+    process_args_static: List[Any],
+    deepcopy_static_args: bool = False,
 ) -> None:
     """
     This function extends the process_args with the process_const_args.

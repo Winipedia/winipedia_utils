@@ -1,7 +1,7 @@
 import inspect
 from types import ModuleType
 import os
-
+from typing import Any
 from unittest import TestCase
 
 from utils.mixin import ABCImplementationLoggingMixin
@@ -36,12 +36,12 @@ class BaseTestCaseForFile(TestCase, ABCImplementationLoggingMixin):
     def setUp(self):
         super().setUp()
 
-    def __getattribute__(self, item):
+    def __getattribute__(self, item: str) -> Any:
         attr = super().__getattribute__(item)
         abstract = object.__getattribute__(self, "__abstract__")
         if abstract and item.startswith("test_") and callable(attr):
 
-            def skip_abstract_class_test(*_, **__):
+            def skip_abstract_class_test(*_: Any, **__: Any) -> None:
                 """
                 The base tests defined in base test classes are not meant to be executed.
                 They are meant to be inherited by other test classes and executed there during testing.
@@ -51,7 +51,6 @@ class BaseTestCaseForFile(TestCase, ABCImplementationLoggingMixin):
         return attr
 
     def test_tested_file_is_correct_type(self):
-        self.assertTrue(isinstance(self.tested_file, ModuleType))
         self.assertTrue(inspect.ismodule(self.tested_file))
 
     def test_correct_test_cls_name(self):
@@ -97,7 +96,7 @@ class BaseTestCaseForFile(TestCase, ABCImplementationLoggingMixin):
     def test_all_functions_in_file_tested(self):
         """Ensure all user-defined functions in the file are tested."""
         # Get all user-defined functions in the file
-        functions = self.get_all_functions_from_module(file=self.tested_file)
+        functions: list[str] = self.get_all_functions_from_module(file=self.tested_file)
 
         # Get all test functions in the class
         test_functions = [f for f in dir(self) if callable(getattr(self, f))]
@@ -117,7 +116,7 @@ class BaseTestCaseForFile(TestCase, ABCImplementationLoggingMixin):
         )
 
     @staticmethod
-    def get_all_functions_from_module(file: ModuleType) -> list:
+    def get_all_functions_from_module(file: ModuleType) -> list[str]:
         return [
             f
             for f, obj in inspect.getmembers(file, inspect.isfunction)
@@ -131,15 +130,15 @@ class BaseTestCaseForFile(TestCase, ABCImplementationLoggingMixin):
     def test_all_class_methods_tested(self):
         """Ensure all methods of user-defined classes in the file are tested."""
         # Get all user-defined classes in the file
-        cls_methods = self.get_all_cls_and_cls_methods_from_module(
-            file=self.tested_file
+        cls_methods: dict[type, list[str]] = (
+            self.get_all_cls_and_cls_methods_from_module(file=self.tested_file)
         )
 
         # Get all test functions in the class
         test_functions = [f for f in dir(self) if callable(getattr(self, f))]
 
         # Check methods for each class
-        untested_methods = {}
+        untested_methods: dict[type, list[str]] = {}
         for cls, methods in cls_methods.items():
             # Check if each method is tested
             untested = [
@@ -160,13 +159,15 @@ class BaseTestCaseForFile(TestCase, ABCImplementationLoggingMixin):
         )
 
     @staticmethod
-    def get_all_cls_and_cls_methods_from_module(file: ModuleType) -> dict:
+    def get_all_cls_and_cls_methods_from_module(
+        file: ModuleType,
+    ) -> dict[type, list[str]]:
         classes = [
             obj
-            for name, obj in inspect.getmembers(file, inspect.isclass)
+            for _, obj in inspect.getmembers(file, inspect.isclass)
             if obj.__module__ == file.__name__  # Ensure it's from the target module
         ]
-        cls_methods = {}
+        cls_methods: dict[type, list[str]] = {}
         for cls in classes:
             # Get all methods of the class
             methods = [
@@ -185,17 +186,17 @@ class BaseTestCaseForFile(TestCase, ABCImplementationLoggingMixin):
         return cls_methods
 
     @staticmethod
-    def make_cls_method_test_func_name(cls: type, method_name: str) -> str:
-        return f"{BaseTestCaseForFile.make_cls_test_func_name(cls)}_{method_name}"
+    def make_cls_method_test_func_name(class_: type, method_name: str) -> str:
+        return f"{BaseTestCaseForFile.make_cls_test_func_name(class_)}_{method_name}"
 
     @staticmethod
-    def make_cls_test_func_name(cls: type) -> str:
-        return f"test_{cls.__name__}"
+    def make_cls_test_func_name(class_: type) -> str:
+        return f"test_{class_.__name__}"
 
     def _get_untested_summary_error_msg(
         self,
-        untested_cls_methods: dict = None,
-        untested_functions: list = None,
+        untested_cls_methods: dict[type, list[str]] | None = None,
+        untested_functions: list[str] | None = None,
     ) -> str:
         if untested_cls_methods is None and untested_functions is None:
             raise ValueError(

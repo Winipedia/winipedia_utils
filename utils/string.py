@@ -5,7 +5,7 @@ This module contains string manipulation utilities for the winipedia_utils packa
 import hashlib
 import textwrap
 from io import StringIO
-from typing import List, Tuple, Any
+from typing import Any, Dict, List, Tuple
 from urllib.parse import urlparse, urlunparse
 from xml.etree import ElementTree as ET
 
@@ -13,9 +13,8 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from utils.multiprocessing import cancel_on_timeout_with_multiprocessing
-
 from utils.logging.logger import get_logger
+from utils.multiprocessing import cancel_on_timeout_with_multiprocessing
 
 logger = get_logger(__name__)
 
@@ -28,7 +27,10 @@ def find_best_fit_for_text(given_text: str, text_list: List[str]) -> Tuple[str, 
     vectorizer = TfidfVectorizer().fit_transform(texts)
 
     # Compute the cosine similarity matrix
-    cosine_sim = cosine_similarity(vectorizer[0:1], vectorizer[1:])
+    cosine_sim: np.ndarray[Any, Any] = cosine_similarity(
+        vectorizer[0:1],
+        vectorizer[1:],
+    )
 
     # Find the index of the best fit text
     best_fit_index = np.argmax(cosine_sim)
@@ -69,10 +71,10 @@ def ask_for_input_with_timeout(prompt: str, timeout: int) -> str:
     @cancel_on_timeout_with_multiprocessing(
         timeout, "Input not given within the timeout"
     )
-    def give_input():
+    def give_input() -> str:
         return input(prompt)
 
-    user_input = give_input()
+    user_input: str = give_input()
 
     return user_input
 
@@ -112,28 +114,28 @@ def get_new_unique_character_for_str(str_: str) -> str:
     raise ValueError("No unique character found in standard character sets")
 
 
-def to_stripped_str(value):
+def to_stripped_str(value: Any) -> str:
     return str(value).strip()
 
 
-def to_lower_stripped_str(value):
+def to_lower_stripped_str(value: Any) -> str:
     return to_stripped_str(value).lower()
 
 
-def find_xml_namespaces(xml_io_str):
+def find_xml_namespaces(xml_io_str: Any) -> Dict[str, str]:
     xml_io_str = to_str_io(xml_io_str)
     # Extract the namespaces from the root tag
-    namespaces_ = {}
-    for event, elem in ET.iterparse(xml_io_str, events=["start-ns"]):
+    namespaces_: Dict[str, str] = {}
+    for _, elem in ET.iterparse(xml_io_str, events=["start-ns"]):
         prefix, uri = elem
         namespaces_[prefix] = uri
 
-    namespaces_.pop("", None)
+    _ = namespaces_.pop("", None)
 
     return namespaces_
 
 
-def to_str_io(string) -> StringIO:
+def to_str_io(string: Any) -> StringIO:
     if isinstance(string, str):
         return StringIO(string)
     elif isinstance(string, StringIO):

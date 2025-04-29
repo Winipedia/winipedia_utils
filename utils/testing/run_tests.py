@@ -1,6 +1,4 @@
 import unittest
-import os
-import sys
 
 from utils.testing.base_test import BaseTestCaseForFile
 
@@ -17,7 +15,7 @@ def run_tests():
     tests.addTest(test_suite)
 
     runner = unittest.TextTestRunner()
-    runner.run(tests)
+    _ = runner.run(tests)
 
 
 def main():

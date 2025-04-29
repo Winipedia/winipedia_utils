@@ -7,11 +7,10 @@ import os
 from importlib import import_module
 from typing import Any
 
-from utils.testing.base_test import BaseTestCaseForFile
-from utils.logging.logger import get_logger
-from utils.git import path_is_in_gitignore, walk_os_skipping_gitignore_patterns
 from utils.add___init___files import add___init___files
-
+from utils.git import walk_os_skipping_gitignore_patterns
+from utils.logging.logger import get_logger
+from utils.testing.base_test import BaseTestCaseForFile
 
 logger = get_logger(__name__)
 
@@ -57,42 +56,40 @@ def create_test_file(rel_path: str):
     if from_module:
         import_module_line = f"from {from_module} {import_module_line}"
 
-    test_code = f"""from utils.testing.base_test import BaseTestCaseForFile
-{import_module_line}
+    test_code = f"""{import_module_line}
+from utils.testing.base_test import BaseTestCaseForFile
 
 
 class {class_name}(BaseTestCaseForFile):
-    
     __abstract__ = False
     
-    tested_file = {file_name.replace('.py', '')}
+    tested_file = {file_name.replace(".py", "")}
 
     def setUp(self):
         super().setUp()
 """
     for func in all_functions:
         test_code += f"""
-    def {BaseTestCaseForFile.make_test_func_name(func)}(self):
+    def {BaseTestCaseForFile.make_test_func_name(func)}(self) -> None:
         {standard_test_method_content()}
 """
     for cls, methods in all_cls_methods.items():
         test_code += f"""
-    def {BaseTestCaseForFile.make_cls_method_test_func_name(cls, "")[:-1]}(self):
+    def {BaseTestCaseForFile.make_cls_method_test_func_name(cls, "")[:-1]}(self) -> None:
         {standard_test_method_content()}
 """
         for method in methods:
             test_code += f"""
-    def {BaseTestCaseForFile.make_cls_method_test_func_name(cls, method)}(self):
+    def {BaseTestCaseForFile.make_cls_method_test_func_name(cls, method)}(self) -> None:
         {standard_test_method_content()}
 """
 
     with open(test_file_path, "w") as f:
-        f.write(test_code)
+        _ = f.write(test_code)
     logger.info(f"Test file generated at {test_file_path}")
 
 
 def create_test_files():
-
     def skip_test_folder(root: str, dirs: list[str], _: list[str]):
         if root.startswith(BaseTestCaseForFile.make_test_folder_name()):
             logger.info(f"Skipping {root} because it is a test folder")
@@ -106,7 +103,7 @@ def create_test_files():
                 # only create if root_result is True, False means that the folder is skipped
                 create_test_file(full_path)
 
-    walk_os_skipping_gitignore_patterns(
+    _, __ = walk_os_skipping_gitignore_patterns(
         folder=".",
         root_func=skip_test_folder,
         file_func=create_test_file_for_file,

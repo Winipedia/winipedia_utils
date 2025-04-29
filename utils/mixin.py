@@ -2,17 +2,21 @@ import time
 from abc import ABCMeta
 from functools import wraps
 from inspect import isfunction
-from typing import Dict, get_origin, List
-from utils.string import value_to_truncated_string
+from typing import Any, Callable, Dict, List, get_origin
 
 from utils.logging.logger import get_logger
-
+from utils.string import value_to_truncated_string
 
 logger = get_logger(__name__)
 
 
 class LoggingMeta(type):
-    def __new__(mcs, name, bases, dct):
+    def __new__(
+        mcs: type["LoggingMeta"],
+        name: str,
+        bases: tuple[type, ...],
+        dct: dict[str, Any],
+    ) -> "LoggingMeta":
         # Wrap all callables of the class with a logging wrapper
         for attr_name, attr_value in dct.items():
             if mcs._is_loggable_method(attr_value):
@@ -22,7 +26,7 @@ class LoggingMeta(type):
         return super().__new__(mcs, name, bases, dct)
 
     @staticmethod
-    def _is_loggable_method(method):
+    def _is_loggable_method(method: Any) -> bool:
         return (
             callable(method)  # must be callable method
             and isfunction(method)  # must be a function
@@ -31,14 +35,16 @@ class LoggingMeta(type):
 
     @staticmethod
     def _wrap_with_logging(
-        func: callable, class_name: str, call_times: Dict[str, float]
-    ):
+        func: Callable[[Any, Any, Any], Any],
+        class_name: str,
+        call_times: Dict[str, float],
+    ) -> Callable[[Any, Any, Any], Any]:
         """Wrap a function with logging functionality."""
 
         time_time = time.time  # Cache the time.time function for performance
 
         @wraps(func)
-        def wrapper(self, *args, **kwargs):
+        def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
             # we use the call times as a dictionary to store the call times of the function
             # we only log if the time since the last call is greater than the threshold
             # this is to avoid spamming the logs
@@ -82,7 +88,9 @@ class LoggingMeta(type):
 class ImplementationMeta(type):
     __abstract__: bool = NotImplemented
 
-    def __init__(cls, name, bases, dct):
+    def __init__(
+        cls: type, name: str, bases: tuple[type, ...], dct: dict[str, Any]
+    ) -> None:
         super().__init__(name, bases, dct)
 
         if "__abstract__" not in dct:
@@ -103,7 +111,7 @@ class ImplementationMeta(type):
 
         cls._check_implemented_attrs_types()
 
-    def _get_implementation_type_hints(cls) -> Dict:
+    def _get_implementation_type_hints(cls) -> Dict[str, Any]:
         type_hints = {
             k: eval(v) if isinstance(v, str) else v
             for base_class in cls.__mro__

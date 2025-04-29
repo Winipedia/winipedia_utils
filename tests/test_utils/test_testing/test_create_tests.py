@@ -1,9 +1,8 @@
-from utils.testing.base_test import BaseTestCaseForFile
 from utils.testing import create_tests
+from utils.testing.base_test import BaseTestCaseForFile
 
 
 class TestCreateTests(BaseTestCaseForFile):
-
     __abstract__ = False
 
     tested_file = create_tests
@@ -11,17 +10,17 @@ class TestCreateTests(BaseTestCaseForFile):
     def setUp(self):
         super().setUp()
 
-    def test_create_test_file(self):
+    def test_create_test_file(self) -> None:
         raise NotImplementedError("Implement this test.")
 
-    def test_create_test_files(self):
+    def test_create_test_files(self) -> None:
         raise NotImplementedError("Implement this test.")
 
-    def test_main(self):
+    def test_main(self) -> None:
         raise NotImplementedError("Implement this test.")
 
-    def test_path_to_test_path(self):
+    def test_path_to_test_path(self) -> None:
         raise NotImplementedError("Implement this test.")
 
-    def test_standard_test_method_content(self):
+    def test_standard_test_method_content(self) -> None:
         raise NotImplementedError("Implement this test.")

@@ -8,7 +8,6 @@ logger = get_logger(__name__)
 
 
 def path_is_in_gitignore(relative_path: str) -> bool:
-
     # check if the path is in the .gitignore file
     gitignore_path = ".gitignore"
     if not os.path.exists(gitignore_path):
@@ -37,16 +36,15 @@ def path_is_in_gitignore(relative_path: str) -> bool:
 
 def walk_os_skipping_gitignore_patterns(
     folder: str = ".",
-    root_func: Callable[[str, list[str], list[str]], Any] = None,
-    file_func: Callable[[str, str, str, Any], Any] = None,
-):
+    root_func: Callable[[str, list[str], list[str]], Any] | None = None,
+    file_func: Callable[[str, str, str, Any], Any] | None = None,
+) -> tuple[list[Any], list[Any]]:
     """
     Walks through the folder and calls the function for each directory and file.
     """
-    root_results = []
-    file_results = []
+    root_results: list[Any] = []
+    file_results: list[Any] = []
     for root, dirs, files in os.walk(folder):
-
         root = os.path.relpath(root, ".")
 
         # skip all in patterns in .gitignore

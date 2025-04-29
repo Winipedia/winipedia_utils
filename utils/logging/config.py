@@ -2,7 +2,10 @@
 # It sets up a single console handler that prints **all** log levels
 # (DEBUG, INFO, WARNING, ERROR and CRITICAL) using one consistent format.
 
-LOGGING_CONFIG = {
+from typing import Dict, Any
+
+
+LOGGING_CONFIG: Dict[str, Any] = {
     "version": 1,  # Mandatory schema version for dictConfig
     "disable_existing_loggers": False,  # Keep any loggers already created elsewhere
     # ---------------------------- #
