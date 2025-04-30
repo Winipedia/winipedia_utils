@@ -1,0 +1,49 @@
+[project]
+name = "winipedia-utils"
+version = "0.1.0"
+description = "A package with many utility functions"
+authors = [
+    {name = "Winipedia"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.11.7"
+pre-commit = "^4.2.0"
+
+
+[tool.ruff]
+line-length = 150
+target-version = "py313"
+exclude = [
+    "venv", 
+    ".venv", 
+    ".git", 
+    "__pycache__",
+    ".vscode",
+    ".idea"
+]
+
+[tool.ruff.lint]
+select = [
+    "ALL"
+]
+ignore = [
+  "D203",  # conflicts with D211
+  "D213",  # conflicts with D212
+  "COM812"  # avoid conflict with formatter
+]
+fixable = [
+    "ALL"
+]
+
