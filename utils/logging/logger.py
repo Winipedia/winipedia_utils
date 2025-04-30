@@ -1,5 +1,5 @@
-from logging.config import dictConfig
 import logging
+from logging.config import dictConfig
 
 from utils.logging.config import LOGGING_CONFIG
 

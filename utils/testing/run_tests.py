@@ -3,7 +3,7 @@ import unittest
 from utils.testing.base_test import BaseTestCaseForFile
 
 
-def run_tests():
+def run_tests() -> None:
     # Define the path to the 'tests' folder
     tests_dir = BaseTestCaseForFile.make_test_folder_name()
 
@@ -18,5 +18,5 @@ def run_tests():
     _ = runner.run(tests)
 
 
-def main():
+def main() -> None:
     run_tests()

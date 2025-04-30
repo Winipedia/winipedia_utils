@@ -7,5 +7,5 @@ class TestRunFromRoot(BaseTestCaseForFile):
 
     tested_file = run_from_root
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()

@@ -7,5 +7,5 @@ class TestConfig(BaseTestCaseForFile):
 
     tested_file = config
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()

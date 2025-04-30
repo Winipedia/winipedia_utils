@@ -7,11 +7,13 @@ class TestAddInitFiles(BaseTestCaseForFile):
 
     tested_file = add___init___files
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
 
     def test_add___init___files(self) -> None:
-        raise NotImplementedError("Implement this test.")
+        msg = "Implement this test."
+        raise NotImplementedError(msg)
 
     def test_main(self) -> None:
-        raise NotImplementedError("Implement this test.")
+        msg = "Implement this test."
+        raise NotImplementedError(msg)

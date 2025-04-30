@@ -1,5 +1,4 @@
-"""
-This command file exists for testing. E.g. test_command_util.py
+"""This command file exists for testing. E.g. test_command_util.py
 Furthermore this command takes a path as argument and generates a general test file based on it.
 """
 
@@ -19,20 +18,23 @@ def standard_test_method_content() -> str:
     return "raise NotImplementedError('Implement this test.')"
 
 
-def path_to_test_path(rel_path: str) -> str:
+def path_to_test_path(
+    rel_path: str,
+) -> str:
     # adds 'test_' to the beginning of each path part
     return os.path.join(*[f"test_{part}" for part in rel_path.split(os.sep)])
 
 
-def create_test_file(rel_path: str):
+def create_test_file(
+    rel_path: str,
+    this_package: bool = False,
+) -> None:
     # e.g. file_path: utils/mixin_util.py
     file_name = os.path.basename(rel_path)
     module_path = rel_path.replace(os.sep, ".").replace(".py", "")
     module = import_module(module_path)
     all_functions = BaseTestCaseForFile.get_all_functions_from_module(module)
-    all_cls_methods = BaseTestCaseForFile.get_all_cls_and_cls_methods_from_module(
-        module
-    )
+    all_cls_methods = BaseTestCaseForFile.get_all_cls_and_cls_methods_from_module(module)
 
     # now generate the test file content
     test_file_path = BaseTestCaseForFile.make_test_path(rel_path)
@@ -41,7 +43,7 @@ def create_test_file(rel_path: str):
     class_name = BaseTestCaseForFile.make_test_case_cls_name(file_name)
     if os.path.exists(test_file_path):
         # read content of file
-        with open(test_file_path, "r") as f:
+        with open(test_file_path) as f:
             content = f.read()
             # if content contains BaseTestCaseForFile.make_test_case_cls_name(file_name) then skip
             if class_name in content:
@@ -56,13 +58,20 @@ def create_test_file(rel_path: str):
     if from_module:
         import_module_line = f"from {from_module} {import_module_line}"
 
+    # importing BaseTestCaseForFile from utils.testing.base_test or from winipedia_utils.testing.base_test
+    # depending if we test this package or one where this package is imported.
+    if this_package:
+        import_base_test_line = "from utils.testing.base_test import BaseTestCaseForFile"
+    else:
+        import_base_test_line = "from winipedia_utils.testing.base_test import BaseTestCaseForFile"
+
     test_code = f"""{import_module_line}
-from utils.testing.base_test import BaseTestCaseForFile
+{import_base_test_line}
 
 
 class {class_name}(BaseTestCaseForFile):
     __abstract__ = False
-    
+
     tested_file = {file_name.replace(".py", "")}
 
     def setUp(self):
@@ -89,21 +98,20 @@ class {class_name}(BaseTestCaseForFile):
     logger.info(f"Test file generated at {test_file_path}")
 
 
-def create_test_files():
-    def skip_test_folder(root: str, dirs: list[str], _: list[str]):
+def create_test_files(this_package: bool = False) -> None:
+    def skip_test_folder(root: str, dirs: list[str], _: list[str]) -> bool:
         if root.startswith(BaseTestCaseForFile.make_test_folder_name()):
             logger.info(f"Skipping {root} because it is a test folder")
             dirs.clear()
             return False
         return True
 
-    def create_test_file_for_file(_: str, file: str, full_path: str, root_result: Any):
-        if file.endswith(".py") and not file.startswith("__"):
-            if root_result:
-                # only create if root_result is True, False means that the folder is skipped
-                create_test_file(full_path)
+    def create_test_file_for_file(_: str, file: str, full_path: str, root_result: Any) -> None:
+        if file.endswith(".py") and not file.startswith("__") and root_result:
+            # only create if root_result is True, False means that the folder is skipped
+            create_test_file(full_path, this_package=this_package)
 
-    _, __ = walk_os_skipping_gitignore_patterns(
+    _ = walk_os_skipping_gitignore_patterns(
         folder=".",
         root_func=skip_test_folder,
         file_func=create_test_file_for_file,
@@ -113,6 +121,6 @@ def create_test_files():
     add___init___files(tests_dir)
 
 
-def main():
+def main(this_package: bool = False) -> None:
     logger.info("Creating test files for all files in project")
-    create_test_files()
+    create_test_files(this_package=this_package)

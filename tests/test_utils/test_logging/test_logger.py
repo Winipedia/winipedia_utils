@@ -7,8 +7,9 @@ class TestLogger(BaseTestCaseForFile):
 
     tested_file = logger
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
 
     def test_get_logger(self) -> None:
-        raise NotImplementedError("Implement this test.")
+        msg = "Implement this test."
+        raise NotImplementedError(msg)

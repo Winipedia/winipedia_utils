@@ -1,6 +1,7 @@
-import os
 import fnmatch
-from typing import Callable, Any
+import os
+from collections.abc import Callable
+from typing import Any
 
 from utils.logging.logger import get_logger
 
@@ -11,12 +12,13 @@ def path_is_in_gitignore(relative_path: str) -> bool:
     # check if the path is in the .gitignore file
     gitignore_path = ".gitignore"
     if not os.path.exists(gitignore_path):
-        raise Exception(f"Gitignore file not found at {gitignore_path}")
+        msg = f"Gitignore file not found at {gitignore_path}"
+        raise Exception(msg)
 
     # Normalize the path to use forward slashes
     relative_path = relative_path.replace(os.sep, "/")
 
-    with open(gitignore_path, "r") as f:
+    with open(gitignore_path) as f:
         for line in f:
             pattern = line.strip()
             if not pattern or pattern.startswith("#"):
@@ -39,9 +41,7 @@ def walk_os_skipping_gitignore_patterns(
     root_func: Callable[[str, list[str], list[str]], Any] | None = None,
     file_func: Callable[[str, str, str, Any], Any] | None = None,
 ) -> tuple[list[Any], list[Any]]:
-    """
-    Walks through the folder and calls the function for each directory and file.
-    """
+    """Walks through the folder and calls the function for each directory and file."""
     root_results: list[Any] = []
     file_results: list[Any] = []
     for root, dirs, files in os.walk(folder):

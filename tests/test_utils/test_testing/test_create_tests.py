@@ -7,20 +7,25 @@ class TestCreateTests(BaseTestCaseForFile):
 
     tested_file = create_tests
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
 
     def test_create_test_file(self) -> None:
-        raise NotImplementedError("Implement this test.")
+        msg = "Implement this test."
+        raise NotImplementedError(msg)
 
     def test_create_test_files(self) -> None:
-        raise NotImplementedError("Implement this test.")
+        msg = "Implement this test."
+        raise NotImplementedError(msg)
 
     def test_main(self) -> None:
-        raise NotImplementedError("Implement this test.")
+        msg = "Implement this test."
+        raise NotImplementedError(msg)
 
     def test_path_to_test_path(self) -> None:
-        raise NotImplementedError("Implement this test.")
+        msg = "Implement this test."
+        raise NotImplementedError(msg)
 
     def test_standard_test_method_content(self) -> None:
-        raise NotImplementedError("Implement this test.")
+        msg = "Implement this test."
+        raise NotImplementedError(msg)

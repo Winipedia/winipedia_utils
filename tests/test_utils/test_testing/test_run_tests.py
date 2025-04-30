@@ -7,11 +7,13 @@ class TestRunTests(BaseTestCaseForFile):
 
     tested_file = run_tests
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
 
     def test_main(self) -> None:
-        raise NotImplementedError("Implement this test.")
+        msg = "Implement this test."
+        raise NotImplementedError(msg)
 
     def test_run_tests(self) -> None:
-        raise NotImplementedError("Implement this test.")
+        msg = "Implement this test."
+        raise NotImplementedError(msg)

@@ -1,8 +1,9 @@
 import time
 from abc import ABCMeta
+from collections.abc import Callable
 from functools import wraps
 from inspect import isfunction
-from typing import Any, Callable, Dict, List, get_origin
+from typing import Any, get_origin
 
 from utils.logging.logger import get_logger
 from utils.string import value_to_truncated_string
@@ -20,9 +21,7 @@ class LoggingMeta(type):
         # Wrap all callables of the class with a logging wrapper
         for attr_name, attr_value in dct.items():
             if mcs._is_loggable_method(attr_value):
-                dct[attr_name] = mcs._wrap_with_logging(
-                    func=attr_value, class_name=name, call_times={}
-                )
+                dct[attr_name] = mcs._wrap_with_logging(func=attr_value, class_name=name, call_times={})
         return super().__new__(mcs, name, bases, dct)
 
     @staticmethod
@@ -37,10 +36,9 @@ class LoggingMeta(type):
     def _wrap_with_logging(
         func: Callable[[Any, Any, Any], Any],
         class_name: str,
-        call_times: Dict[str, float],
+        call_times: dict[str, float],
     ) -> Callable[[Any, Any, Any], Any]:
         """Wrap a function with logging functionality."""
-
         time_time = time.time  # Cache the time.time function for performance
 
         @wraps(func)
@@ -55,27 +53,17 @@ class LoggingMeta(type):
             do_logging = (current_time - last_call_time) > threshold
             max_log_length = 20
             if do_logging:
-                args_str = value_to_truncated_string(
-                    value=args, max_length=max_log_length
-                )
-                kwargs_str = value_to_truncated_string(
-                    value=kwargs, max_length=max_log_length
-                )
-                logger.info(
-                    f"{class_name=} - Calling {func_name=} with {args_str=} and {kwargs_str=}"
-                )
+                args_str = value_to_truncated_string(value=args, max_length=max_log_length)
+                kwargs_str = value_to_truncated_string(value=kwargs, max_length=max_log_length)
+                logger.info(f"{class_name=} - Calling {func_name=} with {args_str=} and {kwargs_str=}")
 
             # Execute the function and return the result
             result = func(self, *args, **kwargs)
 
             if do_logging:
                 duration = time_time() - current_time
-                result_str = value_to_truncated_string(
-                    value=result, max_length=max_log_length
-                )
-                logger.info(
-                    f"{class_name=} - {func_name=} finished with {duration:.4f} seconds -> returning {result_str=}"
-                )
+                result_str = value_to_truncated_string(value=result, max_length=max_log_length)
+                logger.info(f"{class_name=} - {func_name=} finished with {duration:.4f} seconds -> returning {result_str=}")
 
             # save the call time for the next call
             call_times[func_name] = current_time
@@ -88,60 +76,51 @@ class LoggingMeta(type):
 class ImplementationMeta(type):
     __abstract__: bool = NotImplemented
 
-    def __init__(
-        cls: type, name: str, bases: tuple[type, ...], dct: dict[str, Any]
-    ) -> None:
+    def __init__(cls: type, name: str, bases: tuple[type, ...], dct: dict[str, Any]) -> None:
         super().__init__(name, bases, dct)
 
         if "__abstract__" not in dct:
-            raise NotImplementedError(
-                f"Class {cls.__name__} must define __abstract__ attribute to indicate if it is abstract or not."
-            )
+            msg = f"Class {cls.__name__} must define __abstract__ attribute to indicate if it is abstract or not."
+            raise NotImplementedError(msg)
 
         if cls.__abstract__:
             return
 
         cls._check_attrs_implemented()
 
-    def _check_attrs_implemented(cls):
+    def _check_attrs_implemented(cls) -> None:
         for attr in cls.attrs_to_implement():
             value = getattr(cls, attr, NotImplemented)
             if value is NotImplemented:
-                raise ValueError(f"{attr=} must be implemented.")
+                msg = f"{attr=} must be implemented."
+                raise ValueError(msg)
 
         cls._check_implemented_attrs_types()
 
-    def _get_implementation_type_hints(cls) -> Dict[str, Any]:
-        type_hints = {
+    def _get_implementation_type_hints(cls) -> dict[str, Any]:
+        return {
             k: eval(v) if isinstance(v, str) else v
             for base_class in cls.__mro__
             for k, v in getattr(base_class, "__annotations__", {}).items()
             if k in cls.attrs_to_implement()
         }
-        return type_hints
 
-    def _check_implemented_attrs_types(cls):
+    def _check_implemented_attrs_types(cls) -> None:
         implementation_type_hints = cls._get_implementation_type_hints()
         for attr, expected_type in implementation_type_hints.items():
             value = getattr(cls, attr, None)
             value_class = value if isinstance(value, type) else type(value)
             expected_type = get_origin(expected_type) or expected_type
             if not issubclass(value_class, expected_type):
-                raise ValueError(
-                    f"{attr=} must have type {expected_type}, got {value_class}"
-                )
+                msg = f"{attr=} must have type {expected_type}, got {value_class}"
+                raise ValueError(msg)
 
     # no underscore to make it public
-    def attrs_to_implement(cls) -> List[str]:
+    def attrs_to_implement(cls) -> list[str]:
         return cls._find_all_attrs_in_parent_classes_not_implemented()
 
-    def _find_all_attrs_in_parent_classes_not_implemented(cls) -> List[str]:
-        attrs = {
-            attr
-            for base_class in cls.__mro__
-            for attr in dir(base_class)
-            if getattr(base_class, attr, None) is NotImplemented
-        }
+    def _find_all_attrs_in_parent_classes_not_implemented(cls) -> list[str]:
+        attrs = {attr for base_class in cls.__mro__ for attr in dir(base_class) if getattr(base_class, attr, None) is NotImplemented}
         return list(attrs)
 
 

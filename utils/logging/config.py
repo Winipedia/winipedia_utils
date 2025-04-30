@@ -2,10 +2,9 @@
 # It sets up a single console handler that prints **all** log levels
 # (DEBUG, INFO, WARNING, ERROR and CRITICAL) using one consistent format.
 
-from typing import Dict, Any
+from typing import Any
 
-
-LOGGING_CONFIG: Dict[str, Any] = {
+LOGGING_CONFIG: dict[str, Any] = {
     "version": 1,  # Mandatory schema version for dictConfig
     "disable_existing_loggers": False,  # Keep any loggers already created elsewhere
     # ---------------------------- #
@@ -21,7 +20,7 @@ LOGGING_CONFIG: Dict[str, Any] = {
                 "%(message)s"  # • %(message)s   – the log message itself
             ),
             "datefmt": "%Y-%m-%d %H:%M:%S",  # Override default timestamp style
-        }
+        },
     },
     # --------------------------- #
     #  Define the console output  #

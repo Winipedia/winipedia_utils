@@ -7,11 +7,13 @@ class TestGit(BaseTestCaseForFile):
 
     tested_file = git
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
 
     def test_path_is_in_gitignore(self) -> None:
-        raise NotImplementedError("Implement this test.")
+        msg = "Implement this test."
+        raise NotImplementedError(msg)
 
     def test_walk_os_skipping_gitignore_patterns(self) -> None:
-        raise NotImplementedError("Implement this test.")
+        msg = "Implement this test."
+        raise NotImplementedError(msg)
