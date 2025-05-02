@@ -7,24 +7,31 @@ authors = [
 ]
 license = {text = "MIT"}
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = [
-]
+requires-python = ">=3.12"
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.poetry]
+packages = [
+    {include = "winipedia_utils"}
+]
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.11.7"
 pre-commit = "^4.2.0"
 
 
+
+[tool.poetry.dependencies]
+tqdm = "^4.67.1"
+scikit-learn = "^1.6.1"
+pytest = "^8.3.5"
 [tool.ruff]
 line-length = 150
-target-version = "py313"
+target-version = "py312"
 exclude = [
     "venv", 
     ".venv", 
@@ -41,7 +48,7 @@ select = [
 ignore = [
   "D203",  # conflicts with D211
   "D213",  # conflicts with D212
-  "COM812"  # avoid conflict with formatter
+  "COM812",  # avoid conflict with formatter
 ]
 fixable = [
     "ALL"
