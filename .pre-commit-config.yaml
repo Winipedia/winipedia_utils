@@ -1,9 +1,51 @@
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.7
+  - repo: local
     hooks:
-      - id: ruff
-        args: [
-          --fix
-        ]
-      - id: ruff-format
+      # ---------------- Winipedia Utils ----------------------
+      - id: winipedia-utils
+        name: winipedia-utils
+        entry: python -m winipedia_utils.git.pre_commit.pre_commit
+        language: system
+        always_run: true
+        pass_filenames: false
+
+      # # ---------------- Test generation ----------------------
+      # - id: create-tests
+      #   name: create-tests
+      #   entry: python -m winipedia_utils.testing.create_tests
+      #   language: system
+      #   always_run: true
+      #   pass_filenames: false
+
+      # # ---------------- Ruff ---------------------------------
+      # - id: ruff-check
+      #   name: ruff-check
+      #   entry: ruff check
+      #   args: [--fix]
+      #   language: system
+      #   pass_filenames: false
+      #   types: [python]
+
+      # - id: ruff-format
+      #   name: ruff-format
+      #   entry: ruff format
+      #   args: [--no-cache]  # otherwise gives error bc of writing to file rights
+      #   language: system
+      #   pass_filenames: false
+      #   types: [python]
+
+      # # ---------------- mypy ---------------------------------
+      # - id: mypy
+      #   name: mypy
+      #   entry: python -m mypy
+      #   language: system
+      #   pass_filenames: true
+      #   types: [python]
+
+      # # ---------------- Pytest -------------------------------
+      # - id: pytest-check
+      #   name: pytest-check
+      #   entry: python -m pytest
+      #   language: system
+      #   always_run: true
+      #   pass_filenames: false
