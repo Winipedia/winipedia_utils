@@ -11,7 +11,9 @@ from io import StringIO
 
 from defusedxml import ElementTree as DefusedElementTree
 
-from winipedia_utils.concurrent.multiprocessing import cancel_on_timeout_with_multiprocessing
+from winipedia_utils.concurrent.multiprocessing import (
+    cancel_on_timeout,
+)
 from winipedia_utils.logging.logger import get_logger
 
 logger = get_logger(__name__)
@@ -29,9 +31,10 @@ def ask_for_input_with_timeout(prompt: str, timeout: int) -> str:
 
     Raises:
         TimeoutError: If the user doesn't provide input within the timeout period
+
     """
 
-    @cancel_on_timeout_with_multiprocessing(timeout, "Input not given within the timeout")
+    @cancel_on_timeout(timeout, "Input not given within the timeout")
     def give_input() -> str:
         return input(prompt)
 
@@ -47,7 +50,9 @@ def find_xml_namespaces(xml: str | StringIO) -> dict[str, str]:
         xml: XML content as a string or StringIO object
 
     Returns:
-        Dictionary mapping namespace prefixes to their URIs, excluding the default namespace
+        Dictionary mapping namespace prefixes to their URIs,
+        excluding the default namespace
+
     """
     if not isinstance(xml, StringIO):
         xml = StringIO(xml)
@@ -72,6 +77,7 @@ def value_to_truncated_string(value: object, max_length: int) -> str:
 
     Returns:
         Truncated string representation of the value
+
     """
     string = str(value)
     return textwrap.shorten(string, width=max_length, placeholder="...")
@@ -88,6 +94,7 @@ def get_reusable_hash(value: object) -> str:
 
     Returns:
         Hexadecimal string representation of the SHA-256 hash
+
     """
     value_str = str(value)
     return hashlib.sha256(value_str.encode("utf-8")).hexdigest()

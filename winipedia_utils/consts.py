@@ -5,9 +5,17 @@ modules within the package. These constants define core configuration
 values and identifiers for the package.
 """
 
-import tomllib
-from pathlib import Path
+PACKAGE_NAME = "winipedia_utils"
 
-toml = tomllib.loads(Path("pyproject.toml").read_text())
-
-PACKAGE_NAME = toml["project"]["name"].replace("-", "_")
+_DEV_DEPENDENCIES = [
+    "ruff",
+    "pre-commit",
+    "mypy",
+    "pytest",
+    "bandit",
+    "types-setuptools",
+    "types-tqdm",
+    "types-defusedxml",
+    "types-pyyaml",
+    "pytest-mock",
+]

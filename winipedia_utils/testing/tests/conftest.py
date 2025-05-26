@@ -1,30 +1,26 @@
 """Pytest configuration for winipedia_utils tests.
 
-This module configures pytest plugins for the test suite, setting up the necessary
-fixtures and hooks for different test scopes (function, class, module, package, session).
-It imports plugins from both the package's testing module and the tests directory,
-ensuring that all custom fixtures and test utilities are available to the test suite.
+finds all the plugins in the tests directory and the package's testing module
+and adds them to pytest_plugins. This way defining reusable fixtures is easy.
 """
 
 from winipedia_utils.consts import PACKAGE_NAME
+from winipedia_utils.modules.module import to_module_name, to_path
 
-tests_to_scopes_route = "tests.base.scopes"
-tests_to_func_scope_route = f"{tests_to_scopes_route}.function"
-tests_to_class_scope_route = f"{tests_to_scopes_route}.class_"
-tests_to_module_scope_route = f"{tests_to_scopes_route}.module"
-tests_to_package_scope_route = f"{tests_to_scopes_route}.package"
-tests_to_session_scope_route = f"{tests_to_scopes_route}.session"
+custom_plugin_path = to_path("tests.base.fixtures", is_package=True)
+package_plugin_path = (
+    to_path(f"{PACKAGE_NAME}.testing", is_package=True) / custom_plugin_path
+)
 
-package_to_tests_route = f"{PACKAGE_NAME}.testing"
-
-custom_plugins = [
-    tests_to_func_scope_route,
-    tests_to_class_scope_route,
-    tests_to_module_scope_route,
-    tests_to_package_scope_route,
-    tests_to_session_scope_route,
+custom_plugin_module_names = [
+    to_module_name(path) for path in custom_plugin_path.rglob("*.py")
 ]
-package_plugins = [f"{package_to_tests_route}.{p}" for p in custom_plugins]
+package_plugin_module_names = [
+    to_module_name(path) for path in package_plugin_path.rglob("*.py")
+]
 
 
-pytest_plugins = package_plugins + custom_plugins
+pytest_plugins = [
+    *package_plugin_module_names,
+    *custom_plugin_module_names,
+]

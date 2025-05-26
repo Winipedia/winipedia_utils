@@ -9,16 +9,20 @@ The utilities support both runtime module manipulation and static analysis,
 making them suitable for code generation, testing frameworks, and dynamic imports.
 """
 
+import inspect
 import os
 import time
 from collections.abc import Callable, Sequence
 from importlib import import_module
 from pathlib import Path
 from types import ModuleType
-from typing import Any
+from typing import Any, cast
 
 from winipedia_utils.logging.logger import get_logger
-from winipedia_utils.modules.class_ import get_all_cls_from_module, get_all_methods_from_cls
+from winipedia_utils.modules.class_ import (
+    get_all_cls_from_module,
+    get_all_methods_from_cls,
+)
 from winipedia_utils.modules.function import get_all_functions_from_module
 from winipedia_utils.modules.package import (
     get_modules_and_packages_from_package,
@@ -42,6 +46,7 @@ def get_module_content_as_str(module: ModuleType) -> str:
 
     Returns:
         The complete source code of the module as a string
+
     """
     path = to_path(module, is_package=False)
     return path.read_text()
@@ -63,6 +68,7 @@ def to_module_name(path: str | Path | ModuleType) -> str:
 
     Example:
         path_to_module_name("src/package/module.py") -> "src.package.module"
+
     """
     if isinstance(path, ModuleType):
         return path.__name__
@@ -75,7 +81,8 @@ def to_module_name(path: str | Path | ModuleType) -> str:
     if path in (".", "./", ""):
         return ""
     # we get a str that can either be a dotted module name or a path
-    # e.g. package/module.py or package/module or package.module or just package/package2
+    # e.g. package/module.py or package/module or
+    # package.module or just package/package2
     # or just package with nothing
     path = path.removesuffix(".py")
     if "." in path:
@@ -92,7 +99,7 @@ def to_path(module_name: str | ModuleType | Path, *, is_package: bool) -> Path:
     package_name_to_path function for the directory structure.
 
     Args:
-        module_name: A Python module name to convert or a Path object or a ModuleType object
+        module_name: A Python module name to convert or Path or ModuleType
         is_package: Whether to return the path to the package directory
             without the .py extension
 
@@ -103,6 +110,7 @@ def to_path(module_name: str | ModuleType | Path, *, is_package: bool) -> Path:
 
     Example:
         module_name_to_path("src.package.module") -> Path("src/package/module.py")
+
     """
     module_name = to_module_name(module_name)
     path = Path(module_name.replace(".", os.sep))
@@ -111,7 +119,9 @@ def to_path(module_name: str | ModuleType | Path, *, is_package: bool) -> Path:
     return path.with_suffix(".py")
 
 
-def create_module(module_name: str | Path | ModuleType, *, is_package: bool) -> ModuleType:
+def create_module(
+    module_name: str | Path | ModuleType, *, is_package: bool
+) -> ModuleType:
     """Create a new Python module file and import it.
 
     Creates a new module file at the location specified by the module name,
@@ -129,6 +139,7 @@ def create_module(module_name: str | Path | ModuleType, *, is_package: bool) -> 
     Note:
         Includes a small delay (0.1s) before importing to ensure filesystem operations
         are complete, preventing race conditions.
+
     """
     path = to_path(module_name, is_package=is_package)
     if path == Path():
@@ -139,7 +150,7 @@ def create_module(module_name: str | Path | ModuleType, *, is_package: bool) -> 
     make_dir_with_init_file(path if is_package else path.parent)
     # create the module file if not exists
     if not path.exists() and not is_package:
-        path.write_text(get_default_module_content(path))
+        path.write_text(get_default_module_content())
 
     module_name = to_module_name(path)
     # wait before importing the module
@@ -163,6 +174,7 @@ def make_obj_importpath(obj: Callable[..., Any] | type | ModuleType) -> str:
         For a module: "package.subpackage.module"
         For a class: "package.module.ClassName"
         For a function: "package.module.function_name"
+
     """
     module: str | None = getattr(obj, "__module__", None)
     if not module:
@@ -170,7 +182,9 @@ def make_obj_importpath(obj: Callable[..., Any] | type | ModuleType) -> str:
     return module + "." + obj.__name__
 
 
-def import_obj_from_importpath(importpath: str) -> Callable[..., Any] | type | ModuleType:
+def import_obj_from_importpath(
+    importpath: str,
+) -> Callable[..., Any] | type | ModuleType:
     """Import a Python object (module, class, or function) from its import path.
 
     Attempts to import the object specified by the given import path. First tries
@@ -186,6 +200,7 @@ def import_obj_from_importpath(importpath: str) -> Callable[..., Any] | type | M
     Raises:
         ImportError: If the module part of the path cannot be imported
         AttributeError: If the object is not found in the module
+
     """
     try:
         return import_module(importpath)
@@ -213,12 +228,13 @@ def get_isolated_obj_name(obj: Callable[..., Any] | type | ModuleType) -> str:
         For a module "package.subpackage.module": returns "module"
         For a class: returns the class name
         For a function: returns the function name
+
     """
     if isinstance(obj, ModuleType):
         return obj.__name__.split(".")[-1]
     if isinstance(obj, type):
         return obj.__name__
-    return obj.__name__
+    return get_name_of_obj(obj)
 
 
 def get_objs_from_obj(
@@ -238,6 +254,7 @@ def get_objs_from_obj(
 
     Returns:
         A sequence of objects contained within the given container object
+
     """
     if isinstance(obj, ModuleType):
         if module_is_package(obj):
@@ -266,11 +283,12 @@ def execute_all_functions_from_module(module: ModuleType) -> list[Any]:
     Note:
         Only executes functions defined directly in the module, not imported functions.
         All functions must accept being called with no arguments.
+
     """
     return [f() for f in get_all_functions_from_module(module)]
 
 
-def get_default_init_module_content(path: str | Path) -> str:
+def get_default_init_module_content() -> str:
     """Generate standardized content for an __init__.py file.
 
     Creates a simple docstring for an __init__.py file based on its location,
@@ -281,22 +299,55 @@ def get_default_init_module_content(path: str | Path) -> str:
 
     Returns:
         A string containing a properly formatted docstring for the __init__.py file
+
     """
-    package_name = to_module_name(path).removesuffix(".__init__")
-    return f'"""__init__ module for {package_name}."""'
+    return '''"""__init__ module."""'''
 
 
-def get_default_module_content(path: str | Path) -> str:
+def get_default_module_content() -> str:
     """Generate standardized content for a Python module file.
 
     Creates a simple docstring for a module file based on its name,
     following the project's documentation conventions.
 
-    Args:
-        path: The path to the module file
-
     Returns:
         A string containing a properly formatted docstring for the module file
+
     """
-    module_name = to_module_name(path)
-    return f'"""{module_name} module."""'
+    return '''"""module."""'''
+
+
+def get_def_line(obj: Any) -> int:
+    """Return the line number where a method-like object is defined."""
+    if isinstance(obj, property):
+        obj = obj.fget
+    unwrapped = inspect.unwrap(obj)
+    return inspect.getsourcelines(unwrapped)[1]
+
+
+def get_module_of_obj(obj: Any) -> ModuleType:
+    """Return the module name where a method-like object is defined.
+
+    Args:
+        obj: Method-like object (funcs, method, property, staticmethod, classmethod...)
+
+    Returns:
+        The module name as a string, or None if module cannot be determined.
+
+    """
+    if isinstance(obj, property):
+        obj = obj.fget  # get the getter function of the property
+    unwrapped = inspect.unwrap(obj)
+    module = inspect.getmodule(unwrapped)
+    if not module:
+        msg = f"Could not determine module of {obj}"
+        raise ValueError(msg)
+    return module
+
+
+def get_name_of_obj(obj: Any) -> str:
+    """Return the name of a method-like object."""
+    if isinstance(obj, property):
+        obj = obj.fget  # get the getter function of the property
+    unwrapped = inspect.unwrap(obj)
+    return cast("str", unwrapped.__name__)

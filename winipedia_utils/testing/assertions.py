@@ -18,5 +18,6 @@ def assert_with_msg(expr: bool, msg: str) -> None:  # noqa: FBT001
 
     Raises:
         AssertionError: If the expression evaluates to False
+
     """
-    assert expr, msg  # noqa: S101
+    assert expr, msg  # noqa: S101  # nosec: B101

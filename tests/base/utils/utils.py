@@ -1,1 +1,4 @@
-"""tests.base.utils.utils module."""
+"""module for the following module path (maybe truncated).
+
+tests.base.utils.utils
+"""

@@ -1,1 +1,4 @@
-"""__init__ module for tests."""
+"""__init__ module for the following package path (maybe truncated).
+
+tests
+"""

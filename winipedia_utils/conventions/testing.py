@@ -6,6 +6,7 @@ and utilities for test discovery and validation.
 
 Returns:
     Various utility functions and constants for testing conventions.
+
 """
 
 from collections.abc import Callable, Iterable
@@ -37,6 +38,7 @@ def get_right_test_prefix(obj: Callable[..., Any] | type | ModuleType) -> str:
 
     Returns:
         The appropriate test prefix string for the given object type
+
     """
     if isinstance(obj, ModuleType):
         return TEST_MODULE_PREFIX
@@ -53,6 +55,7 @@ def make_test_obj_name(obj: Callable[..., Any] | type | ModuleType) -> str:
 
     Returns:
         The test name with the appropriate prefix
+
     """
     prefix = get_right_test_prefix(obj)
     name = get_isolated_obj_name(obj)
@@ -70,6 +73,7 @@ def reverse_make_test_obj_name(test_name: str) -> str:
 
     Raises:
         ValueError: If the test name doesn't start with any of the expected prefixes
+
     """
     for prefix in TEST_PREFIXES:
         if test_name.startswith(prefix):
@@ -78,7 +82,9 @@ def reverse_make_test_obj_name(test_name: str) -> str:
     raise ValueError(msg)
 
 
-def make_test_obj_importpath_from_obj(obj: Callable[..., Any] | type | ModuleType) -> str:
+def make_test_obj_importpath_from_obj(
+    obj: Callable[..., Any] | type | ModuleType,
+) -> str:
     """Create an import path for a test object based on the original object.
 
     Args:
@@ -86,6 +92,7 @@ def make_test_obj_importpath_from_obj(obj: Callable[..., Any] | type | ModuleTyp
 
     Returns:
         The import path for the corresponding test object
+
     """
     parts = make_obj_importpath(obj).split(".")
     test_name = make_test_obj_name(obj)
@@ -95,7 +102,9 @@ def make_test_obj_importpath_from_obj(obj: Callable[..., Any] | type | ModuleTyp
     return ".".join(test_parts)
 
 
-def make_obj_importpath_from_test_obj(test_obj: Callable[..., Any] | type | ModuleType) -> str:
+def make_obj_importpath_from_test_obj(
+    test_obj: Callable[..., Any] | type | ModuleType,
+) -> str:
     """Create an import path for an original object based on its test object.
 
     Args:
@@ -103,6 +112,7 @@ def make_obj_importpath_from_test_obj(test_obj: Callable[..., Any] | type | Modu
 
     Returns:
         The import path for the corresponding original object
+
     """
     test_parts = make_obj_importpath(test_obj).split(".")
     test_parts = test_parts[1:]
@@ -120,6 +130,7 @@ def get_test_obj_from_obj(
 
     Returns:
         The corresponding test object
+
     """
     test_obj_path = make_test_obj_importpath_from_obj(obj)
     return import_obj_from_importpath(test_obj_path)
@@ -135,6 +146,7 @@ def get_obj_from_test_obj(
 
     Returns:
         The corresponding original object
+
     """
     obj_importpath = make_obj_importpath_from_test_obj(test_obj)
     return import_obj_from_importpath(obj_importpath)
@@ -150,6 +162,7 @@ def make_untested_summary_error_msg(
 
     Returns:
         A formatted error message listing all untested objects
+
     """
     msg = """
     Found untested objects:

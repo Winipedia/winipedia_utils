@@ -1,69 +1,62 @@
+# Project section
 [project]
 name = "winipedia-utils"
 version = "0.1.0"
 description = "A package with many utility functions"
-authors = [
-    {name = "Winipedia"}
-]
-license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.12"
+dynamic = [ "dependencies",]
+[[project.authors]]
+name = "Winipedia"
 
+[project.license]
+text = "MIT"
 
+# Build system section
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = [ "poetry-core>=2.0.0,<3.0.0",]
 build-backend = "poetry.core.masonry.api"
 
+# Poetry section
 [tool.poetry]
-packages = [
-    {include = "winipedia_utils"}
-]
+[[tool.poetry.packages]]
+include = "winipedia_utils"
+
+[tool.poetry.dependencies]
+tqdm = "^4.67.1"
+setuptools = "^80.3.1"
+defusedxml = "^0.7.1"
+tomlkit = "^0.13.2"
+pathspec = "^0.12.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.11.7"
 pre-commit = "^4.2.0"
 mypy = "^1.15.0"
+pytest = "^8.3.5"
+bandit = "^1.8.3"
 types-setuptools = "^80.4.0.20250511"
 types-tqdm = "^4.67.0.20250417"
 types-defusedxml = "^0.7.0.20240218"
+types-pyyaml = "^6.0.12.20250516"
 
-
-[tool.poetry.dependencies]
-tqdm = "^4.67.1"
-pytest = "^8.3.5"
-setuptools = "^80.3.1"
-defusedxml = "^0.7.1"
-
+# Tool sections
+pytest-mock = "^3.14.0"
 [tool.ruff]
-line-length = 100
-target-version = "py312"
-exclude = [
-    ".*",
-    "__pycache__",
-]
-
-[tool.ruff.lint]
-select = [
-    "ALL"
-]
-ignore = [
-  "D203",  # conflicts with D211
-  "D213",  # conflicts with D212
-  "COM812",  # avoid conflict with formatter
-]
-fixable = [
-    "ALL"
-]
-
-[tool.ruff.lint.pydocstyle]
-convention = "google"
+exclude = [ ".*",]
 
 [tool.mypy]
-python_version = "3.12"
 strict = true
+warn_unreachable = true
 show_error_codes = true
-pretty = true
 files = "."
 
+[tool.ruff.lint]
+select = [ "ALL",]
+ignore = [ "D203", "D213", "COM812", "ANN401",]
+fixable = [ "ALL",]
+
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = [ "tests",]
+
+[tool.bandit]

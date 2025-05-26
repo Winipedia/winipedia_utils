@@ -2,59 +2,17 @@
 
 This module provides utility functions for working with Python classes,
 including extracting methods from classes and finding classes within modules.
-These utilities are particularly useful for reflection, testing, and dynamic code generation.
+These utilities are particularly useful for reflection, testing,
+and dynamic code generation.
 """
 
 import inspect
 from collections.abc import Callable
+from importlib import import_module
 from types import ModuleType
 from typing import Any
 
-
-def is_func_or_method(obj: Callable[..., Any]) -> bool:
-    """Return True if *obj* is a function or method.
-
-    This function checks if the given object is a function or method,
-    including those defined in a class body.
-
-    Args:
-        obj: The object to check
-
-    Returns:
-        bool: True if the object is a function or method, False otherwise
-    """
-    return inspect.isfunction(obj) or inspect.ismethod(obj)
-
-
-def is_func(obj: Callable[..., Any]) -> bool:
-    """Return True if *obj* is a 'method-like' attribute as it appears in a class body.
-
-    Accepts:
-
-
-        • plain functions (instance methods)
-        • staticmethod / classmethod descriptors
-        • property descriptors (getter counts as method)
-        • decorated functions that keep a __wrapped__ chain
-
-    Returns:
-        bool: True if the object is a method-like attribute, False otherwise
-    """
-    # plain function
-
-    if is_func_or_method(obj):
-        return True
-
-    # common descriptors
-
-    if isinstance(obj, (staticmethod, classmethod, property)):
-        return True
-
-    # unwrap any wrappers (@functools.wraps) and retest
-
-    unwrapped = inspect.unwrap(obj)
-
-    return is_func_or_method(unwrapped)
+from winipedia_utils.modules.function import is_func
 
 
 def get_all_methods_from_cls(
@@ -71,20 +29,28 @@ def get_all_methods_from_cls(
         excluding those inherited from parent classes
     Returns:
         A list of callable methods from the class
+
     """
-    methods = [(method, name) for name, method in inspect.getmembers(class_) if is_func(method)]
+    from winipedia_utils.modules.module import get_def_line, get_module_of_obj
+
+    methods = [
+        (method, name) for name, method in inspect.getmembers(class_) if is_func(method)
+    ]
 
     if exclude_parent_methods:
         methods = [
             (method, name)
             for method, name in methods
-            if method.__module__ == class_.__module__ and name in class_.__dict__
+            if get_module_of_obj(method).__name__ == class_.__module__
+            and name in class_.__dict__
         ]
 
-    return [method for method, _name in methods]
+    only_methods = [method for method, _name in methods]
+    # sort by definition order
+    return sorted(only_methods, key=get_def_line)
 
 
-def get_all_cls_from_module(module: ModuleType) -> list[type]:
+def get_all_cls_from_module(module: ModuleType | str) -> list[type]:
     """Get all classes defined in a module.
 
     Retrieves all class objects that are defined directly in the specified module,
@@ -95,9 +61,16 @@ def get_all_cls_from_module(module: ModuleType) -> list[type]:
 
     Returns:
         A list of class types defined in the module
+
     """
-    return [
+    from winipedia_utils.modules.module import get_def_line, get_module_of_obj
+
+    if isinstance(module, str):
+        module = import_module(module)
+    classes = [
         obj
         for _, obj in inspect.getmembers(module, inspect.isclass)
-        if obj.__module__ == module.__name__
+        if get_module_of_obj(obj).__name__ == module.__name__
     ]
+    # sort by definition order
+    return sorted(classes, key=get_def_line)

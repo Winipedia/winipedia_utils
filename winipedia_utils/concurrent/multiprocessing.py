@@ -6,6 +6,7 @@ managing process pools, and organizing parallel execution of functions.
 
 Returns:
     Various utility functions for concurrent processing.
+
 """
 
 import copy
@@ -24,7 +25,7 @@ from winipedia_utils.logging.logger import get_logger
 logger = get_logger(__name__)
 
 
-def cancel_on_timeout_with_multiprocessing(seconds: int, message: str) -> Callable[..., Any]:
+def cancel_on_timeout(seconds: float, message: str) -> Callable[..., Any]:
     """Cancel a function execution if it exceeds a specified timeout.
 
     Creates a wrapper that executes the decorated function in a separate process
@@ -39,6 +40,14 @@ def cancel_on_timeout_with_multiprocessing(seconds: int, message: str) -> Callab
 
     Raises:
         multiprocessing.TimeoutError: When function execution exceeds the timeout
+
+    Note:
+        Only works with functions that are pickle-able.
+        This means it may not work as a decorator.
+        Instaed you should use it as a wrapper function.
+        Like this:
+        my_func = cancel_on_timeout(seconds=2, message="Test timeout")(my_func)
+
     """
 
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
@@ -55,9 +64,10 @@ def cancel_on_timeout_with_multiprocessing(seconds: int, message: str) -> Callab
                         seconds,
                         message,
                     )
+                    raise
+                finally:
                     pool.terminate()  # Ensure the worker process is killed
                     pool.join()  # Wait for cleanup
-                    raise
 
         return wrapper
 
@@ -79,15 +89,19 @@ def multiprocess_loop(
         process_function: Function that processes the given process_args
         process_args: List of argument lists to be processed by the process_function
         process_args_static: Optional constant arguments passed to each function call
-        deepcopy_static_args: Optional arguments that should be deep-copied for each process
+        deepcopy_static_args: Optional arguments that should be
+                              deep-copied for each process
 
     Returns:
         List of results from the process_function executions
 
     Note:
-        Pool is used for CPU-bound tasks as it bypasses Python's GIL by creating separate processes.
+        Pool is used for CPU-bound tasks as it bypasses
+        Python's GIL by creating separate processes.
         Multiprocessing is not safe for mutable objects unlike ThreadPoolExecutor.
         When debugging, if ConnectionErrors occur, set max_processes to 1.
+        Also given functions must be pickle-able.
+
     """
     max_processes: int
     process_args, max_processes = prepare_multiprocess_loop(
@@ -103,14 +117,11 @@ def multiprocess_loop(
             # using original function without progress bar,
             # bc pickling the wrapper function causes errors in multiprocessing
             results = (
-                r
-                for r in pool.imap_unordered(
-                    process_function_for_imap_with_args_unpacking, process_args
-                )
+                r for r in pool.imap_unordered(get_order_and_func_result, process_args)
             )
         else:
             # if only one worker is allowed, then process the loop as a single loop
-            results = (r for r in map(process_function_for_imap_with_args_unpacking, process_args))
+            results = (r for r in map(get_order_and_func_result, process_args))
 
         return get_multiprocess_results_with_tqdm(
             results=results,
@@ -120,7 +131,7 @@ def multiprocess_loop(
         )
 
 
-def process_function_for_imap_with_args_unpacking(
+def get_order_and_func_result(
     func_order_args: tuple[Any, ...],
 ) -> tuple[int, Any]:
     """Process function for imap with arguments unpacking.
@@ -134,6 +145,7 @@ def process_function_for_imap_with_args_unpacking(
 
     Returns:
         tuple[int, Any]: Tuple of (order_index, function_result)
+
     """
     func: Callable[..., Any] = func_order_args[0]
     order: int = func_order_args[1]
@@ -171,6 +183,7 @@ def prepare_multiprocess_loop(
         tuple: A tuple containing (process_args_tuples, max_pools) where:
             - process_args_tuples: List of argument tuples ready for execution
             - max_pools: Optimal number of worker processes/threads
+
     """
     # convert all process_args to list for consistency
     process_args_list = [list(process_arg) for process_arg in process_args]
@@ -202,8 +215,10 @@ def prepare_multiprocess_loop(
         threads=threads, length_process_args=process_args_len
     )
 
-    # we are ordering the process_args this way so each item is the args for one function call
-    # the wrapper function process_function_for_imap_with_args_unpacking will unpack the args
+    # we are ordering the process_args this way so each item
+    # is the args for one function call
+    # the wrapper function process_function_for_imap_with_args_unpacking
+    # will unpack the args
     # so we can pass the same args to built in map, imap_unordered, or submit
     process_args_tuples = [
         tuple(process_arg) for process_arg in zip(*process_args_list, strict=True)
@@ -232,6 +247,7 @@ def get_multiprocess_results_with_tqdm(
 
     Returns:
         list[Any]: Results from parallel execution in original order
+
     """
     results = tqdm(
         results,
@@ -247,7 +263,9 @@ def get_multiprocess_results_with_tqdm(
     return [result[1] for result in results_list]
 
 
-def find_max_pools_for_multiprocessing(*, threads: bool, length_process_args: int) -> int:
+def find_max_pools_for_multiprocessing(
+    *, threads: bool, length_process_args: int
+) -> int:
     """Find optimal number of worker processes or threads for parallel execution.
 
     Determines the maximum number of worker processes or threads based on system
@@ -259,14 +277,13 @@ def find_max_pools_for_multiprocessing(*, threads: bool, length_process_args: in
 
     Returns:
         int: Maximum number of worker processes or threads to use
+
     """
     cpu_count = os.cpu_count() or 1
     if threads:
-        logger.info("Using ThreadPoolExecutor for multithreading.")
         active_tasks = threading.active_count()
         max_tasks = cpu_count * 4
     else:
-        logger.info("Using Pool for multiprocessing.")
         active_tasks = len(multiprocessing.active_children())
         max_tasks = cpu_count
 
@@ -275,7 +292,11 @@ def find_max_pools_for_multiprocessing(*, threads: bool, length_process_args: in
     max_pools = min(max_pools, length_process_args)
     max_pools = max(max_pools, 1)
 
-    logger.info("Multi%s with max_pools: %s", "threading" if threads else "processing", max_pools)
+    logger.info(
+        "Multi%s with max_pools: %s",
+        "threading" if threads else "processing",
+        max_pools,
+    )
 
     return max_pools
 
@@ -294,7 +315,8 @@ def extend_process_args_with_const_args(
     Args:
         process_args: List of argument lists for parallel processing
         process_args_static: Iterable of constant arguments to add
-        deepcopy_static_args: Whether to create deep copies of static arguments. Defaults to False.
+        deepcopy_static_args: Whether to create deep copies of static arguments.
+
     """
     length_process_args = len(process_args[0])
     for process_arg_static in process_args_static:

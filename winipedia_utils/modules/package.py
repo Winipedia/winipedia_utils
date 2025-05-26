@@ -36,7 +36,9 @@ def get_scr_package() -> ModuleType:
         The main source package as a module object
 
     Raises:
-        StopIteration: If no source package can be found or if only the test package exists
+        StopIteration: If no source package can be found or
+                       if only the test package exists
+
     """
     from winipedia_utils.conventions.testing import TESTS_PACKAGE_NAME
 
@@ -57,6 +59,7 @@ def make_dir_with_init_file(path: str | Path) -> None:
     Note:
         If the directory already exists, it will not be modified, but __init__.py
         files will still be added if missing.
+
     """
     path = Path(path)
     path.mkdir(parents=True, exist_ok=True)
@@ -77,6 +80,7 @@ def module_is_package(obj: ModuleType) -> bool:
 
     Note:
         This works for both regular packages and namespace packages.
+
     """
     return hasattr(obj, "__path__")
 
@@ -89,13 +93,15 @@ def package_name_to_path(package_name: str | Path | ModuleType) -> Path:
     for the current operating system.
 
     Args:
-        package_name: A Python package name to convert or a Path object or a ModuleType object
+        package_name: A Python package name to convert
+                      or a Path object or a ModuleType object
 
     Returns:
         A Path object representing the filesystem path to the package
 
     Example:
         package_name_to_path("package.subpackage") -> Path("package/subpackage")
+
     """
     if isinstance(package_name, ModuleType):
         package_name = package_name.__name__
@@ -121,10 +127,13 @@ def get_modules_and_packages_from_package(
     Note:
         Only includes direct children, not recursive descendants.
         All discovered modules and packages are imported during this process.
+
     """
     packages: list[ModuleType] = []
     modules: list[ModuleType] = []
-    for _, name, is_pkg in pkgutil.iter_modules(package.__path__, prefix=package.__name__ + "."):
+    for _, name, is_pkg in pkgutil.iter_modules(
+        package.__path__, prefix=package.__name__ + "."
+    ):
         mod = import_module(name)
         if is_pkg:
             packages.append(mod)
@@ -151,7 +160,7 @@ def find_packages(
 
     Args:
         depth: Optional maximum depth of package nesting to include (None for unlimited)
-        include_namespace_packages: Whether to include namespace packages (no __init__.py)
+        include_namespace_packages: Whether to include namespace packages
         where: Directory to search for packages (default: current directory)
         exclude: Patterns of package names to exclude
         include: Patterns of package names to include
@@ -161,9 +170,12 @@ def find_packages(
 
     Example:
         find_packages(depth=1) might return ["package1", "package2"]
+
     """
     if include_namespace_packages:
-        package_names = _find_namespace_packages(where=where, exclude=exclude, include=include)
+        package_names = _find_namespace_packages(
+            where=where, exclude=exclude, include=include
+        )
     else:
         package_names = _find_packages(where=where, exclude=exclude, include=include)
 
@@ -191,7 +203,7 @@ def find_packages_as_modules(
 
     Args:
         depth: Optional maximum depth of package nesting to include (None for unlimited)
-        include_namespace_packages: Whether to include namespace packages (no __init__.py)
+        include_namespace_packages: Whether to include namespace packages
         where: Directory to search for packages (default: current directory)
         exclude: Patterns of package names to exclude
         include: Patterns of package names to include
@@ -201,6 +213,7 @@ def find_packages_as_modules(
 
     Note:
         All discovered packages are imported during this process.
+
     """
     package_names = find_packages(
         depth=depth,
@@ -230,6 +243,7 @@ def walk_package(
         All packages and modules are imported during this process.
         The traversal is depth-first, so subpackages are fully processed
         before moving to siblings.
+
     """
     subpackages, submodules = get_modules_and_packages_from_package(package)
     yield package, submodules
@@ -249,7 +263,9 @@ def make_init_modules_for_package(path: str | Path | ModuleType) -> None:
 
     Note:
         Does not modify directories that already have __init__.py files.
-        Uses the default content for __init__.py files from get_default_init_module_content.
+        Uses the default content for __init__.py files
+        from get_default_init_module_content.
+
     """
     from winipedia_utils.modules.module import to_path
 
@@ -274,6 +290,7 @@ def make_init_module(path: str | Path) -> None:
         If the path already points to an __init__.py file, that file will be
         overwritten with the default content.
         Creates parent directories if they don't exist.
+
     """
     from winipedia_utils.modules.module import get_default_init_module_content, to_path
 
@@ -283,7 +300,7 @@ def make_init_module(path: str | Path) -> None:
     if path.name != "__init__.py":
         path = path / "__init__.py"
 
-    content = get_default_init_module_content(path)
+    content = get_default_init_module_content()
 
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
@@ -295,7 +312,7 @@ def copy_package(
     *,
     with_file_content: bool = True,
 ) -> None:
-    """Copies a package to a different destination.
+    """Copy a package to a different destination.
 
     Takes a ModuleType of package and a destination package name and then copies
     the package to the destination. If with_file_content is True, it copies the
@@ -303,8 +320,10 @@ def copy_package(
 
     Args:
         src_package (ModuleType): The package to copy
-        dst (str | Path): The destination package name as a Path with / or as a str with dots
-        with_file_content (bool, optional): If to copy the content of the files. Defaults to True.
+        dst (str | Path): destination package name as a
+                          Path with / or as a str with dots
+        with_file_content (bool, optional): copies the content of the files.
+
     """
     from winipedia_utils.modules.module import (
         create_module,

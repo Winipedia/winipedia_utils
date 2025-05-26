@@ -6,6 +6,7 @@ This module provides utility functions for working with tests, including:
 
 Returns:
     Various utility functions for testing introspection and validation.
+
 """
 
 from collections.abc import Callable
@@ -22,7 +23,7 @@ from winipedia_utils.modules.module import get_objs_from_obj, make_obj_importpat
 from winipedia_utils.testing.assertions import assert_with_msg
 
 
-def assert_no_untested_objs(
+def _assert_no_untested_objs(
     test_obj: ModuleType | type | Callable[..., Any],
 ) -> None:
     """Assert that all objects in the source have corresponding test objects.
@@ -36,6 +37,7 @@ def assert_no_untested_objs(
     Raises:
         AssertionError: If any object in the source lacks a corresponding test object,
             with a detailed error message listing the untested objects
+
     """
     test_objs = get_objs_from_obj(test_obj)
     test_objs_paths = {make_obj_importpath(o) for o in test_objs}
@@ -49,25 +51,23 @@ def assert_no_untested_objs(
     assert_with_msg(not untested_objs, make_untested_summary_error_msg(untested_objs))
 
 
-def get_conftest_content() -> str:
-    """Generate the content for a conftest.py file.
-
-    Returns:
-        A string containing the pytest_plugins configuration for the conftest.py file
-    """
-    return '''"""Pytest configuration for tests.
+def _get_conftest_content() -> str:
+    """Get the content for a conftest.py file when using winipedia_utils."""
+    return '''
+"""Pytest configuration for tests.
 
 This module configures pytest plugins for the test suite, setting up the necessary
-fixtures and hooks for different test scopes (function, class, module, package, session).
+fixtures and hooks for the different
+test scopes (function, class, module, package, session).
 It also import custom plugins from tests/base/scopes.
 This file should not be modified manually.
 """
 
 pytest_plugins = ["winipedia_utils.testing.tests.conftest"]
-'''
+'''.strip()
 
 
-def correct_conftest_content(conftest_path: Path) -> bool:
+def _conftest_content_is_correct(conftest_path: Path) -> bool:
     """Check if the conftest.py file has the correct content.
 
     Args:
@@ -75,7 +75,8 @@ def correct_conftest_content(conftest_path: Path) -> bool:
 
     Returns:
         True if the conftest.py file exists and has the correct content, False otherwise
+
     """
     if not conftest_path.exists():
         return False
-    return get_conftest_content() == conftest_path.read_text()
+    return conftest_path.read_text().startswith(_get_conftest_content())

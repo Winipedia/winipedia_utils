@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 
 
 class ABCImplementationLoggingMixin(metaclass=ABCImplementationLoggingMeta):
-    """Base mixin class that provides implementation checking, logging, and ABC functionality.
+    """mixin class that provides implementation, logging, and ABC functionality.
 
     This mixin can be used as a base class for other mixins that need:
     - Abstract method declaration (from ABC)

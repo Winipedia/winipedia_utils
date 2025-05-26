@@ -6,10 +6,11 @@ while respecting gitignore patterns. These utilities help with file operations
 that need to respect Git's ignore rules.
 """
 
-import fnmatch
 import os
 from collections.abc import Generator
 from pathlib import Path
+
+import pathspec
 
 from winipedia_utils.logging.logger import get_logger
 
@@ -25,35 +26,26 @@ def path_is_in_gitignore(relative_path: str | Path) -> bool:
     Returns:
         True if the path matches any pattern in .gitignore, False otherwise
 
-    Raises:
-        FileNotFoundError: If the .gitignore file doesn't exist
     """
-    relative_path = Path(relative_path)
-    # check if the path is in the .gitignore file
+    as_path = Path(relative_path)
+    is_dir = (
+        bool(as_path.suffix == "") or as_path.is_dir() or str(as_path).endswith(os.sep)
+    )
+    is_dir = is_dir and not as_path.is_file()
+
+    as_posix = as_path.as_posix()
+    if is_dir and not as_posix.endswith("/"):
+        as_posix += "/"
+
     gitignore_path = Path(".gitignore")
     if not gitignore_path.exists():
-        msg = f"Gitignore file not found at {gitignore_path}"
-        raise FileNotFoundError(msg)
+        return False  # No ignore rules
 
-    # Normalize the path to use forward slashes
-    relative_path = relative_path.as_posix()
+    spec = pathspec.PathSpec.from_lines(
+        "gitwildmatch", gitignore_path.read_text().splitlines()
+    )
 
-    with Path.open(gitignore_path) as f:
-        for line in f:
-            pattern = line.strip()
-            if not pattern or pattern.startswith("#"):
-                continue
-
-            # Handle directory patterns (ending with /)
-            if pattern.endswith("/"):
-                pattern = pattern.rstrip("/")
-                if relative_path.startswith(pattern):
-                    return True
-            # Handle regular patterns
-            elif fnmatch.fnmatch(relative_path, pattern):
-                return True
-
-    return False
+    return spec.match_file(as_posix)
 
 
 def walk_os_skipping_gitignore_patterns(
@@ -69,6 +61,7 @@ def walk_os_skipping_gitignore_patterns(
 
     Yields:
         Tuples of (current_path, directories, files) for each directory visited
+
     """
     folder = Path(folder)
     for root, dirs, files in os.walk(folder):
@@ -80,4 +73,8 @@ def walk_os_skipping_gitignore_patterns(
             dirs.clear()
             continue
 
-        yield rel_root, dirs, files
+        # remove all files that match patterns in .gitignore
+        valid_files = [f for f in files if not path_is_in_gitignore(rel_root / f)]
+        valid_dirs = [d for d in dirs if not path_is_in_gitignore(rel_root / d)]
+
+        yield rel_root, valid_dirs, valid_files

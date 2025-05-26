@@ -21,5 +21,6 @@ def get_logger(name: str) -> logging.Logger:
 
     Returns:
         A configured logger instance with the specified name
+
     """
     return logging.getLogger(name)

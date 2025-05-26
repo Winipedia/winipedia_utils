@@ -8,6 +8,7 @@ multiprocessing module.
 
 Returns:
     Various utility functions for multithreaded processing.
+
 """
 
 from collections.abc import Callable, Generator, Iterable
@@ -16,8 +17,8 @@ from typing import Any
 
 from winipedia_utils.concurrent.multiprocessing import (
     get_multiprocess_results_with_tqdm,
+    get_order_and_func_result,
     prepare_multiprocess_loop,
-    process_function_for_imap_with_args_unpacking,
 )
 
 
@@ -26,13 +27,15 @@ def get_future_results_as_completed(
 ) -> Generator[Any, None, None]:
     """Get future results as they complete.
 
-    Yields results from futures in the order they complete, not in the order they were submitted.
+    Yields results from futures in the order they complete,
+    not in the order they were submitted.
 
     Args:
         futures: List of Future objects to get results from
 
     Yields:
         The result of each completed future
+
     """
     for future in as_completed(futures):
         yield future.result()
@@ -58,6 +61,7 @@ def multithread_loop(
 
     Note:
         ThreadPoolExecutor is used for I/O-bound tasks, not for CPU-bound tasks.
+
     """
     process_args, max_workers = prepare_multiprocess_loop(
         threads=True,
@@ -70,14 +74,12 @@ def multithread_loop(
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         if max_workers > 1:
             results = [
-                executor.submit(process_function_for_imap_with_args_unpacking, process_args_single)
+                executor.submit(get_order_and_func_result, process_args_single)
                 for process_args_single in process_args
             ]
             finished_results = get_future_results_as_completed(results)
         else:
-            finished_results = (
-                r for r in map(process_function_for_imap_with_args_unpacking, process_args)
-            )
+            finished_results = (r for r in map(get_order_and_func_result, process_args))
 
         return get_multiprocess_results_with_tqdm(
             results=finished_results,

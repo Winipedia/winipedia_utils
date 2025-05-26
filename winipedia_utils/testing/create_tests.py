@@ -17,11 +17,15 @@ from winipedia_utils.conventions.testing import (
     make_test_obj_name,
     reverse_make_test_obj_name,
 )
-from winipedia_utils.modules.class_ import get_all_cls_from_module, get_all_methods_from_cls
+from winipedia_utils.modules.class_ import (
+    get_all_cls_from_module,
+    get_all_methods_from_cls,
+)
 from winipedia_utils.modules.function import get_all_functions_from_module
 from winipedia_utils.modules.module import (
     create_module,
     get_module_content_as_str,
+    get_name_of_obj,
     to_path,
 )
 from winipedia_utils.modules.package import (
@@ -31,8 +35,8 @@ from winipedia_utils.modules.package import (
 )
 from winipedia_utils.testing import tests
 from winipedia_utils.testing.tests.base.utils.utils import (
-    correct_conftest_content,
-    get_conftest_content,
+    _conftest_content_is_correct,
+    _get_conftest_content,
 )
 
 
@@ -65,8 +69,8 @@ def create_tests_base() -> None:
     # write pytest_plugin in the conftest.py
     conftest_path = tests_path / "conftest.py"
     # if conftest does not exist or the content is not the same, overwrite it
-    if not correct_conftest_content(conftest_path):
-        conftest_path.write_text(get_conftest_content())
+    if not _conftest_content_is_correct(conftest_path):
+        conftest_path.write_text(_get_conftest_content())
 
 
 def create_tests_for_src_package() -> None:
@@ -90,6 +94,7 @@ def create_test_package(package: ModuleType) -> None:
 
     This function creates a test package with the appropriate naming convention
     if it doesn't already exist.
+
     """
     test_package_name = make_test_obj_importpath_from_obj(package)
     # create package if it doesn't exist
@@ -106,6 +111,7 @@ def create_test_module(module: ModuleType) -> None:
     1. Creates a test module with the appropriate naming convention
     2. Generates the test module content with skeleton test functions
     3. Writes the content to the test module file
+
     """
     test_module_name = make_test_obj_importpath_from_obj(module)
     test_module = create_module(test_module_name, is_package=False)
@@ -126,11 +132,14 @@ def get_test_module_content(module: ModuleType) -> str:
     1. Gets the existing test module content if it exists
     2. Adds test functions for all functions in the source module
     3. Adds test classes for all classes in the source module
+
     """
     test_module = cast("ModuleType", (get_test_obj_from_obj(module)))
     test_module_content = get_module_content_as_str(test_module)
 
-    test_module_content = get_test_functions_content(module, test_module, test_module_content)
+    test_module_content = get_test_functions_content(
+        module, test_module, test_module_content
+    )
 
     return get_test_classes_content(module, test_module, test_module_content)
 
@@ -154,14 +163,17 @@ def get_test_functions_content(
     1. Identifies all functions in the source module
     2. Determines which functions don't have corresponding tests
     3. Generates skeleton test functions for untested functions
+
     """
     funcs = get_all_functions_from_module(module)
     test_functions = get_all_functions_from_module(test_module)
     supposed_test_funcs_names = [make_test_obj_name(f) for f in funcs]
 
-    test_funcs_names = [f.__name__ for f in test_functions]
+    test_funcs_names = [get_name_of_obj(f) for f in test_functions]
 
-    untested_funcs_names = [f for f in supposed_test_funcs_names if f not in test_funcs_names]
+    untested_funcs_names = [
+        f for f in supposed_test_funcs_names if f not in test_funcs_names
+    ]
 
     for test_func_name in untested_funcs_names:
         test_module_content += f"""
@@ -193,10 +205,13 @@ def get_test_classes_content(
     1. Identifies all classes in the source module
     2. Determines which classes and methods don't have corresponding tests
     3. Generates skeleton test classes and methods for untested classes and methods
-    4. Inserts the new test classes into the existing content if the class already exists
+    4. Inserts the new test classes into the existing content
+       if the class already exists
 
     Raises:
-        ValueError: If a test class declaration appears multiple times in the test module
+        ValueError: If a test class declaration appears multiple
+                    times in the test module
+
     """
     classes = get_all_cls_from_module(module)
     test_classes = get_all_cls_from_module(test_module)
@@ -205,7 +220,8 @@ def get_test_classes_content(
         c: get_all_methods_from_cls(c, exclude_parent_methods=True) for c in classes
     }
     test_class_to_methods = {
-        tc: get_all_methods_from_cls(tc, exclude_parent_methods=True) for tc in test_classes
+        tc: get_all_methods_from_cls(tc, exclude_parent_methods=True)
+        for tc in test_classes
     }
 
     supposed_test_class_to_methods_names = {
@@ -213,7 +229,8 @@ def get_test_classes_content(
         for c, ms in class_to_methods.items()
     }
     test_class_to_methods_names = {
-        tc.__name__: [tm.__name__ for tm in tms] for tc, tms in test_class_to_methods.items()
+        get_name_of_obj(tc): [get_name_of_obj(tm) for tm in tms]
+        for tc, tms in test_class_to_methods.items()
     }
 
     untested_class_to_methods_names: dict[str, list[str]] = {}
@@ -230,7 +247,10 @@ def get_test_classes_content(
         if untested_methods_names:
             untested_class_to_methods_names[test_class_name] = untested_methods_names
 
-    for test_class_name, untested_methods_names in untested_class_to_methods_names.items():
+    for (
+        test_class_name,
+        untested_methods_names,
+    ) in untested_class_to_methods_names.items():
         test_class_declaration = f"""
 class {test_class_name}:
     \"\"\"Test class for {reverse_make_test_obj_name(test_class_name)}.\"\"\"
@@ -254,9 +274,9 @@ class {test_class_name}:
 
 
 def main() -> None:
-    """Main entry point for the create_tests script.
+    """Entry point for the create_tests script.
 
-    This function calls the create_tests function to generate all test files.
+    Calls the create_tests function to generate all test files.
     """
     create_tests()
 

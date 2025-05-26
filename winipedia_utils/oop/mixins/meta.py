@@ -1,6 +1,7 @@
 """Metaclass utilities for class behavior modification and enforcement.
 
-This module provides metaclasses that can be used to modify class behavior at creation time.
+This module provides metaclasses that can be used to
+modify class behavior at creation time.
 These metaclasses can be used individually or combined to create classes
 with enhanced capabilities and stricter implementation requirements.
 
@@ -13,7 +14,8 @@ from functools import wraps
 from typing import Any, final
 
 from winipedia_utils.logging.logger import get_logger
-from winipedia_utils.modules.class_ import get_all_methods_from_cls, is_func
+from winipedia_utils.modules.class_ import get_all_methods_from_cls
+from winipedia_utils.modules.function import is_func
 from winipedia_utils.text.string import value_to_truncated_string
 
 logger = get_logger(__name__)
@@ -89,15 +91,14 @@ class LoggingMeta(type):
 
         Returns:
             A wrapped function with logging capabilities
+
         """
         time_time = time.time  # Cache the time.time function for performance
 
         @wraps(func)
         def wrapper(self: object, *args: object, **kwargs: object) -> object:
-            # we use the call times as a dictionary to store the call times of the function
-
+            # call_times as a dictionary to store the call times of the function
             # we only log if the time since the last call is greater than the threshold
-
             # this is to avoid spamming the logs
 
             func_name = func.__name__
@@ -113,12 +114,20 @@ class LoggingMeta(type):
             max_log_length = 20
 
             if do_logging:
-                args_str = value_to_truncated_string(value=args, max_length=max_log_length)
+                args_str = value_to_truncated_string(
+                    value=args, max_length=max_log_length
+                )
 
-                kwargs_str = value_to_truncated_string(value=kwargs, max_length=max_log_length)
+                kwargs_str = value_to_truncated_string(
+                    value=kwargs, max_length=max_log_length
+                )
 
                 logger.info(
-                    "%s - Calling %s with %s and %s", class_name, func_name, args_str, kwargs_str
+                    "%s - Calling %s with %s and %s",
+                    class_name,
+                    func_name,
+                    args_str,
+                    kwargs_str,
                 )
 
             # Execute the function and return the result
@@ -128,7 +137,9 @@ class LoggingMeta(type):
             if do_logging:
                 duration = time_time() - current_time
 
-                result_str = value_to_truncated_string(value=result, max_length=max_log_length)
+                result_str = value_to_truncated_string(
+                    value=result, max_length=max_log_length
+                )
 
                 logger.info(
                     "%s - %s finished with %s seconds -> returning %s",
@@ -148,7 +159,7 @@ class LoggingMeta(type):
 
 
 class ImplementationMeta(type):
-    """Metaclass that enforces implementation of required attributes and method decorators.
+    """Metaclass that enforces implementation.
 
     Ensures that concrete subclasses properly implement all required attributes
     and that their types match the expected types from type annotations.
@@ -157,7 +168,10 @@ class ImplementationMeta(type):
     """
 
     def __init__(
-        cls: "ImplementationMeta", name: str, bases: tuple[type, ...], dct: dict[str, Any]
+        cls: "ImplementationMeta",
+        name: str,
+        bases: tuple[type, ...],
+        dct: dict[str, Any],
     ) -> None:
         """Initialize a class with implementation checking.
 
@@ -176,6 +190,7 @@ class ImplementationMeta(type):
             ValueError: If a required attribute is not implemented
             TypeError: If an implemented attribute has the wrong type
             TypeError: If a method is neither final nor abstract
+
         """
         super().__init__(name, bases, dct)
 
@@ -195,6 +210,7 @@ class ImplementationMeta(type):
 
         Returns:
             True if the class is abstract, False otherwise
+
         """
         return any(cls.is_abstract_method(method) for method in cls.__dict__.values())
 
@@ -206,6 +222,7 @@ class ImplementationMeta(type):
 
         Raises:
             TypeError: If a method is neither final nor abstract
+
         """
         # Get all methods defined in this class (not inherited)
 
@@ -214,7 +231,7 @@ class ImplementationMeta(type):
 
             if not cls.is_final_method(func) and not cls.is_abstract_method(func):
                 msg = (
-                    f"Method {cls.__name__}.{func.__name__} must be decorated with either "
+                    f"Method {cls.__name__}.{func.__name__} must be decorated with "
                     f"@{final.__name__} or @{abstractmethod.__name__} "
                     f"to make design intentions explicit."
                 )
@@ -230,6 +247,7 @@ class ImplementationMeta(type):
 
         Returns:
             True if the method is marked with @final, False otherwise
+
         """
         return getattr(method, "__final__", False)
 
@@ -242,6 +260,7 @@ class ImplementationMeta(type):
 
         Returns:
             True if the method is marked with @abstractmethod, False otherwise
+
         """
         return getattr(method, "__isabstractmethod__", False)
 
@@ -254,6 +273,7 @@ class ImplementationMeta(type):
 
         Raises:
             ValueError: If a required attribute is not implemented
+
         """
         for attr in cls.attrs_to_implement():
             value = getattr(cls, attr, NotImplemented)
@@ -271,6 +291,7 @@ class ImplementationMeta(type):
 
         Returns:
             List of attribute names that must be implemented
+
         """
         attrs = {
             attr
@@ -283,7 +304,7 @@ class ImplementationMeta(type):
 
 
 class ABCImplementationLoggingMeta(ImplementationMeta, LoggingMeta, ABCMeta):
-    """Combined metaclass that merges implementation checking, logging, and ABC functionality.
+    """Combined metaclass that merges implementation, logging, and ABC functionality.
 
     This metaclass combines the features of:
     - ImplementationMeta: Enforces implementation of required attributes
