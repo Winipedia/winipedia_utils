@@ -266,4 +266,4 @@ MIT License - see LICENSE file for details.
 
 ---
 
-**Note**: All `_private_methods` are intended for internal use within the winipedia_utils package and should/can NOT be used directly in external projects.
+**Note**: All `_private_methods` are intended for internal use within the winipedia_utils package and cannot be used directly in external projects.
