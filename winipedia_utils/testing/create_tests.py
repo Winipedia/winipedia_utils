@@ -10,13 +10,6 @@ from pathlib import Path
 from types import ModuleType
 from typing import cast
 
-from winipedia_utils.conventions.testing import (
-    TESTS_PACKAGE_NAME,
-    get_test_obj_from_obj,
-    make_test_obj_importpath_from_obj,
-    make_test_obj_name,
-    reverse_make_test_obj_name,
-)
 from winipedia_utils.modules.class_ import (
     get_all_cls_from_module,
     get_all_methods_from_cls,
@@ -24,8 +17,9 @@ from winipedia_utils.modules.class_ import (
 from winipedia_utils.modules.function import get_all_functions_from_module
 from winipedia_utils.modules.module import (
     create_module,
+    get_isolated_obj_name,
     get_module_content_as_str,
-    get_name_of_obj,
+    get_qualname_of_obj,
     to_path,
 )
 from winipedia_utils.modules.package import (
@@ -34,6 +28,13 @@ from winipedia_utils.modules.package import (
     walk_package,
 )
 from winipedia_utils.testing import tests
+from winipedia_utils.testing.convention import (
+    TESTS_PACKAGE_NAME,
+    get_test_obj_from_obj,
+    make_test_obj_importpath_from_obj,
+    make_test_obj_name,
+    reverse_make_test_obj_name,
+)
 from winipedia_utils.testing.tests.base.utils.utils import (
     _conftest_content_is_correct,
     _get_conftest_content,
@@ -169,7 +170,7 @@ def get_test_functions_content(
     test_functions = get_all_functions_from_module(test_module)
     supposed_test_funcs_names = [make_test_obj_name(f) for f in funcs]
 
-    test_funcs_names = [get_name_of_obj(f) for f in test_functions]
+    test_funcs_names = [get_qualname_of_obj(f) for f in test_functions]
 
     untested_funcs_names = [
         f for f in supposed_test_funcs_names if f not in test_funcs_names
@@ -229,7 +230,7 @@ def get_test_classes_content(
         for c, ms in class_to_methods.items()
     }
     test_class_to_methods_names = {
-        get_name_of_obj(tc): [get_name_of_obj(tm) for tm in tms]
+        get_isolated_obj_name(tc): [get_isolated_obj_name(tm) for tm in tms]
         for tc, tms in test_class_to_methods.items()
     }
 

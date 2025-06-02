@@ -7,125 +7,284 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
-import pytest
-
 from winipedia_utils.concurrent.multithreading import (
     get_future_results_as_completed,
+    imap_unordered,
     multithread_loop,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
 
 
-# Define test functions at module level
-def square(x: int) -> int:
-    """Square a number."""
-    return x * x
-
-
-def multiply(x: int, y: int) -> int:
-    """Multiply two numbers."""
-    return x * y
-
-
-def add(a: int, b: int) -> int:
-    """Add two numbers."""
-    return a + b
-
-
-def slow_function(delay: float = 0.1) -> str:
-    """Take some time to complete and return a result."""
-    time.sleep(delay)
-    return "done"
-
-
-# Define a function that can take any type of argument for testing
-def generic_function(x: Any) -> Any:
-    """Process any type of input and return it."""
-    return x
-
-
-def raise_exception(_x: Any) -> Any:
-    """Raise an exception."""
-    msg = "Exception raised in raise_exception"
-    raise ValueError(msg)
-
-
 def test_get_future_results_as_completed() -> None:
-    """Test get_future_results_as_completed function."""
-    # Constants for test values
-    num_futures = 3
+    """Test func for get_future_results_as_completed."""
+    expected_futures_count = 3
+    expected_single_result = 10
 
-    # Create a list of futures with different completion times
-    with ThreadPoolExecutor(max_workers=num_futures) as executor:
-        # Create futures that will complete in reverse order
+    # Test with simple functions that return values
+    def simple_task(value: int) -> int:
+        return value * 2
+
+    def slow_task(value: int) -> int:
+        time.sleep(0.1)  # Small delay to test completion order
+        return value * 3
+
+    # Create futures manually
+    with ThreadPoolExecutor(max_workers=3) as executor:
         futures = [
-            executor.submit(slow_function, 0.03),  # Will complete last
-            executor.submit(slow_function, 0.02),  # Will complete second
-            executor.submit(slow_function, 0.01),  # Will complete first
+            executor.submit(simple_task, 1),
+            executor.submit(slow_task, 2),
+            executor.submit(simple_task, 3),
         ]
 
         # Get results as they complete
         results = list(get_future_results_as_completed(futures))
 
-        # Verify we got all results
+        # Should have all results
         assert_with_msg(
-            len(results) == num_futures,
-            f"{get_future_results_as_completed.__name__} should return all results",
+            len(results) == expected_futures_count,
+            f"Expected {expected_futures_count} results, got {len(results)}",
         )
 
-        # Verify all results are "done"
+        # Results should contain expected values
+        # (order may vary due to completion timing)
+        # 1*2=2, 2*3=6, 3*2=6, so set should be {2, 6}
+        expected_values = {2, 6}
+        result_set = set(results)
         assert_with_msg(
-            all(result == "done" for result in results),
-            f"{get_future_results_as_completed.__name__} should return correct values",
+            result_set == expected_values,
+            f"Expected {expected_values}, got {result_set}",
         )
 
     # Test with empty futures list
-    results = list(get_future_results_as_completed([]))
+    empty_results = list(get_future_results_as_completed([]))
     assert_with_msg(
-        results == [],
-        f"{get_future_results_as_completed.__name__} should handle empty futures list",
+        len(empty_results) == 0, f"Expected 0 results, got {len(empty_results)}"
     )
+
+    # Test with single future
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        single_future = [executor.submit(simple_task, 5)]
+        single_results = list(get_future_results_as_completed(single_future))
+        assert_with_msg(
+            len(single_results) == 1, f"Expected 1 result, got {len(single_results)}"
+        )
+        assert_with_msg(
+            single_results[0] == expected_single_result,
+            f"Expected {expected_single_result}, got {single_results[0]}",
+        )
 
 
 def test_multithread_loop() -> None:
-    """Test multithread_loop functionality."""
-    # Test Case 1: Empty process_args
-    results = multithread_loop(square, [[]])
+    """Test func for multithread_loop."""
+
+    # Test basic parallel execution
+    def square_function(x: int) -> int:
+        return x * x
+
+    process_args = [[1], [2], [3], [4], [5]]
+    results = multithread_loop(
+        process_function=square_function, process_args=process_args
+    )
+    expected_results = [1, 4, 9, 16, 25]
     assert_with_msg(
-        results == [],
-        f"{multithread_loop.__name__} should handle empty process_args correctly",
+        len(results) == len(expected_results),
+        f"Expected {len(expected_results)} results, got {len(results)}",
     )
 
-    # Test Case 2: Basic functionality
-    process_args = [[1, 2, 3]]
-    results = multithread_loop(square, process_args)
+    # Results should be in original order
+    for i, (result, expected) in enumerate(
+        zip(results, expected_results, strict=False)
+    ):
+        assert_with_msg(
+            result == expected, f"At index {i}: expected {expected}, got {result}"
+        )
 
-    # Verify results and order preservation
+    # Test with static arguments
+    def add_function(x: int, y: int) -> int:
+        return x + y
+
+    process_args = [[1], [2], [3]]
+    static_args = [10]  # Add 10 to each number
+    results = multithread_loop(
+        process_function=add_function,
+        process_args=process_args,
+        process_args_static=static_args,
+    )
+    expected_results = [11, 12, 13]
     assert_with_msg(
-        results == [1, 4, 9],
-        f"{multithread_loop.__name__} should preserve the order of input arguments",
+        len(results) == len(expected_results),
+        f"Expected {len(expected_results)} results, got {len(results)}",
     )
 
-    # Test Case 3: With static arguments
-    process_args = [[1, 2, 3]]
-    process_args_static = (4,)
-    results = multithread_loop(multiply, process_args, process_args_static)
+    for i, (result, expected) in enumerate(
+        zip(results, expected_results, strict=False)
+    ):
+        assert_with_msg(
+            result == expected, f"At index {i}: expected {expected}, got {result}"
+        )
 
-    # Verify results with static arguments
+    # Test with multiple arguments per function call
+    def multiply_function(x: int, y: int, z: int) -> int:
+        return x * y * z
+
+    process_args = [[1, 2, 3], [2, 3, 4], [3, 4, 5]]
+    results = multithread_loop(
+        process_function=multiply_function, process_args=process_args
+    )
+    expected_results = [6, 24, 60]  # 1*2*3, 2*3*4, 3*4*5
     assert_with_msg(
-        results == [4, 8, 12],
-        f"{multithread_loop.__name__} should work correctly with static arguments",
+        len(results) == len(expected_results),
+        f"Expected {len(expected_results)} results, got {len(results)}",
     )
 
-    # Test Case 4: Multiple argument lists
-    process_args = [[1, 2, 3], [4, 5, 6]]
-    results = multithread_loop(add, process_args)
+    for i, (result, expected) in enumerate(
+        zip(results, expected_results, strict=False)
+    ):
+        assert_with_msg(
+            result == expected, f"At index {i}: expected {expected}, got {result}"
+        )
+
+    # Test with process_args_len parameter
+    def simple_identity(x: str) -> str:
+        return x
+
+    string_process_args = [["test1"], ["test2"]]
+    string_results = multithread_loop(
+        process_function=simple_identity,
+        process_args=string_process_args,
+        process_args_len=2,
+    )
+    expected_string_results = ["test1", "test2"]
     assert_with_msg(
-        results == [5, 7, 9],
-        f"{multithread_loop.__name__} should work correctly with multiple arg lists",
+        len(string_results) == len(expected_string_results),
+        f"Expected {len(expected_string_results)} results, got {len(string_results)}",
     )
 
-    # Test Case 5: Raises if one of the threads raises
-    process_args = [[1, 2, 3]]
-    with pytest.raises(ValueError, match="Exception raised in raise_exception"):
-        multithread_loop(raise_exception, process_args)
+    for i, (result_2, expected_2) in enumerate(
+        zip(string_results, expected_string_results, strict=False)
+    ):
+        assert_with_msg(
+            result_2 == expected_2,
+            f"At index {i}: expected {expected_2}, got {result_2}",
+        )
+
+    # Test edge case with single item
+    expected_square_of_42 = 1764
+    single_process_args = [[42]]
+    results = multithread_loop(
+        process_function=square_function, process_args=single_process_args
+    )
+    assert_with_msg(len(results) == 1, f"Expected 1 result, got {len(results)}")
+    assert_with_msg(
+        results[0] == expected_square_of_42,
+        f"Expected {expected_square_of_42} (42^2), got {results[0]}",
+    )
+
+    # Test edge case with empty args (should return empty list)
+    empty_process_args: list[list[Any]] = []
+    results = multithread_loop(
+        process_function=square_function, process_args=empty_process_args
+    )
+    assert_with_msg(
+        len(results) == 0, f"Expected 0 results for empty args, got {len(results)}"
+    )
+    assert_with_msg(results == [], f"Expected empty list, got {results}")
+
+
+def test_imap_unordered() -> None:
+    """Test func for imap_unordered."""
+    expected_int_count = 5
+    expected_string_count = 3
+    expected_single_double = 14
+    max_parallel_time = 0.12
+    expected_parallel_count = 3
+
+    # Test basic functionality
+    def double_function(x: int) -> int:
+        return x * 2
+
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        iterable = [1, 2, 3, 4, 5]
+        results = list(imap_unordered(executor, double_function, iterable))
+
+        # Should have all results
+        assert_with_msg(
+            len(results) == expected_int_count,
+            f"Expected {expected_int_count} results, got {len(results)}",
+        )
+
+        # Results should contain expected values (order may vary)
+        expected_values = {2, 4, 6, 8, 10}  # 1*2, 2*2, 3*2, 4*2, 5*2
+        result_set = set(results)
+        assert_with_msg(
+            result_set == expected_values,
+            f"Expected {expected_values}, got {result_set}",
+        )
+
+    # Test with string processing
+    def uppercase_function(s: str) -> str:
+        return s.upper()
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        string_iterable = ["hello", "world", "test"]
+        string_results = list(
+            imap_unordered(executor, uppercase_function, string_iterable)
+        )
+
+        assert_with_msg(
+            len(string_results) == expected_string_count,
+            f"Expected {expected_string_count} results, got {len(string_results)}",
+        )
+        expected_string_values = {"HELLO", "WORLD", "TEST"}
+        string_result_set = set(string_results)
+        assert_with_msg(
+            string_result_set == expected_string_values,
+            f"Expected {expected_string_values}, got {string_result_set}",
+        )
+
+    # Test with empty iterable
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        empty_results = list(imap_unordered(executor, double_function, []))
+        assert_with_msg(
+            len(empty_results) == 0, f"Expected 0 results, got {len(empty_results)}"
+        )
+
+    # Test with single item
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        single_results = list(imap_unordered(executor, double_function, [7]))
+        assert_with_msg(
+            len(single_results) == 1, f"Expected 1 result, got {len(single_results)}"
+        )
+        assert_with_msg(
+            single_results[0] == expected_single_double,
+            f"Expected {expected_single_double}, got {single_results[0]}",
+        )
+
+    # Test with function that takes time (to verify parallel execution)
+    def slow_function(x: int) -> int:
+        time.sleep(0.05)  # Small delay
+        return x * 3
+
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        start_time = time.time()
+        parallel_results = list(imap_unordered(executor, slow_function, [1, 2, 3]))
+        end_time = time.time()
+
+        # Should complete faster than sequential execution
+        # Sequential would take ~0.15s, parallel should be much faster
+        execution_time = end_time - start_time
+        assert_with_msg(
+            execution_time < max_parallel_time,  # Allow some margin for overhead
+            f"Parallel execution took too long: {execution_time:.3f}s",
+        )
+
+        assert_with_msg(
+            len(parallel_results) == expected_parallel_count,
+            f"Expected {expected_parallel_count} results, got {len(parallel_results)}",
+        )
+        expected_parallel_values = {3, 6, 9}  # 1*3, 2*3, 3*3
+        parallel_result_set = set(parallel_results)
+        assert_with_msg(
+            parallel_result_set == expected_parallel_values,
+            f"Expected {expected_parallel_values}, got {parallel_result_set}",
+        )

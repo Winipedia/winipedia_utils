@@ -96,7 +96,10 @@ def make_test_obj_importpath_from_obj(
     """
     parts = make_obj_importpath(obj).split(".")
     test_name = make_test_obj_name(obj)
-    test_parts = [TEST_MODULE_PREFIX + part for part in parts]
+    test_parts = [
+        (TEST_MODULE_PREFIX if part[0].islower() else TEST_CLASS_PREFIX) + part
+        for part in parts
+    ]
     test_parts[-1] = test_name
     test_parts.insert(0, TESTS_PACKAGE_NAME)
     return ".".join(test_parts)

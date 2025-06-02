@@ -20,8 +20,9 @@ from winipedia_utils.modules.module import (
     get_isolated_obj_name,
     get_module_content_as_str,
     get_module_of_obj,
-    get_name_of_obj,
     get_objs_from_obj,
+    get_qualname_of_obj,
+    get_unwrapped_obj,
     import_obj_from_importpath,
     make_obj_importpath,
     to_module_name,
@@ -225,15 +226,20 @@ def test_make_obj_importpath() -> None:
         pass
 
     result = make_obj_importpath(test_func)
-    expected = f"{test_func.__module__}.{test_func.__name__}"
+    expected = f"{test_func.__module__}.{test_func.__qualname__}"
     assert_with_msg(result == expected, f"Expected {expected}, got {result}")
 
     # Test with a class
     class TestClass:
-        pass
+        def test_method(self) -> None:
+            pass
 
     result = make_obj_importpath(TestClass)
-    expected = f"{TestClass.__module__}.{TestClass.__name__}"
+    expected = f"{TestClass.__module__}.{TestClass.__qualname__}"
+    assert_with_msg(result == expected, f"Expected {expected}, got {result}")
+
+    result = make_obj_importpath(TestClass.test_method)
+    expected = f"{TestClass.__module__}.{TestClass.test_method.__qualname__}"
     assert_with_msg(result == expected, f"Expected {expected}, got {result}")
 
     # Test with a module
@@ -547,27 +553,72 @@ def test_get_module_of_obj() -> None:
     )
 
 
-def test_get_name_of_obj() -> None:
+def test_get_qualname_of_obj() -> None:
     """Test func for get_name_of_obj."""
 
     # Test with a function
     def test_function() -> None:
         pass
 
-    name = get_name_of_obj(test_function)
-    assert_with_msg(name == "test_function", f"Expected 'test_function', got {name}")
+    name = get_qualname_of_obj(test_function)
+    assert_with_msg(
+        name == "test_get_qualname_of_obj.<locals>.test_function",
+        f"Expected 'test_function', got {name}",
+    )
 
     # Test with a class
     class TestClass:
         pass
 
-    name = get_name_of_obj(TestClass)
-    assert_with_msg(name == "TestClass", f"Expected 'TestClass', got {name}")
+    name = get_qualname_of_obj(TestClass)
+    assert_with_msg(
+        name == "test_get_qualname_of_obj.<locals>.TestClass",
+        f"Expected 'TestClass', got {name}",
+    )
 
     # Test with a method
     class TestClass2:
         def test_method(self) -> None:
             pass
 
-    name = get_name_of_obj(TestClass2.test_method)
-    assert_with_msg(name == "test_method", f"Expected 'test_method', got {name}")
+    name = get_qualname_of_obj(TestClass2.test_method)
+    assert_with_msg(
+        name == "test_get_qualname_of_obj.<locals>.TestClass2.test_method",
+        f"Expected 'test_method', got {name}",
+    )
+
+
+def test_get_unwrapped_obj() -> None:
+    """Test func for get_unwrapped_obj."""
+
+    # Test with a function
+    def test_function() -> None:
+        pass
+
+    unwrapped = get_unwrapped_obj(test_function)
+    assert_with_msg(
+        unwrapped == test_function, f"Expected {test_function}, got {unwrapped}"
+    )
+
+    # Test with a class method
+    class TestClass:
+        def test_method(self) -> None:
+            pass
+
+    unwrapped = get_unwrapped_obj(TestClass.test_method)
+    assert_with_msg(
+        unwrapped == TestClass.test_method,
+        f"Expected {TestClass.test_method}, got {unwrapped}",
+    )
+
+    # Test with a property
+    class TestClass2:
+        @property
+        def test_property(self) -> str:
+            return "test"
+
+    unwrapped = get_unwrapped_obj(TestClass2.test_property)
+    assert_with_msg(
+        unwrapped.__name__ == "test_property",
+        f"Expected 'test_property', got {unwrapped.__name__}",
+    )

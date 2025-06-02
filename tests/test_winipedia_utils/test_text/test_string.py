@@ -10,6 +10,7 @@ from winipedia_utils.text.string import (
     ask_for_input_with_timeout,
     find_xml_namespaces,
     get_reusable_hash,
+    split_on_uppercase,
     value_to_truncated_string,
 )
 
@@ -250,4 +251,42 @@ def test_get_reusable_hash() -> None:
     assert_with_msg(
         none_hash == expected_none_hash,
         f"Expected {expected_none_hash}, got {none_hash}",
+    )
+
+
+def test_split_on_uppercase() -> None:
+    """Test func for split_on_uppercase."""
+    # Test with simple string
+    result = split_on_uppercase("HelloWorld")
+    assert_with_msg(
+        result == ["Hello", "World"],
+        f"Expected ['Hello', 'World'], got {result}",
+    )
+
+    # Test with multiple uppercase letters
+    result = split_on_uppercase("SplitCamelCase")
+    assert_with_msg(
+        result == ["Split", "Camel", "Case"],
+        f"Expected ['Split', 'Camel', 'Case'], got {result}",
+    )
+
+    # Test with all uppercase
+    result = split_on_uppercase("ALLUPPERCASE")
+    assert_with_msg(
+        result == list("ALLUPPERCASE"),
+        f"Expected {list('ALLUPPERCASE')}, got {result}",
+    )
+
+    # Test with all lowercase
+    result = split_on_uppercase("alllowercase")
+    assert_with_msg(
+        result == ["alllowercase"],
+        f"Expected ['alllowercase'], got {result}",
+    )
+
+    # test with numbers
+    result = split_on_uppercase("split1Camel2Case")
+    assert_with_msg(
+        result == ["split1", "Camel2", "Case"],
+        f"Expected ['split1', 'Camel2', 'Case'], got {result}",
     )

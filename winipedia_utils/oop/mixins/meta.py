@@ -226,7 +226,7 @@ class ImplementationMeta(type):
         """
         # Get all methods defined in this class (not inherited)
 
-        for func in get_all_methods_from_cls(cls, exclude_parent_methods=False):
+        for func in get_all_methods_from_cls(cls, exclude_parent_methods=True):
             # Check if the method is marked as final or abstract
 
             if not cls.is_final_method(func) and not cls.is_abstract_method(func):

@@ -10,13 +10,10 @@ from importlib import import_module
 from pathlib import Path
 
 from winipedia_utils.consts import _DEV_DEPENDENCIES
-from winipedia_utils.conventions.testing import (
-    TESTS_PACKAGE_NAME,
-    make_test_obj_importpath_from_obj,
-)
 from winipedia_utils.git.pre_commit.config import (
     _pre_commit_config_is_correct,
 )
+from winipedia_utils.modules.module import to_path
 from winipedia_utils.modules.package import (
     find_packages,
     get_scr_package,
@@ -28,6 +25,10 @@ from winipedia_utils.projects.poetry.config import (
     laod_pyproject_toml,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
+from winipedia_utils.testing.convention import (
+    TESTS_PACKAGE_NAME,
+    make_test_obj_importpath_from_obj,
+)
 from winipedia_utils.testing.fixtures import autouse_session_fixture
 from winipedia_utils.testing.tests.base.utils.utils import (
     _conftest_content_is_correct,
@@ -203,6 +204,7 @@ def _test_project_structure_mirrored() -> None:
             )
 
 
+@autouse_session_fixture
 def _test_no_unitest_package_usage() -> None:
     """Verify that the unittest package is not used in the project.
 
@@ -214,6 +216,8 @@ def _test_no_unitest_package_usage() -> None:
 
     """
     for path in Path().rglob("*.py"):
+        if path == to_path(__name__, is_package=False):
+            continue
         assert_with_msg(
             "unittest" not in path.read_text(),
             f"Found unittest usage in {path}. Use pytest instead.",

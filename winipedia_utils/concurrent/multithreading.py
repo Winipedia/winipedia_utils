@@ -15,12 +15,6 @@ from collections.abc import Callable, Generator, Iterable
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from typing import Any
 
-from winipedia_utils.concurrent.multiprocessing import (
-    get_multiprocess_results_with_tqdm,
-    get_order_and_func_result,
-    prepare_multiprocess_loop,
-)
-
 
 def get_future_results_as_completed(
     futures: Iterable[Future[Any]],
@@ -45,6 +39,7 @@ def multithread_loop(
     process_function: Callable[..., Any],
     process_args: Iterable[Iterable[Any]],
     process_args_static: Iterable[Any] | None = None,
+    process_args_len: int = 1,
 ) -> list[Any]:
     """Process a loop using ThreadPoolExecutor for parallel execution.
 
@@ -53,8 +48,12 @@ def multithread_loop(
 
     Args:
         process_function: Function that processes the given process_args
-        process_args: List of argument lists to be processed by the process_function
+        process_args: list of args to be processed by the process_function
+                    e.g. [(1, 2, 3), (4, 5, 6), (7, 8, 9)]
         process_args_static: Optional constant arguments passed to each function call
+        process_args_len: Optional length of process_args
+                          If not provided, it will ot be taken into account
+                          when calculating the max number of workers.
 
     Returns:
         List of results from the process_function executions
@@ -63,27 +62,32 @@ def multithread_loop(
         ThreadPoolExecutor is used for I/O-bound tasks, not for CPU-bound tasks.
 
     """
-    process_args, max_workers = prepare_multiprocess_loop(
-        threads=True,
-        process_func=process_function,
+    from winipedia_utils.concurrent.concurrent import concurrent_loop
+
+    return concurrent_loop(
+        threading=True,
+        process_function=process_function,
         process_args=process_args,
         process_args_static=process_args_static,
-        deepcopy_static_args=None,
+        process_args_len=process_args_len,
     )
 
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        if max_workers > 1:
-            results = [
-                executor.submit(get_order_and_func_result, process_args_single)
-                for process_args_single in process_args
-            ]
-            finished_results = get_future_results_as_completed(results)
-        else:
-            finished_results = (r for r in map(get_order_and_func_result, process_args))
 
-        return get_multiprocess_results_with_tqdm(
-            results=finished_results,
-            process_func=process_function,
-            process_args=process_args,
-            threads=True,
-        )
+def imap_unordered(
+    executor: ThreadPoolExecutor,
+    func: Callable[..., Any],
+    iterable: Iterable[Any],
+) -> Generator[Any, None, None]:
+    """Apply a function to each item in an iterable in parallel.
+
+    Args:
+        executor: ThreadPoolExecutor to use for parallel execution
+        func: Function to apply to each item in the iterable
+        iterable: Iterable of items to apply the function to
+
+    Yields:
+        Results of applying the function to each item in the iterable
+
+    """
+    results = [executor.submit(func, item) for item in iterable]
+    yield from get_future_results_as_completed(results)

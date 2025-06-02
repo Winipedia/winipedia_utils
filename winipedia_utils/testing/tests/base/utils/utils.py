@@ -14,13 +14,13 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any
 
-from winipedia_utils.conventions.testing import (
+from winipedia_utils.modules.module import get_objs_from_obj, make_obj_importpath
+from winipedia_utils.testing.assertions import assert_with_msg
+from winipedia_utils.testing.convention import (
     get_obj_from_test_obj,
     make_test_obj_importpath_from_obj,
     make_untested_summary_error_msg,
 )
-from winipedia_utils.modules.module import get_objs_from_obj, make_obj_importpath
-from winipedia_utils.testing.assertions import assert_with_msg
 
 
 def _assert_no_untested_objs(

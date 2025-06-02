@@ -40,7 +40,7 @@ def get_scr_package() -> ModuleType:
                        if only the test package exists
 
     """
-    from winipedia_utils.conventions.testing import TESTS_PACKAGE_NAME
+    from winipedia_utils.testing.convention import TESTS_PACKAGE_NAME
 
     packages = find_packages_as_modules(depth=0)
     return next(p for p in packages if p.__name__ != TESTS_PACKAGE_NAME)

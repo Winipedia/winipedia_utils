@@ -98,3 +98,29 @@ def get_reusable_hash(value: object) -> str:
     """
     value_str = str(value)
     return hashlib.sha256(value_str.encode("utf-8")).hexdigest()
+
+
+def split_on_uppercase(string: str) -> list[str]:
+    """Split a string on uppercase letters.
+
+    Args:
+        string: String to split
+
+    Returns:
+        List of substrings split on uppercase letters
+
+    Example:
+        split_on_uppercase("HelloWorld") -> ["Hello", "World"]
+
+    """
+    letters = list(string)
+    parts = []
+    current_part = ""
+    for letter in letters:
+        if letter.isupper() and current_part:
+            parts.append(current_part)
+            current_part = letter
+        else:
+            current_part += letter
+    parts.append(current_part)
+    return parts

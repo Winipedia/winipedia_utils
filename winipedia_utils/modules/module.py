@@ -174,12 +174,16 @@ def make_obj_importpath(obj: Callable[..., Any] | type | ModuleType) -> str:
         For a module: "package.subpackage.module"
         For a class: "package.module.ClassName"
         For a function: "package.module.function_name"
+        For a method: "package.module.ClassName.method_name"
 
     """
-    module: str | None = getattr(obj, "__module__", None)
-    if not module:
+    if isinstance(obj, ModuleType):
         return obj.__name__
-    return module + "." + obj.__name__
+    module: str | None = get_module_of_obj(obj).__name__
+    obj_name = get_qualname_of_obj(obj)
+    if not module:
+        return obj_name
+    return module + "." + obj_name
 
 
 def import_obj_from_importpath(
@@ -230,11 +234,12 @@ def get_isolated_obj_name(obj: Callable[..., Any] | type | ModuleType) -> str:
         For a function: returns the function name
 
     """
+    obj = get_unwrapped_obj(obj)
     if isinstance(obj, ModuleType):
         return obj.__name__.split(".")[-1]
     if isinstance(obj, type):
         return obj.__name__
-    return get_name_of_obj(obj)
+    return get_qualname_of_obj(obj).split(".")[-1]
 
 
 def get_objs_from_obj(
@@ -335,9 +340,7 @@ def get_module_of_obj(obj: Any) -> ModuleType:
         The module name as a string, or None if module cannot be determined.
 
     """
-    if isinstance(obj, property):
-        obj = obj.fget  # get the getter function of the property
-    unwrapped = inspect.unwrap(obj)
+    unwrapped = get_unwrapped_obj(obj)
     module = inspect.getmodule(unwrapped)
     if not module:
         msg = f"Could not determine module of {obj}"
@@ -345,9 +348,14 @@ def get_module_of_obj(obj: Any) -> ModuleType:
     return module
 
 
-def get_name_of_obj(obj: Any) -> str:
+def get_qualname_of_obj(obj: Callable[..., Any] | type) -> str:
     """Return the name of a method-like object."""
+    unwrapped = get_unwrapped_obj(obj)
+    return cast("str", unwrapped.__qualname__)
+
+
+def get_unwrapped_obj(obj: Any) -> Any:
+    """Return the unwrapped version of a method-like object."""
     if isinstance(obj, property):
         obj = obj.fget  # get the getter function of the property
-    unwrapped = inspect.unwrap(obj)
-    return cast("str", unwrapped.__name__)
+    return inspect.unwrap(obj)

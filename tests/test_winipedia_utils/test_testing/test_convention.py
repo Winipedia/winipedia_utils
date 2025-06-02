@@ -7,7 +7,8 @@ import sys
 
 import pytest
 
-from winipedia_utils.conventions.testing import (
+from winipedia_utils.testing.assertions import assert_with_msg
+from winipedia_utils.testing.convention import (
     TEST_CLASS_PREFIX,
     TEST_FUNCTION_PREFIX,
     TEST_MODULE_PREFIX,
@@ -20,7 +21,6 @@ from winipedia_utils.conventions.testing import (
     make_untested_summary_error_msg,
     reverse_make_test_obj_name,
 )
-from winipedia_utils.testing.assertions import assert_with_msg
 
 
 # Sample objects for testing
@@ -117,8 +117,9 @@ def test_make_test_obj_importpath_from_obj() -> None:
     """Test func for make_test_obj_importpath_from_obj."""
     path = make_test_obj_importpath_from_obj(make_test_obj_importpath_from_obj)
     expected = (
-        "tests.test_winipedia_utils.test_conventions."
-        "test_testing.test_make_test_obj_importpath_from_obj"
+        test_make_test_obj_importpath_from_obj.__module__
+        + "."
+        + test_make_test_obj_importpath_from_obj.__name__
     )
     assert_with_msg(
         path == expected,
@@ -138,7 +139,11 @@ def test_make_test_obj_importpath_from_obj() -> None:
 def test_make_obj_importpath_from_test_obj() -> None:
     """Test func for make_obj_importpath_from_test_obj."""
     path = make_obj_importpath_from_test_obj(test_make_obj_importpath_from_test_obj)
-    expected = "winipedia_utils.conventions.testing.make_obj_importpath_from_test_obj"
+    expected = (
+        make_obj_importpath_from_test_obj.__module__
+        + "."
+        + make_obj_importpath_from_test_obj.__name__
+    )
     assert_with_msg(
         path == expected,
         f"Expected '{expected}', got {path}",

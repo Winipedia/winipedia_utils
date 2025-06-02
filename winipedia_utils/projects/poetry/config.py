@@ -37,6 +37,9 @@ def _get_pyproject_toml_tool_configs() -> dict[str, Any]:
                 "select": ["ALL"],
                 "ignore": ["D203", "D213", "COM812", "ANN401"],
                 "fixable": ["ALL"],
+                "pydocstyle": {
+                    "convention": "google",
+                },
             },
         },
         "mypy": {
