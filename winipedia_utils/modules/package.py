@@ -28,7 +28,7 @@ from winipedia_utils.logging.logger import get_logger
 logger = get_logger(__name__)
 
 
-def get_scr_package() -> ModuleType:
+def get_src_package() -> ModuleType:
     """Identify and return the main source package of the project.
 
     Discovers the main source package by finding all top-level packages

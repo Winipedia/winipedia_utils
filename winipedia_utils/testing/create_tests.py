@@ -24,7 +24,7 @@ from winipedia_utils.modules.module import (
 )
 from winipedia_utils.modules.package import (
     copy_package,
-    get_scr_package,
+    get_src_package,
     walk_package,
 )
 from winipedia_utils.testing import tests
@@ -80,7 +80,7 @@ def create_tests_for_src_package() -> None:
     This function walks through the source package hierarchy and creates corresponding
     test packages and modules for each package and module found in the source.
     """
-    src_package = get_scr_package()
+    src_package = get_src_package()
     for package, modules in walk_package(src_package):
         create_test_package(package)
         for module in modules:

@@ -101,8 +101,8 @@ def test_create_tests_base(tmp_path: Path, mocker: MockFixture) -> None:
 def test_create_tests_for_src_package(mocker: MockFixture) -> None:
     """Test func for create_tests_for_src_package."""
     # Mock the dependencies
-    mock_get_scr_package = mocker.patch(
-        "winipedia_utils.testing.create_tests.get_scr_package"
+    mock_get_src_package = mocker.patch(
+        "winipedia_utils.testing.create_tests.get_src_package"
     )
     mock_walk_package = mocker.patch(
         "winipedia_utils.testing.create_tests.walk_package"
@@ -120,16 +120,16 @@ def test_create_tests_for_src_package(mocker: MockFixture) -> None:
     mock_module2 = mocker.MagicMock(spec=ModuleType)
 
     # Set up mock return values
-    mock_get_scr_package.return_value = mock_package
+    mock_get_src_package.return_value = mock_package
     mock_walk_package.return_value = [(mock_package, [mock_module1, mock_module2])]
 
     # Call the function
     create_tests_for_src_package()
 
-    # Verify get_scr_package was called
+    # Verify get_src_package was called
     assert_with_msg(
-        mock_get_scr_package.called,
-        "Expected get_scr_package to be called",
+        mock_get_src_package.called,
+        "Expected get_src_package to be called",
     )
 
     # Verify walk_package was called with the source package

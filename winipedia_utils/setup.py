@@ -16,6 +16,7 @@ from winipedia_utils.projects.poetry.config import (
 from winipedia_utils.projects.poetry.poetry import (
     _install_dev_dependencies,
 )
+from winipedia_utils.projects.project import _create_project_root
 
 logger = get_logger(__name__)
 
@@ -30,6 +31,8 @@ def _setup() -> None:
     _add_package_patterns_to_gitignore()
     # add tool.* configurations to pyproject.toml
     _add_configurations_to_pyproject_toml()
+    # create the project root
+    _create_project_root()
     # run pre-commit once, create tests is included here
     _run_all_hooks()
     logger.info("Setup complete!")

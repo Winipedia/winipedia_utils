@@ -129,11 +129,11 @@ create_tests()
 ### Module Introspection
 
 ```python
-from winipedia_utils.modules.package import get_scr_package, walk_package
+from winipedia_utils.modules.package import get_src_package, walk_package
 from winipedia_utils.modules.function import get_all_functions_from_module
 
 # Discover your main source package
-src_package = get_scr_package()
+src_package = get_src_package()
 
 # Walk through all modules in a package
 for package, modules in walk_package(src_package):

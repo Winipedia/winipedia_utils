@@ -15,7 +15,7 @@ from winipedia_utils.modules.package import (
     find_packages,
     find_packages_as_modules,
     get_modules_and_packages_from_package,
-    get_scr_package,
+    get_src_package,
     make_dir_with_init_file,
     make_init_module,
     make_init_modules_for_package,
@@ -26,8 +26,8 @@ from winipedia_utils.modules.package import (
 from winipedia_utils.testing.assertions import assert_with_msg
 
 
-def test_get_scr_package(mocker: MockFixture) -> None:
-    """Test func for get_scr_package."""
+def test_get_src_package(mocker: MockFixture) -> None:
+    """Test func for get_src_package."""
     # Mock the find_packages_as_modules function
     mock_package1 = mocker.MagicMock(spec=ModuleType)
     mock_package1.__name__ = "winipedia_utils"
@@ -39,14 +39,14 @@ def test_get_scr_package(mocker: MockFixture) -> None:
         return_value=[mock_package1, mock_package2],
     )
 
-    result = get_scr_package()
+    result = get_src_package()
 
     assert_with_msg(result == mock_package1, f"Expected {mock_package1}, got {result}")
     mock_find_packages.assert_called_once_with(depth=0)
 
 
-def test_get_scr_package_no_source_package(mocker: MockFixture) -> None:
-    """Test get_scr_package when only tests package exists."""
+def test_get_src_package_no_source_package(mocker: MockFixture) -> None:
+    """Test get_src_package when only tests package exists."""
     mock_package = mocker.MagicMock(spec=ModuleType)
     mock_package.__name__ = "tests"
 
@@ -56,7 +56,7 @@ def test_get_scr_package_no_source_package(mocker: MockFixture) -> None:
     )
 
     with pytest.raises(StopIteration):
-        get_scr_package()
+        get_src_package()
 
 
 def test_make_dir_with_init_file(tmp_path: Path, mocker: MockFixture) -> None:

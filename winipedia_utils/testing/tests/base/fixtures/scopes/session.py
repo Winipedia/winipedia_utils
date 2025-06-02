@@ -17,7 +17,7 @@ from winipedia_utils.git.pre_commit.config import (
 from winipedia_utils.modules.module import to_path
 from winipedia_utils.modules.package import (
     find_packages,
-    get_scr_package,
+    get_src_package,
     walk_package,
 )
 from winipedia_utils.projects.poetry.config import (
@@ -188,7 +188,7 @@ def _test_all_src_code_in_one_package() -> None:
 
     """
     packages = find_packages(depth=0)
-    src_package = get_scr_package().__name__
+    src_package = get_src_package().__name__
     expected_packages = {TESTS_PACKAGE_NAME, src_package}
     assert_with_msg(
         set(packages) == expected_packages,
@@ -207,7 +207,7 @@ def _test_project_structure_mirrored() -> None:
         AssertionError: If any package or module doesn't have a corresponding test
 
     """
-    src_package = get_scr_package()
+    src_package = get_src_package()
 
     # we will now go through all the modules in the src package and check
     # that there is a corresponding test module
