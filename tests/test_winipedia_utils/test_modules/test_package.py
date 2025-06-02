@@ -184,6 +184,12 @@ def test_find_packages(mocker: MockFixture) -> None:
         return_value=["package1", "package1.sub1", "package1.sub1.sub2", "package2"],
     )
 
+    # Mock load_gitignore to return empty list (no gitignore patterns)
+    mock_load_gitignore = mocker.patch(
+        "winipedia_utils.modules.package.load_gitignore",
+        return_value=[],
+    )
+
     # Test without depth limit
     result = find_packages()
     expected = ["package1", "package1.sub1", "package1.sub1.sub2", "package2"]
@@ -199,7 +205,14 @@ def test_find_packages(mocker: MockFixture) -> None:
     expected = ["package1", "package2"]
     assert_with_msg(result == expected, f"Expected {expected}, got {result}")
 
-    mock_find_packages.assert_called_with(where=".", exclude=(), include=("*",))
+    # Verify that setuptools find_packages was called with empty exclude list
+    mock_find_packages.assert_called_with(where=".", exclude=[], include=("*",))
+
+    # Verify that load_gitignore was called
+    assert_with_msg(
+        mock_load_gitignore.call_count > 0,
+        "Expected load_gitignore to be called for gitignore filtering",
+    )
 
 
 def test_find_packages_with_namespace(mocker: MockFixture) -> None:
@@ -209,11 +222,54 @@ def test_find_packages_with_namespace(mocker: MockFixture) -> None:
         return_value=["ns_package1", "ns_package2"],
     )
 
+    # Mock load_gitignore to return empty list (no gitignore patterns)
+    mock_load_gitignore = mocker.patch(
+        "winipedia_utils.modules.package.load_gitignore",
+        return_value=[],
+    )
+
     result = find_packages(include_namespace_packages=True)
     expected = ["ns_package1", "ns_package2"]
     assert_with_msg(result == expected, f"Expected {expected}, got {result}")
 
-    mock_find_namespace.assert_called_once_with(where=".", exclude=(), include=("*",))
+    mock_find_namespace.assert_called_once_with(where=".", exclude=[], include=("*",))
+
+    # Verify that load_gitignore was called
+    assert_with_msg(
+        mock_load_gitignore.call_count > 0,
+        "Expected load_gitignore to be called for gitignore filtering",
+    )
+
+
+def test_find_packages_with_gitignore_filtering(mocker: MockFixture) -> None:
+    """Test find_packages with gitignore patterns that should exclude packages."""
+    # Mock setuptools find_packages to return only packages not excluded by gitignore
+    mock_find_packages = mocker.patch(
+        "winipedia_utils.modules.package._find_packages",
+        return_value=[
+            "package1",
+            "package2",
+        ],  # dist and build are excluded by setuptools
+    )
+
+    # Mock load_gitignore to return patterns that should exclude dist and build
+    mock_load_gitignore = mocker.patch(
+        "winipedia_utils.modules.package.load_gitignore",
+        return_value=["dist/", "build/", "__pycache__/"],
+    )
+
+    result = find_packages()
+    expected = ["package1", "package2"]
+    assert_with_msg(result == expected, f"Expected {expected}, got {result}")
+
+    # Verify that setuptools find_packages was called with gitignore patterns
+    expected_exclude = ["dist", "build", "__pycache__"]
+    mock_find_packages.assert_called_with(
+        where=".", exclude=expected_exclude, include=("*",)
+    )
+
+    # Verify that load_gitignore was called
+    mock_load_gitignore.assert_called_once()
 
 
 def test_find_packages_as_modules(mocker: MockFixture) -> None:
@@ -234,8 +290,13 @@ def test_find_packages_as_modules(mocker: MockFixture) -> None:
     expected = [mock_package1, mock_package2]
     assert_with_msg(result == expected, f"Expected {expected}, got {result}")
 
+    # The function should call find_packages with exclude=None (default parameter)
     mock_find_packages.assert_called_once_with(
-        depth=1, include_namespace_packages=True, where=".", exclude=(), include=("*",)
+        depth=1,
+        include_namespace_packages=True,
+        where=".",
+        exclude=None,
+        include=("*",),
     )
 
 

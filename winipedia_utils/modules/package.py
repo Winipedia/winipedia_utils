@@ -19,7 +19,10 @@ from types import ModuleType
 from setuptools import find_namespace_packages as _find_namespace_packages
 from setuptools import find_packages as _find_packages
 
-from winipedia_utils.git.gitignore import walk_os_skipping_gitignore_patterns
+from winipedia_utils.git.gitignore.gitignore import (
+    load_gitignore,
+    walk_os_skipping_gitignore_patterns,
+)
 from winipedia_utils.logging.logger import get_logger
 
 logger = get_logger(__name__)
@@ -148,7 +151,7 @@ def find_packages(
     depth: int | None = None,
     include_namespace_packages: bool = False,
     where: str = ".",
-    exclude: Iterable[str] = (),
+    exclude: Iterable[str] | None = None,
     include: Iterable[str] = ("*",),
 ) -> list[str]:
     """Discover Python packages in the specified directory.
@@ -172,6 +175,11 @@ def find_packages(
         find_packages(depth=1) might return ["package1", "package2"]
 
     """
+    if exclude is None:
+        exclude = load_gitignore()
+        exclude = [
+            p.replace("/", ".").removesuffix(".") for p in exclude if p.endswith("/")
+        ]
     if include_namespace_packages:
         package_names = _find_namespace_packages(
             where=where, exclude=exclude, include=include
@@ -193,7 +201,7 @@ def find_packages_as_modules(
     depth: int | None = None,
     include_namespace_packages: bool = False,
     where: str = ".",
-    exclude: Iterable[str] = (),
+    exclude: Iterable[str] | None = None,
     include: Iterable[str] = ("*",),
 ) -> list[ModuleType]:
     """Discover and import Python packages in the specified directory.

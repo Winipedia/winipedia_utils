@@ -176,8 +176,6 @@ cython_debug/
 # vscode
 .vscode/
 
-# adding it for the os.walk func that skips gitignore patterns to ignore the .git folder
-.git
-
 # ignore test.py bc I just use it to experiment with code
 test.py
+.git/

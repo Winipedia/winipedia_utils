@@ -52,3 +52,9 @@ def test__test_pyproject_toml_is_correct() -> None:
 def test__test_no_unitest_package_usage() -> None:
     """Test func for _test_no_unitest_package_usage."""
     raise NotImplementedError
+
+
+@pytest.mark.skip(reason="Can not test a test")
+def test__test_gitignore_is_correct() -> None:
+    """Test func for _test_gitignore_is_correct."""
+    raise NotImplementedError

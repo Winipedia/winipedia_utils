@@ -10,6 +10,7 @@ from importlib import import_module
 from pathlib import Path
 
 from winipedia_utils.consts import _DEV_DEPENDENCIES
+from winipedia_utils.git.gitignore.gitignore import _gitignore_is_correct
 from winipedia_utils.git.pre_commit.config import (
     _pre_commit_config_is_correct,
 )
@@ -127,6 +128,29 @@ def _test_pre_commit_config_yaml_is_correct() -> None:
     assert_with_msg(
         _pre_commit_config_is_correct(),
         "Pre commit config is not correct.",
+    )
+
+
+@autouse_session_fixture
+def _test_gitignore_is_correct() -> None:
+    """Verify that the .gitignore file exists and has the correct content.
+
+    This fixture runs once per test session and checks that the .gitignore file
+    exists in the root directory and contains the correct content.
+
+    Raises:
+        AssertionError: If the .gitignore file doesn't exist
+                        or has incorrect content
+
+    """
+    gitignore_path = Path(".gitignore")
+    assert_with_msg(
+        gitignore_path.is_file(),
+        f"Expected {gitignore_path} to exist but it doesn't.",
+    )
+    assert_with_msg(
+        _gitignore_is_correct(),
+        "Gitignore is not correct.",
     )
 
 
