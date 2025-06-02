@@ -6,7 +6,7 @@
 [![Type checked: mypy](https://img.shields.io/badge/type%20checked-mypy-blue.svg)](https://mypy-lang.org/)
 [![Security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://bandit.readthedocs.io/)
 
-A comprehensive Python utility ecosystem designed to scale into an all-in-one toolkit for Python development. Winipedia Utils provides battle-tested utilities for Django, dataframes, strings, decimals, concurrent processing, and any other tools needed for full Python projects, while enforcing clean code practices through automated tooling.
+A comprehensive Python utility ecosystem designed to scale into an all-in-one toolkit for Python development. Winipedia Utils provides battle-tested utilities for Django, dataframes, strings, concurrent processing, iterating, and any other tools needed for full Python projects, while enforcing clean code practices through automated tooling.
 
 ## 🎯 Core Purpose
 
@@ -47,6 +47,22 @@ Winipedia Utils serves as the **foundation for reducing repeated code** across P
 - **Multithreading support** for I/O-bound tasks
 - **Timeout handling** and process management
 - **Progress tracking** with tqdm integration
+
+#### 🌐 Django Utilities (`django/`)
+- **Bulk operations** with multithreaded processing for create, update, delete
+- **Advanced BaseCommand** with logging, validation, and common arguments
+- **Database utilities** including model hashing and topological sorting
+- **Model introspection** and dependency analysis tools
+
+#### 📊 Data Processing (`data/`)
+- **DataFrame utilities** for data manipulation and analysis
+- **Data cleaning and transformation** operations
+- **Aggregation and preprocessing** tools
+
+#### 🔄 Iterating Utilities (`iterating/`)
+- **Iterable manipulation** with safe length operations
+- **Generator utilities** and iteration helpers
+- **Collection processing** tools
 
 #### 📝 Text Processing (`text/`)
 - **String manipulation** utilities
@@ -151,6 +167,57 @@ results = multithread_loop(
 )
 ```
 
+### Django Bulk Operations
+
+```python
+from winipedia_utils.django.bulk import (
+    bulk_create_in_steps,
+    bulk_update_in_steps,
+    bulk_delete_in_steps
+)
+
+# Efficient bulk creation with multithreading
+created_objects = bulk_create_in_steps(
+    model=MyModel,
+    bulk=[MyModel(name=f"item_{i}") for i in range(10000)],
+    step=1000
+)
+
+# Bulk update with field specification
+updated_count = bulk_update_in_steps(
+    model=MyModel,
+    bulk=objects_to_update,
+    update_fields=['name', 'status'],
+    step=1000
+)
+
+# Safe bulk deletion with cascade handling
+deleted_count, deletion_summary = bulk_delete_in_steps(
+    model=MyModel,
+    bulk=objects_to_delete,
+    step=1000
+)
+```
+
+### Django Management Commands
+
+```python
+from winipedia_utils.django.command import ABCBaseCommand
+
+class MyCommand(ABCBaseCommand):
+    """Custom Django command with built-in logging and validation."""
+
+    help = "Process data with automatic logging and error handling"
+
+    def add_command_arguments(self, parser):
+        parser.add_argument('--batch-size', type=int, default=1000)
+
+    def handle_command(self, *args, **options):
+        # Command logic with automatic logging and performance tracking
+        batch_size = options['batch_size']
+        self.stdout.write(f"Processing with batch size: {batch_size}")
+```
+
 ### String Utilities
 
 ```python
@@ -173,6 +240,19 @@ except TimeoutError:
 hash_value = get_reusable_hash("some data")
 ```
 
+### Iterating Utilities
+
+```python
+from winipedia_utils.iterating.iterate import get_len_with_default
+
+# Safe length operations with fallback
+length = get_len_with_default(some_iterable, default=0)
+
+# Works with generators and other iterables that don't support len()
+gen = (x for x in range(100))
+safe_length = get_len_with_default(gen, default=100)
+```
+
 ### Advanced OOP Features
 
 ```python
@@ -188,26 +268,7 @@ class MyClass(metaclass=ABCImplementationLoggingMeta):
 
 ## 🔮 Future Vision
 
-Winipedia Utils is designed to scale into a comprehensive ecosystem covering:
-
-### 🌐 Web Development
-# Planned: Django utilities like better BaseCommands and BaseModels
-```python
-from winipedia_utils.web import django
-```
-
-
-### 📊 Data Science
-```python
-# Planned: Advanced DataFrame utilities
-from winipedia_utils.data import dataframe
-```
-
-### 🔢 Mathematical Operations
-```python
-# Planned: Decimal and math utilities
-from winipedia_utils.math import decimal
-```
+Winipedia Utils is designed to scale into a comprehensive ecosystem covering many utilities
 
 ## 🛡️ Development Standards
 
