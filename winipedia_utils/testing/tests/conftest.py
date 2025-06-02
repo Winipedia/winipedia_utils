@@ -4,12 +4,14 @@ finds all the plugins in the tests directory and the package's testing module
 and adds them to pytest_plugins. This way defining reusable fixtures is easy.
 """
 
-from winipedia_utils.consts import PACKAGE_NAME
+import winipedia_utils
 from winipedia_utils.modules.module import to_module_name, to_path
+
+package_path = winipedia_utils.__path__[0]
 
 custom_plugin_path = to_path("tests.base.fixtures", is_package=True)
 package_plugin_path = (
-    to_path(f"{PACKAGE_NAME}.testing", is_package=True) / custom_plugin_path
+    package_path / to_path("testing", is_package=True) / custom_plugin_path
 )
 
 custom_plugin_module_names = [

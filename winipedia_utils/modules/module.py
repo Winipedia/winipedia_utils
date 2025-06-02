@@ -73,7 +73,8 @@ def to_module_name(path: str | Path | ModuleType) -> str:
     if isinstance(path, ModuleType):
         return path.__name__
     if isinstance(path, Path):
-        rel_path = path.relative_to(".")
+        abs_path = path.resolve()
+        rel_path = abs_path.relative_to(Path.cwd())
         if rel_path.suffix:
             rel_path = rel_path.with_suffix("")
         # return joined on . parts
