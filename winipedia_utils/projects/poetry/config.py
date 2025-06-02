@@ -75,7 +75,7 @@ def _pyproject_tool_configs_are_correct() -> bool:
     return True
 
 
-def _add_tool_configurations_to_pyproject_toml() -> None:
+def _add_configurations_to_pyproject_toml() -> None:
     """Add tool.* configurations to pyproject.toml."""
     expected_tool_dict = _get_pyproject_toml_tool_configs()
     toml = laod_pyproject_toml()

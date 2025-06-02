@@ -16,7 +16,7 @@ def test__setup(mocker: MockFixture) -> None:
         "winipedia_utils.setup._add_package_hook_to_pre_commit_config"
     )
     mock_add_tool_configs = mocker.patch(
-        "winipedia_utils.setup._add_tool_configurations_to_pyproject_toml"
+        "winipedia_utils.setup._add_configurations_to_pyproject_toml"
     )
     mock_run_hooks = mocker.patch("winipedia_utils.setup._run_all_hooks")
     mock_logger = mocker.patch("winipedia_utils.setup.logger")

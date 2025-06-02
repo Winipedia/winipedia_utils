@@ -7,7 +7,7 @@ import tomlkit
 from pytest_mock import MockFixture
 
 from winipedia_utils.projects.poetry.config import (
-    _add_tool_configurations_to_pyproject_toml,
+    _add_configurations_to_pyproject_toml,
     _get_pyproject_toml_tool_configs,
     _pyproject_tool_configs_are_correct,
     _tool_config_is_correct,
@@ -303,7 +303,7 @@ def test__pyproject_tool_configs_are_correct(mocker: MockFixture) -> None:
     )
 
 
-def test__add_tool_configurations_to_pyproject_toml(mocker: MockFixture) -> None:
+def test__add_configurations_to_pyproject_toml(mocker: MockFixture) -> None:
     """Test func for _add_tool_configurations_to_pyproject_toml."""
     # Setup mocks
     mock_doc = tomlkit.document()
@@ -323,7 +323,7 @@ def test__add_tool_configurations_to_pyproject_toml(mocker: MockFixture) -> None
     mock_logger = mocker.patch("winipedia_utils.projects.poetry.config.logger")
 
     # Call the function
-    _add_tool_configurations_to_pyproject_toml()
+    _add_configurations_to_pyproject_toml()
 
     # Verify load and dump were called
     mock_load.assert_called_once()
@@ -351,7 +351,7 @@ def test__add_tool_configurations_to_pyproject_toml(mocker: MockFixture) -> None
     # Mock that ruff and mypy are correct, pytest and bandit need updates
     mock_tool_config_correct.side_effect = [True, True, False, False]
 
-    _add_tool_configurations_to_pyproject_toml()
+    _add_configurations_to_pyproject_toml()
 
     # Should only log for pytest and bandit
     expected_log_calls = 2  # pytest and bandit
@@ -368,7 +368,7 @@ def test__add_tool_configurations_to_pyproject_toml(mocker: MockFixture) -> None
     mock_tool_config_correct.side_effect = None  # Reset side_effect
     mock_tool_config_correct.return_value = True
 
-    _add_tool_configurations_to_pyproject_toml()
+    _add_configurations_to_pyproject_toml()
 
     # Should not log anything
     assert_with_msg(

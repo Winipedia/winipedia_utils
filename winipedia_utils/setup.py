@@ -11,7 +11,7 @@ from winipedia_utils.git.pre_commit.config import _add_package_hook_to_pre_commi
 from winipedia_utils.git.pre_commit.run_hooks import _run_all_hooks
 from winipedia_utils.logging.logger import get_logger
 from winipedia_utils.projects.poetry.config import (
-    _add_tool_configurations_to_pyproject_toml,
+    _add_configurations_to_pyproject_toml,
 )
 from winipedia_utils.projects.poetry.poetry import (
     _install_dev_dependencies,
@@ -29,7 +29,7 @@ def _setup() -> None:
     # add patterns to .gitignore
     _add_package_patterns_to_gitignore()
     # add tool.* configurations to pyproject.toml
-    _add_tool_configurations_to_pyproject_toml()
+    _add_configurations_to_pyproject_toml()
     # run pre-commit once, create tests is included here
     _run_all_hooks()
     logger.info("Setup complete!")
