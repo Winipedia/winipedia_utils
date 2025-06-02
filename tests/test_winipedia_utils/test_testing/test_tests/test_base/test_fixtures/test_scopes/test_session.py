@@ -58,3 +58,15 @@ def test__test_no_unitest_package_usage() -> None:
 def test__test_gitignore_is_correct() -> None:
     """Test func for _test_gitignore_is_correct."""
     raise NotImplementedError
+
+
+@pytest.mark.skip(reason="Can not test a test")
+def test__test_src_package_correctly_named() -> None:
+    """Test func for _test_src_package_correctly_named."""
+    raise NotImplementedError
+
+
+@pytest.mark.skip(reason="Can not test a test")
+def test__test_py_typed_exists() -> None:
+    """Test func for _test_py_typed_exists."""
+    raise NotImplementedError

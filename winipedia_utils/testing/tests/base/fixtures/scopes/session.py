@@ -197,6 +197,44 @@ def _test_all_src_code_in_one_package() -> None:
 
 
 @autouse_session_fixture
+def _test_src_package_correctly_named() -> None:
+    """Verify that the source package is correctly named.
+
+    This fixture runs once per test session and checks that the source package
+    is correctly named after the project.
+
+    Raises:
+        AssertionError: If the source package is not correctly named
+
+    """
+    src_package = get_src_package().__name__
+    assert_with_msg(
+        src_package == get_poetry_package_name(),
+        f"Expected source package to be named {get_poetry_package_name()}, "
+        f"but it is named {src_package}",
+    )
+
+
+@autouse_session_fixture
+def _test_py_typed_exists() -> None:
+    """Verify that the py.typed file exists in the source package.
+
+    This fixture runs once per test session and checks that the py.typed file
+    exists in the source package.
+
+    Raises:
+        AssertionError: If the py.typed file doesn't exist
+
+    """
+    src_package = get_src_package()
+    py_typed_path = to_path(src_package.__name__, is_package=True) / "py.typed"
+    assert_with_msg(
+        py_typed_path.exists(),
+        f"Expected py.typed file to exist at {py_typed_path}",
+    )
+
+
+@autouse_session_fixture
 def _test_project_structure_mirrored() -> None:
     """Verify that the project structure is mirrored in tests.
 
