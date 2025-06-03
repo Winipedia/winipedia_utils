@@ -14,6 +14,7 @@ from winipedia_utils.git.pre_commit.config import (
     _add_package_hook_to_pre_commit_config,
     _get_pre_commit_config_dict,
     _pre_commit_config_is_correct,
+    _pre_commit_install,
     dump_pre_commit_config,
     load_pre_commit_config,
 )
@@ -259,6 +260,22 @@ def test__add_package_hook_to_pre_commit_config(mocker: MockFixture) -> None:
         dump_arg == expected_updated_config,
         f"Expected {expected_updated_config}, got {dump_arg}",
     )
+
+    # Check that logger.info was called
+    mock_logger.info.assert_called_once()
+
+
+def test__pre_commit_install(mocker: MockFixture) -> None:
+    """Test func for _pre_commit_install."""
+    mock_run_subprocess = mocker.patch(
+        "winipedia_utils.git.pre_commit.config.run_subprocess"
+    )
+    mock_logger = mocker.patch("winipedia_utils.git.pre_commit.config.logger")
+
+    _pre_commit_install()
+
+    # Check that run_subprocess was called
+    mock_run_subprocess.assert_called_once()
 
     # Check that logger.info was called
     mock_logger.info.assert_called_once()
