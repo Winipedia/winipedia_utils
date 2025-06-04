@@ -5,7 +5,11 @@ from types import ModuleType
 
 from pytest_mock import MockFixture
 
-from winipedia_utils.projects.project import _create_project_root, _create_py_typed
+from winipedia_utils.projects.project import (
+    _create_project_root,
+    _create_py_typed,
+    make_name_from_package,
+)
 from winipedia_utils.testing.assertions import assert_with_msg
 
 
@@ -93,4 +97,40 @@ def test__create_py_typed(mocker: MockFixture) -> None:
     assert_with_msg(
         mock_py_typed_path.touch.call_count == 1,
         "Expected touch to be called once on py.typed file",
+    )
+
+
+def test_make_name_from_package() -> None:
+    """Test func for make_project_name."""
+    # Create mock source package
+    mock_src_package = ModuleType("winipedia_utils")
+    mock_src_package.__name__ = "winipedia_utils"
+
+    result = make_name_from_package(mock_src_package)
+    expected = "Winipedia-Utils"
+    assert_with_msg(
+        result == expected,
+        f"Expected '{expected}', got '{result}'",
+    )
+
+    result = make_name_from_package(mock_src_package, split_on="-", join_on="_")
+    expected = "Winipedia_utils"
+    assert_with_msg(
+        result == expected,
+        f"Expected '{expected}', got '{result}'",
+    )
+    result = make_name_from_package(mock_src_package, capitalize=False)
+    expected = "winipedia-utils"
+    assert_with_msg(
+        result == expected,
+        f"Expected '{expected}', got '{result}'",
+    )
+
+    result = make_name_from_package(
+        mock_src_package, split_on="-", join_on="_", capitalize=False
+    )
+    expected = "winipedia_utils"
+    assert_with_msg(
+        result == expected,
+        f"Expected '{expected}', got '{result}'",
     )
