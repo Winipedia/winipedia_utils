@@ -158,7 +158,7 @@ def test_get_modules_and_packages_from_package(mocker: MockFixture) -> None:
     mock_module2 = ModuleType("test_package.module2")
 
     mock_import = mocker.patch("winipedia_utils.modules.package.import_module")
-    mock_import.side_effect = [mock_subpackage, mock_module1, mock_module2]
+    mock_import.side_effect = [mock_subpackage, mock_module1, mock_module2] * 2
 
     packages, modules = get_modules_and_packages_from_package(mock_package)
 
@@ -173,6 +173,12 @@ def test_get_modules_and_packages_from_package(mocker: MockFixture) -> None:
 
     mock_iter_modules.assert_called_once_with(
         mock_package.__path__, prefix="test_package."
+    )
+
+    # test order is consistent so that
+    assert_with_msg(
+        get_modules_and_packages_from_package(mock_package) == (packages, modules),
+        "Expected consistent order of packages and modules",
     )
 
 

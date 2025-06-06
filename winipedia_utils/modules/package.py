@@ -143,6 +143,10 @@ def get_modules_and_packages_from_package(
         else:
             modules.append(mod)
 
+    # make consistent order
+    packages.sort(key=lambda p: p.__name__)
+    modules.sort(key=lambda m: m.__name__)
+
     return packages, modules
 
 
