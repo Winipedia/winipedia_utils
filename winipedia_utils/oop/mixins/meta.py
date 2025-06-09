@@ -15,7 +15,7 @@ from typing import Any, final
 
 from winipedia_utils.logging.logger import get_logger
 from winipedia_utils.modules.class_ import get_all_methods_from_cls
-from winipedia_utils.modules.function import is_func
+from winipedia_utils.modules.function import is_func, unwrap_method
 from winipedia_utils.text.string import value_to_truncated_string
 
 logger = get_logger(__name__)
@@ -51,9 +51,20 @@ class LoggingMeta(type):
 
         for attr_name, attr_value in dct.items():
             if mcs.is_loggable_method(attr_value):
-                dct[attr_name] = mcs.wrap_with_logging(
-                    func=attr_value, class_name=name, call_times={}
-                )
+                if isinstance(attr_value, classmethod):
+                    wrapped_method = mcs.wrap_with_logging(
+                        func=attr_value.__func__, class_name=name, call_times={}
+                    )
+                    dct[attr_name] = classmethod(wrapped_method)
+                elif isinstance(attr_value, staticmethod):
+                    wrapped_method = mcs.wrap_with_logging(
+                        func=attr_value.__func__, class_name=name, call_times={}
+                    )
+                    dct[attr_name] = staticmethod(wrapped_method)
+                else:
+                    dct[attr_name] = mcs.wrap_with_logging(
+                        func=attr_value, class_name=name, call_times={}
+                    )
 
         return super().__new__(mcs, name, bases, dct)
 
@@ -96,7 +107,7 @@ class LoggingMeta(type):
         time_time = time.time  # Cache the time.time function for performance
 
         @wraps(func)
-        def wrapper(self: object, *args: object, **kwargs: object) -> object:
+        def wrapper(*args: object, **kwargs: object) -> object:
             # call_times as a dictionary to store the call times of the function
             # we only log if the time since the last call is greater than the threshold
             # this is to avoid spamming the logs
@@ -132,7 +143,7 @@ class LoggingMeta(type):
 
             # Execute the function and return the result
 
-            result = func(self, *args, **kwargs)
+            result = func(*args, **kwargs)
 
             if do_logging:
                 duration = time_time() - current_time
@@ -249,7 +260,10 @@ class ImplementationMeta(type):
             True if the method is marked with @final, False otherwise
 
         """
-        return getattr(method, "__final__", False)
+        unwrapped_method = unwrap_method(method)
+        return getattr(method, "__final__", False) or getattr(
+            unwrapped_method, "__final__", False
+        )
 
     @staticmethod
     def is_abstract_method(method: Callable[..., Any]) -> bool:
