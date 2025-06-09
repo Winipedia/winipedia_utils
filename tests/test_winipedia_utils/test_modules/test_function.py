@@ -6,6 +6,7 @@ from winipedia_utils.modules.function import (
     get_all_functions_from_module,
     is_func,
     is_func_or_method,
+    unwrap_method,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
 
@@ -186,6 +187,7 @@ def test_get_all_functions_from_module() -> None:
         "is_func_or_method",
         "is_func",
         "get_all_functions_from_module",
+        "unwrap_method",
     ]
 
     expected_count = len(expected_functions)
@@ -216,3 +218,56 @@ def test_get_all_functions_from_module() -> None:
             callable(func),
             f"Expected function {func.__name__} to be callable",
         )
+
+
+def test_unwrap_method() -> None:
+    """Test func for unwrap_method."""
+
+    # Test with regular function
+    def regular_function() -> None:
+        """Regular function."""
+
+    assert_with_msg(
+        unwrap_method(regular_function) == regular_function,
+        "Expected regular function to be unwrapped to itself",
+    )
+
+    # Test with class method
+    class TestClass:
+        def instance_method(self) -> None:
+            """Instance method."""
+
+        @classmethod
+        def class_method(cls) -> None:
+            """Class method."""
+
+        @staticmethod
+        def static_method() -> None:
+            """Static method."""
+
+        @property
+        def test_property(self) -> str:
+            """Test property."""
+            return "test"
+
+    assert_with_msg(
+        unwrap_method(TestClass.instance_method) == TestClass.instance_method,
+        "Expected instance method to be unwrapped to itself",
+    )
+
+    raw_class_method = TestClass.__dict__["class_method"]
+    assert_with_msg(
+        unwrap_method(raw_class_method) == TestClass.class_method.__func__,  # type: ignore[attr-defined]
+        "Expected class method to be unwrapped to its function",
+    )
+
+    raw_static_method = TestClass.__dict__["static_method"]
+    assert_with_msg(
+        unwrap_method(raw_static_method) == raw_static_method.__func__,
+        "Expected static method to be unwrapped to its function",
+    )
+
+    assert_with_msg(
+        unwrap_method(TestClass.test_property) == TestClass.test_property.fget,  # type: ignore[attr-defined]
+        "Expected property to be unwrapped to its getter function",
+    )

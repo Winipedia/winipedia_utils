@@ -294,6 +294,11 @@ class TestImplementationMeta:
             def concrete_method(self) -> None:
                 pass
 
+            @classmethod
+            @abstractmethod
+            def abstract_classmethod(cls) -> None:
+                pass
+
         # Test that class with abstract methods is detected as abstract
         result = AbstractClass.is_abstract_cls()
         assert_with_msg(
@@ -307,11 +312,20 @@ class TestImplementationMeta:
             def concrete_method(self) -> None:
                 pass
 
+            @classmethod
+            @final
+            def concrete_classmethod(cls) -> type:
+                return cls
+
         # Test that class without abstract methods is not abstract
         result = ConcreteClass.is_abstract_cls()
         assert_with_msg(
             result is False,
             "Expected class without abstract methods to not be abstract",
+        )
+        assert_with_msg(
+            ConcreteClass.concrete_classmethod() is ConcreteClass,
+            "Expected class method to return class",
         )
 
     def test_check_method_decorators_success(self) -> None:

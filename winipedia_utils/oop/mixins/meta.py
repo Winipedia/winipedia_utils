@@ -15,7 +15,7 @@ from typing import Any, final
 
 from winipedia_utils.logging.logger import get_logger
 from winipedia_utils.modules.class_ import get_all_methods_from_cls
-from winipedia_utils.modules.function import is_func
+from winipedia_utils.modules.function import is_func, unwrap_method
 from winipedia_utils.text.string import value_to_truncated_string
 
 logger = get_logger(__name__)
@@ -249,6 +249,7 @@ class ImplementationMeta(type):
             True if the method is marked with @final, False otherwise
 
         """
+        method = unwrap_method(method)
         return getattr(method, "__final__", False)
 
     @staticmethod
@@ -262,6 +263,7 @@ class ImplementationMeta(type):
             True if the method is marked with @abstractmethod, False otherwise
 
         """
+        method = unwrap_method(method)
         return getattr(method, "__isabstractmethod__", False)
 
     def check_attrs_implemented(cls) -> None:

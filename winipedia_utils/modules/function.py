@@ -84,3 +84,20 @@ def get_all_functions_from_module(module: ModuleType | str) -> list[Callable[...
     ]
     # sort by definition order
     return sorted(funcs, key=get_def_line)
+
+
+def unwrap_method(method: Any) -> Callable[..., Any] | Any:
+    """Unwrap a method to its underlying function.
+
+    Args:
+        method: The method to unwrap
+
+    Returns:
+        The underlying function of the method
+
+    """
+    if isinstance(method, (staticmethod, classmethod)):
+        method = method.__func__
+    if isinstance(method, property):
+        method = method.fget
+    return inspect.unwrap(method)
