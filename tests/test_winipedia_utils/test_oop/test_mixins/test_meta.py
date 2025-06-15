@@ -581,6 +581,8 @@ class TestABCImplementationLoggingMeta:
 
         # Create an abstract class
         class AbstractClass(metaclass=ABCImplementationLoggingMeta):
+            CLASS_VAR: str = NotImplemented
+
             @abstractmethod
             def abstract_method(self) -> None:
                 pass
@@ -614,8 +616,20 @@ class TestABCImplementationLoggingMeta:
             "Expected concrete_staticmethod to return 'test'",
         )
 
+        class AbstractClass2(AbstractClass):
+            @final
+            def abstract_method2(self) -> None:
+                pass
+
+        assert_with_msg(
+            AbstractClass2.concrete_classmethod2() is AbstractClass2,
+            "Expected concrete_classmethod2 to return class",
+        )
+
         # Create a concrete implementation
         class ConcreteClass(AbstractClass):
+            CLASS_VAR: str = "test"
+
             @final
             def abstract_method(self) -> None:
                 pass

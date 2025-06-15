@@ -21,7 +21,7 @@ from winipedia_utils.text.string import value_to_truncated_string
 logger = get_logger(__name__)
 
 
-class LoggingMeta(type):
+class LoggingMeta(ABCMeta):
     """Metaclass that automatically adds logging to class methods.
 
     Wraps non-magic methods with a logging decorator that tracks method calls,
@@ -169,7 +169,7 @@ class LoggingMeta(type):
         return wrapper
 
 
-class ImplementationMeta(type):
+class ImplementationMeta(ABCMeta):
     """Metaclass that enforces implementation.
 
     Ensures that concrete subclasses properly implement all required attributes
@@ -182,7 +182,9 @@ class ImplementationMeta(type):
         cls: "ImplementationMeta",
         name: str,
         bases: tuple[type, ...],
-        dct: dict[str, Any],
+        namespace: dict[str, Any],
+        /,
+        **_kwargs: Any,
     ) -> None:
         """Initialize a class with implementation checking.
 
@@ -194,7 +196,7 @@ class ImplementationMeta(type):
             cls: The class being initialized
             name: The name of the class
             bases: The base classes
-            dct: The attribute dictionary
+            namespace: The attribute dictionary
 
         Raises:
             NotImplementedError: If the class doesn't define __abstract__
@@ -203,7 +205,7 @@ class ImplementationMeta(type):
             TypeError: If a method is neither final nor abstract
 
         """
-        super().__init__(name, bases, dct)
+        super().__init__(name, bases, namespace)
 
         # Check method decorators regardless of abstract status
 
@@ -223,7 +225,7 @@ class ImplementationMeta(type):
             True if the class is abstract, False otherwise
 
         """
-        return any(cls.is_abstract_method(method) for method in cls.__dict__.values())
+        return any(cls.__abstractmethods__)
 
     def check_method_decorators(cls) -> None:
         """Check that all methods are properly decorated with @final or @abstractmethod.
@@ -317,7 +319,7 @@ class ImplementationMeta(type):
         return list(attrs)
 
 
-class ABCImplementationLoggingMeta(ImplementationMeta, LoggingMeta, ABCMeta):
+class ABCImplementationLoggingMeta(ImplementationMeta, LoggingMeta):
     """Combined metaclass that merges implementation, logging, and ABC functionality.
 
     This metaclass combines the features of:
