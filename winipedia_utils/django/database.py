@@ -16,7 +16,6 @@ from django.db.models.fields.related import ForeignKey, ForeignObjectRel
 from django.forms.models import model_to_dict
 
 from winipedia_utils.logging.logger import get_logger
-from winipedia_utils.text.string import split_on_uppercase
 
 if TYPE_CHECKING:
     from django.db.models.options import Options
@@ -267,9 +266,6 @@ class BaseModel(Model):
 
         # abstract does not inherit in children
         abstract = True
-        # the rest does inherit
-        verbose_name = "Base Model"
-        verbose_name_plural = "Base Models"
 
     def __str__(self) -> str:
         """Base string representation of a model.
@@ -291,14 +287,3 @@ class BaseModel(Model):
     def meta(self) -> "Options[Self]":
         """Get the meta options for the model."""
         return self._meta
-
-    @classmethod
-    def make_verbose_name(cls) -> str:
-        """Make a verbose name for the model."""
-        # split by upper case letters
-        return " ".join(split_on_uppercase(cls.__name__)).title()
-
-    @classmethod
-    def make_verbose_name_plural(cls) -> str:
-        """Make a verbose name plural for the model."""
-        return cls.make_verbose_name() + "s"
