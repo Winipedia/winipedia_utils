@@ -153,8 +153,10 @@ def test__get_pyproject_toml_tool_configs() -> None:
     # Verify ruff configuration
     ruff_config = result["ruff"]
     assert_with_msg(
-        "exclude" in ruff_config and ruff_config["exclude"] == [".*"],
-        f"Expected ruff exclude to be ['.*'], got {ruff_config.get('exclude')}",
+        "exclude" in ruff_config
+        and ruff_config["exclude"] == [".*", "**/migrations/*.py"],
+        f"Expected ruff exclude to be ['.*', '**/migrations/*.py'], "
+        f"got {ruff_config.get('exclude')}",
     )
     assert_with_msg(
         "lint" in ruff_config,

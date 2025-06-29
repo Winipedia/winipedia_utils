@@ -32,7 +32,7 @@ def _get_pyproject_toml_tool_configs() -> dict[str, Any]:
     """Get the tool configurations for pyproject.toml."""
     return {
         "ruff": {
-            "exclude": [".*"],
+            "exclude": [".*", "**/migrations/*.py"],
             "lint": {
                 "select": ["ALL"],
                 "ignore": ["D203", "D213", "COM812", "ANN401"],

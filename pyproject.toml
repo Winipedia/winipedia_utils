@@ -43,7 +43,7 @@ pytest-mock = "^3.14.0"
 django-stubs = "^5.2.0"
 
 [tool.ruff]
-exclude = [ ".*",]
+exclude = [ ".*", "**/migrations/*.py",]
 [tool.ruff.lint]
 select = [ "ALL",]
 ignore = [ "D203", "D213", "COM812", "ANN401",]
