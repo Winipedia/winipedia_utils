@@ -11,6 +11,7 @@ making them suitable for code generation, testing frameworks, and dynamic import
 
 import inspect
 import os
+import sys
 import time
 from collections.abc import Callable, Sequence
 from importlib import import_module
@@ -115,6 +116,9 @@ def to_path(module_name: str | ModuleType | Path, *, is_package: bool) -> Path:
     """
     module_name = to_module_name(module_name)
     path = Path(module_name.replace(".", os.sep))
+    # for smth like pyinstaller we support frozen path
+    if getattr(sys, "frozen", False):
+        path = Path(getattr(sys, "_MEIPASS", "")) / path
     if is_package:
         return path
     return path.with_suffix(".py")
@@ -331,11 +335,12 @@ def get_def_line(obj: Any) -> int:
     return inspect.getsourcelines(unwrapped)[1]
 
 
-def get_module_of_obj(obj: Any) -> ModuleType:
+def get_module_of_obj(obj: Any, default: ModuleType | None = None) -> ModuleType:
     """Return the module name where a method-like object is defined.
 
     Args:
         obj: Method-like object (funcs, method, property, staticmethod, classmethod...)
+        default: Default module to return if the module cannot be determined
 
     Returns:
         The module name as a string, or None if module cannot be determined.
@@ -345,6 +350,8 @@ def get_module_of_obj(obj: Any) -> ModuleType:
     module = inspect.getmodule(unwrapped)
     if not module:
         msg = f"Could not determine module of {obj}"
+        if default:
+            return default
         raise ValueError(msg)
     return module
 

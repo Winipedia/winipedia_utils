@@ -59,9 +59,9 @@ def find_xml_namespaces(xml: str | StringIO) -> dict[str, str]:
     # Extract the namespaces from the root tag
     namespaces_: dict[str, str] = {}
     iter_ns = DefusedElementTree.iterparse(xml, events=["start-ns"])
-    for _, elem in iter_ns:
-        prefix, uri = elem
-        namespaces_[prefix] = uri
+    for _, namespace_data in iter_ns:
+        prefix, uri = namespace_data
+        namespaces_[str(prefix)] = str(uri)
 
     namespaces_.pop("", None)
 

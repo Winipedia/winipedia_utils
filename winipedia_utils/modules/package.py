@@ -11,6 +11,7 @@ making them suitable for code generation, testing frameworks, and package manage
 
 import os
 import pkgutil
+import sys
 from collections.abc import Generator, Iterable
 from importlib import import_module
 from pathlib import Path
@@ -360,3 +361,21 @@ def copy_package(
             create_module(module_path, is_package=False)
             if with_file_content:
                 module_path.write_text(get_module_content_as_str(module))
+
+
+def get_main_package() -> ModuleType:
+    """Gets the main package of the executing code.
+
+    Even when this package is installed as a module.
+    """
+    main = sys.modules.get("__main__")
+    if main is None:
+        msg = "No __main__ module found"
+        raise ValueError(msg)
+
+    package_name = main.__package__
+    if package_name is None:
+        msg = "No __package__ found in __main__"
+        raise ValueError(msg)
+
+    return import_module(package_name)

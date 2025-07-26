@@ -14,6 +14,7 @@ from winipedia_utils.modules.package import (
     copy_package,
     find_packages,
     find_packages_as_modules,
+    get_main_package,
     get_modules_and_packages_from_package,
     get_src_package,
     make_dir_with_init_file,
@@ -571,3 +572,39 @@ def test_copy_package_without_content(mocker: MockFixture) -> None:
 
     # Should not call get_module_content_as_str
     mock_get_content.assert_not_called()
+
+
+def test_get_main_package(mocker: MockFixture) -> None:
+    """Test func for get_main_package."""
+    # Test successful case
+    mock_main_module = ModuleType("__main__")
+    mock_main_module.__package__ = "test_package"
+    mock_package = ModuleType("test_package")
+
+    # Create a mock sys module with modules attribute
+    mock_sys = mocker.MagicMock()
+    mock_sys.modules.get.return_value = mock_main_module
+    mocker.patch("winipedia_utils.modules.package.sys", mock_sys)
+
+    mock_import_module = mocker.patch("winipedia_utils.modules.package.import_module")
+    mock_import_module.return_value = mock_package
+
+    result = get_main_package()
+
+    assert_with_msg(result == mock_package, f"Expected {mock_package}, got {result}")
+    mock_sys.modules.get.assert_called_with("__main__")
+    mock_import_module.assert_called_with("test_package")
+
+    # Test case when no __main__ module exists
+    mock_sys.modules.get.return_value = None
+
+    with pytest.raises(ValueError, match="No __main__ module found"):
+        get_main_package()
+
+    # Test case when __main__ module has no __package__ attribute
+    mock_main_module_no_package = ModuleType("__main__")
+    mock_main_module_no_package.__package__ = None
+    mock_sys.modules.get.return_value = mock_main_module_no_package
+
+    with pytest.raises(ValueError, match="No __package__ found in __main__"):
+        get_main_package()

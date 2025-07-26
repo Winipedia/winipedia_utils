@@ -67,10 +67,53 @@ def get_all_cls_from_module(module: ModuleType | str) -> list[type]:
 
     if isinstance(module, str):
         module = import_module(module)
+
+    # necessary for bindings packages like AESGCM from cryptography._rust backend
+    default = ModuleType("default")
     classes = [
         obj
         for _, obj in inspect.getmembers(module, inspect.isclass)
-        if get_module_of_obj(obj).__name__ == module.__name__
+        if get_module_of_obj(obj, default).__name__ == module.__name__
     ]
     # sort by definition order
     return sorted(classes, key=get_def_line)
+
+
+def get_all_subclasses(cls: type) -> list[type]:
+    """Get all subclasses of a class.
+
+    Retrieves all classes that are subclasses of the specified class.
+    Also returns subclasses of subclasses (recursive).
+
+    Args:
+        cls: The class to find subclasses of
+
+    Returns:
+        A list of subclasses of the given class
+
+    """
+    subclasses_set = set(cls.__subclasses__())
+    for subclass in cls.__subclasses__():
+        subclasses_set.update(get_all_subclasses(subclass))
+    return list(subclasses_set)
+
+
+def get_all_nonabstract_subclasses(cls: type) -> list[type]:
+    """Get all non-abstract subclasses of a class.
+
+    Retrieves all classes that are subclasses of the specified class,
+    excluding abstract classes. Also returns subclasses of subclasses
+    (recursive).
+
+    Args:
+        cls: The class to find subclasses of
+
+    Returns:
+        A list of non-abstract subclasses of the given class
+
+    """
+    return [
+        subclass
+        for subclass in get_all_subclasses(cls)
+        if not inspect.isabstract(subclass)
+    ]

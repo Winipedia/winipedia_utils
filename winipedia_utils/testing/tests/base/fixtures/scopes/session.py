@@ -281,6 +281,6 @@ def _test_no_unitest_package_usage() -> None:
         if path == to_path(__name__, is_package=False):
             continue
         assert_with_msg(
-            "unittest" not in path.read_text(),
+            "unittest" not in path.read_text(encoding="utf-8"),
             f"Found unittest usage in {path}. Use pytest instead.",
         )

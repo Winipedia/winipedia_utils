@@ -3,6 +3,7 @@
 tests.test_winipedia_utils.test_modules.test_class_
 """
 
+from abc import ABC, abstractmethod
 from collections.abc import Callable
 from functools import wraps
 from typing import Any, ClassVar
@@ -10,6 +11,8 @@ from typing import Any, ClassVar
 from winipedia_utils.modules.class_ import (
     get_all_cls_from_module,
     get_all_methods_from_cls,
+    get_all_nonabstract_subclasses,
+    get_all_subclasses,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
 
@@ -94,6 +97,30 @@ class DecoratedClass:
         return "decorated_method"
 
 
+class AbstractParent(ABC):
+    """Abstract parent class for testing."""
+
+    @abstractmethod
+    def abstract_method(self) -> str:
+        """Abstract method that must be implemented."""
+
+
+class ConcreteChild(AbstractParent):
+    """Concrete implementation of AbstractParent."""
+
+    def abstract_method(self) -> str:
+        """Implement the abstract method."""
+        return "concrete_implementation"
+
+
+class AnotherAbstractChild(AbstractParent):
+    """Another abstract child that doesn't implement the method."""
+
+    @abstractmethod
+    def another_abstract_method(self) -> str:
+        """Another abstract method."""
+
+
 def test_get_all_methods_from_cls() -> None:
     """Test func for get_all_methods_from_cls."""
     # Test case 1: Get all methods excluding inherited methods
@@ -143,8 +170,67 @@ def test_get_all_cls_from_module() -> None:
     classes = get_all_cls_from_module(module)
 
     # expected classes in order of definition
-    expected_classes = [ParentClass, TestClass, DecoratedClass]
+    expected_classes = [
+        ParentClass,
+        TestClass,
+        DecoratedClass,
+        AbstractParent,
+        ConcreteChild,
+        AnotherAbstractChild,
+    ]
     assert_with_msg(
         classes == expected_classes,
         f"Expected classes {expected_classes}, got {classes}",
+    )
+
+
+def test_get_all_subclasses() -> None:
+    """Test func for get_all_subclasses."""
+    # Test with ParentClass - should find TestClass as subclass
+    subclasses = get_all_subclasses(ParentClass)
+
+    assert_with_msg(
+        TestClass in subclasses,
+        f"Expected TestClass to be in subclasses of ParentClass, got {subclasses}",
+    )
+
+    # Test with TestClass - should have no subclasses
+    subclasses = get_all_subclasses(TestClass)
+
+    assert_with_msg(
+        len(subclasses) == 0,
+        f"Expected no subclasses for TestClass, got {subclasses}",
+    )
+
+
+def test_get_all_nonabstract_subclasses() -> None:
+    """Test func for get_all_nonabstract_subclasses."""
+    # Test with ParentClass - should find TestClass as non-abstract subclass
+    subclasses = get_all_nonabstract_subclasses(ParentClass)
+
+    assert_with_msg(
+        TestClass in subclasses,
+        f"Expected TestClass to be in non-abstract subclasses, got {subclasses}",
+    )
+
+    # Test with TestClass - should have no subclasses
+    subclasses = get_all_nonabstract_subclasses(TestClass)
+
+    assert_with_msg(
+        len(subclasses) == 0,
+        f"Expected no non-abstract subclasses for TestClass, got {subclasses}",
+    )
+
+    # Test with abstract class - should only find concrete implementations
+    subclasses = get_all_nonabstract_subclasses(AbstractParent)
+
+    assert_with_msg(
+        ConcreteChild in subclasses,
+        f"Expected ConcreteChild in non-abstract subclasses, got {subclasses}",
+    )
+
+    assert_with_msg(
+        AnotherAbstractChild not in subclasses,
+        f"Expected AnotherAbstractChild NOT in non-abstract subclasses, "
+        f"got {subclasses}",
     )
