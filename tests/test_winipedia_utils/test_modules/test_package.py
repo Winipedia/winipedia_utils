@@ -606,5 +606,5 @@ def test_get_main_package(mocker: MockFixture) -> None:
     mock_main_module_no_package.__package__ = None
     mock_sys.modules.get.return_value = mock_main_module_no_package
 
-    with pytest.raises(ValueError, match="No __package__ found in __main__"):
+    with pytest.raises(ValueError, match="Not able to determine the main package"):
         get_main_package()

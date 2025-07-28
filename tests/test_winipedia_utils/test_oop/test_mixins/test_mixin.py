@@ -9,23 +9,23 @@ from typing import Any, final
 import pytest
 from pytest_mock import MockFixture
 
-from winipedia_utils.oop.mixins.mixin import ABCImplementationLoggingMixin
+from winipedia_utils.oop.mixins.mixin import StrictABCLoggingMixin
 from winipedia_utils.testing.assertions import assert_with_msg
 
 
-class TestABCImplementationLoggingMixin:
+class TestStrictABCLoggingMixin:
     """Test class for ABCImplementationLoggingMixin."""
 
     def test_mixin_metaclass(self) -> None:
         """Test that the mixin uses the correct metaclass."""
         # Verify that ABCImplementationLoggingMixin uses ABCImplementationLoggingMeta
-        from winipedia_utils.oop.mixins.meta import ABCImplementationLoggingMeta
+        from winipedia_utils.oop.mixins.meta import StrictABCLoggingMeta
 
         expected_msg = (
             "Expected ABCImplementationLoggingMixin to use ABCImplementationLoggingMeta"
         )
         assert_with_msg(
-            type(ABCImplementationLoggingMixin) is ABCImplementationLoggingMeta,
+            type(StrictABCLoggingMixin) is StrictABCLoggingMeta,
             expected_msg,
         )
 
@@ -33,7 +33,7 @@ class TestABCImplementationLoggingMixin:
         """Test using the mixin as an abstract base class."""
 
         # Create an abstract class that inherits from the mixin
-        class AbstractTestMixin(ABCImplementationLoggingMixin):
+        class AbstractTestMixin(StrictABCLoggingMixin):
             @abstractmethod
             def abstract_method(self) -> str:
                 """Abstract method that must be implemented."""
@@ -60,7 +60,7 @@ class TestABCImplementationLoggingMixin:
         expected_doubled_value = 10
 
         # Create a concrete class that implements all abstract methods
-        class ConcreteTestMixin(ABCImplementationLoggingMixin):
+        class ConcreteTestMixin(StrictABCLoggingMixin):
             @final
             def test_method(self) -> str:
                 """Test method implementation."""
@@ -90,7 +90,7 @@ class TestABCImplementationLoggingMixin:
         """Test mixin with both abstract and concrete methods."""
 
         # Create an abstract mixin with both types of methods
-        class MixedTestMixin(ABCImplementationLoggingMixin):
+        class MixedTestMixin(StrictABCLoggingMixin):
             @abstractmethod
             def required_method(self) -> str:
                 """Return required method result."""
@@ -133,7 +133,7 @@ class TestABCImplementationLoggingMixin:
             optional_attr: str = "default_value"
 
         # Create a mixin that inherits from the base and provides methods
-        class AttributeTestMixin(AttributeBase, ABCImplementationLoggingMixin):
+        class AttributeTestMixin(AttributeBase, StrictABCLoggingMixin):
             @abstractmethod
             def abstract_placeholder(self) -> None:
                 """Make this class abstract to avoid attribute checking."""
@@ -179,7 +179,7 @@ class TestABCImplementationLoggingMixin:
             required_attr: Any = NotImplemented
 
         # Create a mixin that inherits from the base
-        class FailureTestMixin(FailureBase, ABCImplementationLoggingMixin):
+        class FailureTestMixin(FailureBase, StrictABCLoggingMixin):
             @abstractmethod
             def abstract_placeholder(self) -> None:
                 """Make this class abstract to avoid attribute checking."""
@@ -202,7 +202,7 @@ class TestABCImplementationLoggingMixin:
         # with @final or @abstractmethod
         with pytest.raises(TypeError, match="must be decorated with"):
 
-            class BadMixin(ABCImplementationLoggingMixin):
+            class BadMixin(StrictABCLoggingMixin):
                 def undecorated_method(self) -> None:
                     """Lack proper decoration."""
 
@@ -223,7 +223,7 @@ class TestABCImplementationLoggingMixin:
         mock_value_to_truncated_string.return_value = "truncated"
 
         # Create a test mixin with logging
-        class LoggingTestMixin(ABCImplementationLoggingMixin):
+        class LoggingTestMixin(StrictABCLoggingMixin):
             @final
             def logged_method(self, arg: str) -> str:
                 """Return result with logging."""
@@ -249,7 +249,7 @@ class TestABCImplementationLoggingMixin:
         """Test complex inheritance chains with the mixin."""
 
         # Create a base mixin
-        class BaseMixin(ABCImplementationLoggingMixin):
+        class BaseMixin(StrictABCLoggingMixin):
             @abstractmethod
             def base_method(self) -> str:
                 """Return base method result."""
@@ -307,7 +307,7 @@ class TestABCImplementationLoggingMixin:
         """Test multiple inheritance with the mixin."""
 
         # Create a mixin
-        class TestMixin(ABCImplementationLoggingMixin):
+        class TestMixin(StrictABCLoggingMixin):
             @final
             def mixin_method(self) -> str:
                 """Return mixin result."""
@@ -340,3 +340,7 @@ class TestABCImplementationLoggingMixin:
             instance.combined_method() == "regular_mixin",
             "Expected combined_method to work",
         )
+
+
+class TestABCLoggingMixin:
+    """Test class for ABCLoggingMixin."""

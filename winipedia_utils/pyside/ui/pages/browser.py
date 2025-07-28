@@ -3,8 +3,6 @@
 This module contains the add downloads page class for the VideoVault application.
 """
 
-from typing import final
-
 from winipedia_utils.pyside.ui.pages.base.base import Base as BasePage
 from winipedia_utils.pyside.ui.widgets.browser import Browser as BrowserWidget
 
@@ -12,7 +10,6 @@ from winipedia_utils.pyside.ui.widgets.browser import Browser as BrowserWidget
 class Browser(BasePage):
     """Add downloads page for the VideoVault application."""
 
-    @final
     def setup(self) -> None:
         """Setup the UI.
 
@@ -20,7 +17,6 @@ class Browser(BasePage):
         """
         self.add_brwoser()
 
-    @final
     def add_brwoser(self) -> None:
         """Add a browser to surf the web.
 

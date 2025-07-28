@@ -327,11 +327,21 @@ def get_default_module_content() -> str:
     return '''"""module."""'''
 
 
+def inside_frozen_bundle() -> bool:
+    """Return True if the code is running inside a frozen bundle."""
+    return getattr(sys, "frozen", False)
+
+
 def get_def_line(obj: Any) -> int:
     """Return the line number where a method-like object is defined."""
     if isinstance(obj, property):
         obj = obj.fget
     unwrapped = inspect.unwrap(obj)
+    if hasattr(unwrapped, "__code__"):
+        return int(unwrapped.__code__.co_firstlineno)
+    # getsourcelines does not work if in a pyinstaller bundle or something
+    if inside_frozen_bundle():
+        return 0
     return inspect.getsourcelines(unwrapped)[1]
 
 

@@ -234,7 +234,7 @@ def get_test_classes_content(
         for tc, tms in test_class_to_methods.items()
     }
 
-    untested_class_to_methods_names: dict[str, list[str]] = {}
+    untested_test_class_to_methods_names: dict[str, list[str]] = {}
     for (
         test_class_name,
         supposed_test_methods_names,
@@ -243,15 +243,20 @@ def get_test_classes_content(
         untested_methods_names = [
             tmn for tmn in supposed_test_methods_names if tmn not in test_methods_names
         ]
-        if not supposed_test_methods_names:
-            untested_class_to_methods_names[test_class_name] = []
+        if (
+            not supposed_test_methods_names
+            and test_class_name not in test_class_to_methods_names
+        ):
+            untested_test_class_to_methods_names[test_class_name] = []
         if untested_methods_names:
-            untested_class_to_methods_names[test_class_name] = untested_methods_names
+            untested_test_class_to_methods_names[test_class_name] = (
+                untested_methods_names
+            )
 
     for (
         test_class_name,
         untested_methods_names,
-    ) in untested_class_to_methods_names.items():
+    ) in untested_test_class_to_methods_names.items():
         test_class_declaration = f"""
 class {test_class_name}:
     \"\"\"Test class for {reverse_make_test_obj_name(test_class_name)}.\"\"\"

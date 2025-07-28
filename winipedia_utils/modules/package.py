@@ -368,14 +368,23 @@ def get_main_package() -> ModuleType:
 
     Even when this package is installed as a module.
     """
+    from winipedia_utils.modules.module import to_module_name
+
     main = sys.modules.get("__main__")
     if main is None:
         msg = "No __main__ module found"
         raise ValueError(msg)
 
-    package_name = main.__package__
-    if package_name is None:
-        msg = "No __package__ found in __main__"
-        raise ValueError(msg)
+    package_name = getattr(main, "__package__", None)
+    if package_name:
+        package_name = package_name.split(".")[0]
+        return import_module(package_name)
 
-    return import_module(package_name)
+    file_name = getattr(main, "__file__", None)
+    if file_name:
+        package_name = to_module_name(file_name)
+        package_name = package_name.split(".")[0]
+        return import_module(package_name)
+
+    msg = "Not able to determine the main package"
+    raise ValueError(msg)

@@ -6,7 +6,7 @@ This module contains the player page class for the VideoVault application.
 from abc import abstractmethod
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, final
+from typing import Any
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
@@ -26,7 +26,6 @@ class Player(BasePage):
             position: The position to start playback from in milliseconds.
         """
 
-    @final
     def setup(self) -> None:
         """Setup the UI.
 
@@ -34,7 +33,6 @@ class Player(BasePage):
         """
         self.media_player = MediaPlayer(self.v_layout)
 
-    @final
     def play_file_from_func(
         self,
         play_func: Callable[..., Any],
@@ -58,7 +56,6 @@ class Player(BasePage):
         # Stop current playback and clean up resources
         play_func(path=path, position=position, **kwargs)
 
-    @final
     def play_file(self, path: Path, position: int = 0) -> None:
         """Play a regular video file.
 
@@ -70,7 +67,6 @@ class Player(BasePage):
             self.media_player.play_file, path=path, position=position
         )
 
-    @final
     def play_encrypted_file(
         self, path: Path, aes_gcm: AESGCM, position: int = 0
     ) -> None:

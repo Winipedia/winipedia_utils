@@ -5,7 +5,7 @@ This module contains the base UI class for the VideoVault application.
 
 from abc import abstractmethod
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Self, cast, final
+from typing import TYPE_CHECKING, Any, Self, cast
 
 from PySide6.QtCore import QObject
 from PySide6.QtGui import QIcon
@@ -15,7 +15,7 @@ from winipedia_utils.modules.class_ import (
     get_all_nonabstract_subclasses,
 )
 from winipedia_utils.modules.package import get_main_package, walk_package
-from winipedia_utils.oop.mixins.meta import ABCImplementationLoggingMeta
+from winipedia_utils.oop.mixins.meta import ABCLoggingMeta
 from winipedia_utils.resources.svgs.svg import get_svg_path
 from winipedia_utils.text.string import split_on_uppercase
 
@@ -25,17 +25,16 @@ if TYPE_CHECKING:
     from winipedia_utils.pyside.ui.windows.base.base import Base as BaseWindow
 
 
-class QABCImplementationLoggingMeta(
-    ABCImplementationLoggingMeta,
+class QABCLoggingMeta(
+    ABCLoggingMeta,
     type(QObject),  # type: ignore[misc]
 ):
     """Metaclass for the QABCImplementationLoggingMixin."""
 
 
-class Base(metaclass=QABCImplementationLoggingMeta):
+class Base(metaclass=QABCLoggingMeta):
     """Base UI class for a Qt application."""
 
-    @final
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the base UI."""
         super().__init__(*args, **kwargs)
@@ -76,7 +75,6 @@ class Base(metaclass=QABCImplementationLoggingMeta):
         """
 
     @classmethod
-    @final
     def get_display_name(cls) -> str:
         """Get the display name of the UI.
 
@@ -86,7 +84,6 @@ class Base(metaclass=QABCImplementationLoggingMeta):
         return " ".join(split_on_uppercase(cls.__name__))
 
     @classmethod
-    @final
     def get_subclasses(cls, package: ModuleType | None = None) -> list[type[Self]]:
         """Get all subclasses of the UI.
 
@@ -106,7 +103,6 @@ class Base(metaclass=QABCImplementationLoggingMeta):
         children = get_all_nonabstract_subclasses(cls)
         return sorted(children, key=lambda cls: cls.__name__)
 
-    @final
     def set_current_page(self, page_cls: type["BasePage"]) -> None:
         """Set the current page in the stack.
 
@@ -115,7 +111,6 @@ class Base(metaclass=QABCImplementationLoggingMeta):
         """
         self.get_stack().setCurrentWidget(self.get_page(page_cls))
 
-    @final
     def get_stack(self) -> QStackedWidget:
         """Get the stack widget of the window.
 
@@ -126,7 +121,6 @@ class Base(metaclass=QABCImplementationLoggingMeta):
 
         return window.stack
 
-    @final
     def get_stack_pages(self) -> list["BasePage"]:
         """Get all pages from the stack.
 
@@ -139,7 +133,6 @@ class Base(metaclass=QABCImplementationLoggingMeta):
         # get all the pages
         return [cast("BasePage", stack.widget(i)) for i in range(stack.count())]
 
-    @final
     def get_page[T: "BasePage"](self, page_cls: type[T]) -> T:
         """Get a specific page from the stack.
 
@@ -155,7 +148,6 @@ class Base(metaclass=QABCImplementationLoggingMeta):
         return cast("T", page)
 
     @classmethod
-    @final
     def get_svg_icon(cls, svg_name: str, package: ModuleType | None = None) -> QIcon:
         """Get a QIcon for an SVG file.
 
@@ -170,7 +162,6 @@ class Base(metaclass=QABCImplementationLoggingMeta):
         return QIcon(str(get_svg_path(svg_name, package=package)))
 
     @classmethod
-    @final
     def get_page_static[T: "BasePage"](cls, page_cls: type[T]) -> T:
         """Get a page statically from the main window.
 

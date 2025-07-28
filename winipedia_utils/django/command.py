@@ -12,12 +12,12 @@ from typing import Any, final
 
 from django.core.management import BaseCommand
 
-from winipedia_utils.oop.mixins.mixin import ABCImplementationLoggingMixin
+from winipedia_utils.oop.mixins.mixin import ABCLoggingMixin
 
 logger = logging.getLogger(__name__)
 
 
-class ABCBaseCommand(ABCImplementationLoggingMixin, BaseCommand):
+class ABCBaseCommand(ABCLoggingMixin, BaseCommand):
     """Abstract base class for Django management commands with logging and validation.
 
     This class serves as a foundation for creating Django management commands that

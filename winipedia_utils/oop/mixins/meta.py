@@ -21,7 +21,7 @@ from winipedia_utils.text.string import value_to_truncated_string
 logger = get_logger(__name__)
 
 
-class LoggingMeta(ABCMeta):
+class ABCLoggingMeta(ABCMeta):
     """Metaclass that automatically adds logging to class methods.
 
     Wraps non-magic methods with a logging decorator that tracks method calls,
@@ -30,11 +30,11 @@ class LoggingMeta(ABCMeta):
     """
 
     def __new__(
-        mcs: type["LoggingMeta"],
+        mcs: type["ABCLoggingMeta"],
         name: str,
         bases: tuple[type, ...],
         dct: dict[str, Any],
-    ) -> "LoggingMeta":
+    ) -> "ABCLoggingMeta":
         """Create a new class with logging-wrapped methods.
 
         Args:
@@ -169,7 +169,7 @@ class LoggingMeta(ABCMeta):
         return wrapper
 
 
-class ImplementationMeta(ABCMeta):
+class StrictABCMeta(ABCMeta):
     """Metaclass that enforces implementation.
 
     Ensures that concrete subclasses properly implement all required attributes
@@ -179,7 +179,7 @@ class ImplementationMeta(ABCMeta):
     """
 
     def __init__(
-        cls: "ImplementationMeta",
+        cls: "StrictABCMeta",
         name: str,
         bases: tuple[type, ...],
         namespace: dict[str, Any],
@@ -319,7 +319,7 @@ class ImplementationMeta(ABCMeta):
         return list(attrs)
 
 
-class ABCImplementationLoggingMeta(ImplementationMeta, LoggingMeta):
+class StrictABCLoggingMeta(StrictABCMeta, ABCLoggingMeta):
     """Combined metaclass that merges implementation, logging, and ABC functionality.
 
     This metaclass combines the features of:

@@ -11,12 +11,12 @@ enforcement and built-in logging capabilities.
 """
 
 from winipedia_utils.logging.logger import get_logger
-from winipedia_utils.oop.mixins.meta import ABCImplementationLoggingMeta
+from winipedia_utils.oop.mixins.meta import ABCLoggingMeta, StrictABCLoggingMeta
 
 logger = get_logger(__name__)
 
 
-class ABCImplementationLoggingMixin(metaclass=ABCImplementationLoggingMeta):
+class StrictABCLoggingMixin(metaclass=StrictABCLoggingMeta):
     """mixin class that provides implementation, logging, and ABC functionality.
 
     This mixin can be used as a base class for other mixins that need:
@@ -25,4 +25,13 @@ class ABCImplementationLoggingMixin(metaclass=ABCImplementationLoggingMeta):
     - Automatic method logging (from LoggingMeta)
 
     Subclasses must set __abstract__ = False when they provide concrete implementations.
+    """
+
+
+class ABCLoggingMixin(metaclass=ABCLoggingMeta):
+    """Mixin class that provides automatic method logging with performance tracking.
+
+    This mixin can be used as a base class for other mixins that need:
+    - Automatic method logging (from LoggingMeta)
+
     """

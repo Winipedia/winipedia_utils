@@ -4,7 +4,7 @@ This module contains the base page class for the VideoVault application.
 """
 
 from functools import partial
-from typing import final
+from typing import TYPE_CHECKING, Any
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -19,11 +19,18 @@ from PySide6.QtWidgets import (
 
 from winipedia_utils.pyside.ui.base.base import Base as BaseUI
 
+if TYPE_CHECKING:
+    from winipedia_utils.pyside.ui.windows.base.base import Base as BaseWindow
+
 
 class Base(BaseUI, QWidget):
     """Base page class for the VideoVault application."""
 
-    @final
+    def __init__(self, base_window: "BaseWindow", *args: Any, **kwargs: Any) -> None:
+        """Initialize the base page."""
+        self.base_window = base_window
+        super().__init__(*args, **kwargs)
+
     def base_setup(self) -> None:
         """Setup the base Qt object of the UI.
 
@@ -38,8 +45,8 @@ class Base(BaseUI, QWidget):
         self.v_layout.addLayout(self.h_layout)
 
         self.add_menu_dropdown_button()
+        self.base_window.add_page(self)
 
-    @final
     def add_menu_dropdown_button(self) -> None:
         """Add a dropdown menu that leads to each page.
 
@@ -58,11 +65,10 @@ class Base(BaseUI, QWidget):
         self.menu_dropdown = QMenu(self.menu_button)
         self.menu_button.setMenu(self.menu_dropdown)
 
-        for page_cls in Base.get_subclasses():
+        for page_cls in self.base_window.get_all_page_classes():
             action = self.menu_dropdown.addAction(page_cls.get_display_name())
             action.triggered.connect(partial(self.set_current_page, page_cls))
 
-    @final
     def add_to_page_button(
         self, to_page_cls: type["Base"], layout: QLayout
     ) -> QPushButton:

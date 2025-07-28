@@ -24,6 +24,7 @@ from winipedia_utils.modules.module import (
     get_qualname_of_obj,
     get_unwrapped_obj,
     import_obj_from_importpath,
+    inside_frozen_bundle,
     make_obj_importpath,
     to_module_name,
     to_path,
@@ -469,6 +470,12 @@ def test_get_default_module_content() -> None:
     result = get_default_module_content()
     expected = '''"""module."""'''
     assert_with_msg(result == expected, f"Expected {expected!r}, got {result!r}")
+
+
+def test_inside_frozen_bundle() -> None:
+    """Test func for inside_frozen_bundle."""
+    result = inside_frozen_bundle()
+    assert_with_msg(result is False, f"Expected False, got {result}")
 
 
 def test_get_def_line() -> None:

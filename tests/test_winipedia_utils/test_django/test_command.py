@@ -6,6 +6,7 @@ from typing import Any, final
 import pytest
 
 from winipedia_utils.django.command import ABCBaseCommand
+from winipedia_utils.oop.mixins.mixin import ABCLoggingMixin
 from winipedia_utils.testing.assertions import assert_with_msg
 
 
@@ -63,8 +64,8 @@ class TestABCBaseCommand:
         base_class_names = [cls.__name__ for cls in base_classes]
 
         assert_with_msg(
-            "ABCImplementationLoggingMixin" in base_class_names,
-            f"Expected ABCImplementationLoggingMixin in base classes, "
+            f"{ABCLoggingMixin.__name__}" in base_class_names,
+            f"Expected {ABCLoggingMixin.__name__} in base classes, "
             f"got {base_class_names}",
         )
         assert_with_msg(

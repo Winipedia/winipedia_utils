@@ -10,27 +10,27 @@ import pytest
 from pytest_mock import MockFixture
 
 from winipedia_utils.oop.mixins.meta import (
-    ABCImplementationLoggingMeta,
-    ImplementationMeta,
-    LoggingMeta,
+    ABCLoggingMeta,
+    StrictABCLoggingMeta,
+    StrictABCMeta,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
 
 
-class TestLoggingMeta:
+class TestABCLoggingMeta:
     """Test class for LoggingMeta."""
 
     def test___new__(self) -> None:
         """Test method for __new__."""
 
         # Create a class with LoggingMeta to test that it works
-        class TestClass(metaclass=LoggingMeta):
+        class TestClass(metaclass=ABCLoggingMeta):
             def test_method(self) -> str:
                 return "test"
 
         # Verify the class was created successfully
         assert_with_msg(
-            type(TestClass).__name__ == "LoggingMeta",
+            type(TestClass).__name__ == f"{ABCLoggingMeta.__name__}",
             "Expected TestClass to be created with LoggingMeta",
         )
 
@@ -46,18 +46,18 @@ class TestLoggingMeta:
         """Test that __new__ skips non-loggable methods."""
         # Mock is_loggable_method to return False
         mock_is_loggable = mocker.patch.object(
-            LoggingMeta, "is_loggable_method", return_value=False
+            ABCLoggingMeta, "is_loggable_method", return_value=False
         )
-        mock_wrap_logging = mocker.patch.object(LoggingMeta, "wrap_with_logging")
+        mock_wrap_logging = mocker.patch.object(ABCLoggingMeta, "wrap_with_logging")
 
         # Create a class with LoggingMeta
-        class TestClass(metaclass=LoggingMeta):
+        class TestClass(metaclass=ABCLoggingMeta):
             def __init__(self) -> None:
                 pass
 
         # Verify the class was created successfully
         assert_with_msg(
-            type(TestClass) is LoggingMeta,
+            type(TestClass) is ABCLoggingMeta,
             "Expected TestClass to be created with LoggingMeta",
         )
 
@@ -79,7 +79,7 @@ class TestLoggingMeta:
         regular_method.__name__ = "regular_method"
         mock_is_func.return_value = True
 
-        result = LoggingMeta.is_loggable_method(regular_method)
+        result = ABCLoggingMeta.is_loggable_method(regular_method)
         assert_with_msg(result is True, "Expected regular method to be loggable")
 
         # Test case 2: Magic method (should not be loggable)
@@ -89,14 +89,14 @@ class TestLoggingMeta:
         magic_method.__name__ = "__init__"
         mock_is_func.return_value = True
 
-        result = LoggingMeta.is_loggable_method(magic_method)
+        result = ABCLoggingMeta.is_loggable_method(magic_method)
         assert_with_msg(result is False, "Expected magic method to not be loggable")
 
         # Test case 3: Non-function (should not be loggable)
         mock_is_func.return_value = False
         non_function: Any = 42  # Not a function
 
-        result = LoggingMeta.is_loggable_method(non_function)
+        result = ABCLoggingMeta.is_loggable_method(non_function)
         assert_with_msg(result is False, "Expected non-function to not be loggable")
 
     def test_wrap_with_logging(self, mocker: MockFixture) -> None:
@@ -120,7 +120,9 @@ class TestLoggingMeta:
 
         # Wrap the function
         call_times: dict[str, float] = {}
-        wrapped_func = LoggingMeta.wrap_with_logging(test_func, "TestClass", call_times)
+        wrapped_func = ABCLoggingMeta.wrap_with_logging(
+            test_func, "TestClass", call_times
+        )
 
         # Create a mock self object
         mock_self = mocker.MagicMock()
@@ -165,7 +167,9 @@ class TestLoggingMeta:
 
         # Wrap the function
         call_times: dict[str, float] = {}
-        wrapped_func = LoggingMeta.wrap_with_logging(test_func, "TestClass", call_times)
+        wrapped_func = ABCLoggingMeta.wrap_with_logging(
+            test_func, "TestClass", call_times
+        )
 
         mock_self = mocker.MagicMock()
 
@@ -184,31 +188,31 @@ class TestLoggingMeta:
         )
 
 
-class TestImplementationMeta:
+class TestStrictABCMeta:
     """Test class for ImplementationMeta."""
 
     def test___init__(self, mocker: MockFixture) -> None:
         """Test method for __init__."""
         # Mock methods
         mock_check_method_decorators = mocker.patch.object(
-            ImplementationMeta, "check_method_decorators"
+            StrictABCMeta, "check_method_decorators"
         )
         mock_is_abstract_cls = mocker.patch.object(
-            ImplementationMeta, "is_abstract_cls", return_value=False
+            StrictABCMeta, "is_abstract_cls", return_value=False
         )
         mock_check_attrs_implemented = mocker.patch.object(
-            ImplementationMeta, "check_attrs_implemented"
+            StrictABCMeta, "check_attrs_implemented"
         )
 
         # Create a concrete class
-        class ConcreteClass(metaclass=ImplementationMeta):
+        class ConcreteClass(metaclass=StrictABCMeta):
             @final
             def concrete_method(self) -> None:
                 pass
 
         # verify creation
         assert_with_msg(
-            type(ConcreteClass) is ImplementationMeta,
+            type(ConcreteClass) is StrictABCMeta,
             "Expected ConcreteClass to be created with ImplementationMeta",
         )
 
@@ -221,24 +225,24 @@ class TestImplementationMeta:
         """Test __init__ with an abstract class."""
         # Mock methods
         mock_check_method_decorators = mocker.patch.object(
-            ImplementationMeta, "check_method_decorators"
+            StrictABCMeta, "check_method_decorators"
         )
         mock_is_abstract_cls = mocker.patch.object(
-            ImplementationMeta, "is_abstract_cls", return_value=True
+            StrictABCMeta, "is_abstract_cls", return_value=True
         )
         mock_check_attrs_implemented = mocker.patch.object(
-            ImplementationMeta, "check_attrs_implemented"
+            StrictABCMeta, "check_attrs_implemented"
         )
 
         # Create an abstract class
-        class AbstractClass(metaclass=ImplementationMeta):
+        class AbstractClass(metaclass=StrictABCMeta):
             @abstractmethod
             def abstract_method(self) -> None:
                 pass
 
         # Verify the class was created successfully
         assert_with_msg(
-            type(AbstractClass) is ImplementationMeta,
+            type(AbstractClass) is StrictABCMeta,
             "Expected AbstractClass to be created with ImplementationMeta",
         )
 
@@ -255,24 +259,24 @@ class TestImplementationMeta:
         """Test __init__ with a concrete class."""
         # Mock methods
         mock_check_method_decorators = mocker.patch.object(
-            ImplementationMeta, "check_method_decorators"
+            StrictABCMeta, "check_method_decorators"
         )
         mock_is_abstract_cls = mocker.patch.object(
-            ImplementationMeta, "is_abstract_cls", return_value=False
+            StrictABCMeta, "is_abstract_cls", return_value=False
         )
         mock_check_attrs_implemented = mocker.patch.object(
-            ImplementationMeta, "check_attrs_implemented"
+            StrictABCMeta, "check_attrs_implemented"
         )
 
         # Create a concrete class
-        class ConcreteClass(metaclass=ImplementationMeta):
+        class ConcreteClass(metaclass=StrictABCMeta):
             @final
             def concrete_method(self) -> None:
                 pass
 
         # Verify the class was created successfully
         assert_with_msg(
-            type(ConcreteClass) is ImplementationMeta,
+            type(ConcreteClass) is StrictABCMeta,
             "Expected ConcreteClass to be created with ImplementationMeta",
         )
 
@@ -285,7 +289,7 @@ class TestImplementationMeta:
         """Test method for is_abstract_cls."""
 
         # Create a class with abstract methods
-        class AbstractClass(metaclass=ImplementationMeta):
+        class AbstractClass(metaclass=StrictABCMeta):
             @abstractmethod
             def abstract_method(self) -> None:
                 pass
@@ -307,7 +311,7 @@ class TestImplementationMeta:
         )
 
         # Create a class without abstract methods
-        class ConcreteClass(metaclass=ImplementationMeta):
+        class ConcreteClass(metaclass=StrictABCMeta):
             @final
             def concrete_method(self) -> None:
                 pass
@@ -332,7 +336,7 @@ class TestImplementationMeta:
         """Test check_method_decorators with properly decorated methods."""
 
         # Create a test class with properly decorated methods
-        class TestClass(metaclass=ImplementationMeta):
+        class TestClass(metaclass=StrictABCMeta):
             @final
             def final_method(self) -> None:
                 pass
@@ -346,7 +350,7 @@ class TestImplementationMeta:
 
         # Verify the class was created successfully
         assert_with_msg(
-            type(TestClass) is ImplementationMeta,
+            type(TestClass) is StrictABCMeta,
             "Expected TestClass to be created successfully",
         )
 
@@ -355,7 +359,7 @@ class TestImplementationMeta:
         # This should raise a TypeError during class creation
         with pytest.raises(TypeError, match="must be decorated with"):
 
-            class TestClass(metaclass=ImplementationMeta):
+            class TestClass(metaclass=StrictABCMeta):
                 def undecorated_method(self) -> None:
                     pass
 
@@ -372,13 +376,13 @@ class TestImplementationMeta:
                 pass
 
         # Test with a final method
-        result = ImplementationMeta.is_final_method(TestClass.final_method)
+        result = StrictABCMeta.is_final_method(TestClass.final_method)
         assert_with_msg(
             result is True, "Expected method with @final to be detected as final"
         )
 
         # Test with a non-final method
-        result = ImplementationMeta.is_final_method(TestClass.non_final_method)
+        result = StrictABCMeta.is_final_method(TestClass.non_final_method)
         assert_with_msg(
             result is False,
             "Expected method without @final to not be detected as final",
@@ -397,14 +401,14 @@ class TestImplementationMeta:
                 pass
 
         # Test with an abstract method
-        result = ImplementationMeta.is_abstract_method(TestClass.abstract_method)
+        result = StrictABCMeta.is_abstract_method(TestClass.abstract_method)
         assert_with_msg(
             result is True,
             "Expected method with @abstractmethod to be detected as abstract",
         )
 
         # Test with a non-abstract method
-        result = ImplementationMeta.is_abstract_method(TestClass.non_abstract_method)
+        result = StrictABCMeta.is_abstract_method(TestClass.non_abstract_method)
         assert_with_msg(
             result is False,
             "Expected method without @abstractmethod to not be detected as abstract",
@@ -419,7 +423,7 @@ class TestImplementationMeta:
             attr2: Any = NotImplemented
 
         # Create a test class with implemented attributes
-        class TestClass(BaseClass, metaclass=ImplementationMeta):
+        class TestClass(BaseClass, metaclass=StrictABCMeta):
             attr1: str = "value1"
             attr2: str = "value2"
 
@@ -447,7 +451,7 @@ class TestImplementationMeta:
         # This should raise a ValueError during class creation for the missing attribute
         with pytest.raises(ValueError, match="missing_attr.*must be implemented"):
 
-            class TestClass(BaseClass, metaclass=ImplementationMeta):
+            class TestClass(BaseClass, metaclass=StrictABCMeta):
                 implemented_attr: str = "value"
                 # missing_attr is not implemented
 
@@ -465,7 +469,7 @@ class TestImplementationMeta:
             required_attr2: Any = NotImplemented
 
         # Create a derived class that implements the required attributes
-        class DerivedClass(BaseClass, metaclass=ImplementationMeta):
+        class DerivedClass(BaseClass, metaclass=StrictABCMeta):
             required_attr1: str = "implemented1"
             required_attr2: str = "implemented2"
 
@@ -503,7 +507,7 @@ class TestImplementationMeta:
             attr2: Any = NotImplemented
 
         # Create a test class with implemented attributes
-        class TestClass(BaseClass, metaclass=ImplementationMeta):
+        class TestClass(BaseClass, metaclass=StrictABCMeta):
             attr1: str = "value1"
             attr2: str = "value2"
 
@@ -525,7 +529,7 @@ class TestImplementationMeta:
 
         # This is the same as test_check_method_decorators_success
         # Create a test class with properly decorated methods
-        class TestClass(metaclass=ImplementationMeta):
+        class TestClass(metaclass=StrictABCMeta):
             @final
             def final_method(self) -> None:
                 pass
@@ -544,14 +548,14 @@ class TestImplementationMeta:
         )
 
 
-class TestABCImplementationLoggingMeta:
+class TestStrictABCLoggingMeta:
     """Test class for ABCImplementationLoggingMeta."""
 
     def test_combined_metaclass_functionality(self) -> None:
         """Test that ABCImplementationLoggingMeta combines all three metaclasses."""
 
         # Create a class using the combined metaclass
-        class CombinedClass(metaclass=ABCImplementationLoggingMeta):
+        class CombinedClass(metaclass=StrictABCLoggingMeta):
             @abstractmethod
             def abstract_method(self) -> None:
                 pass
@@ -562,7 +566,7 @@ class TestABCImplementationLoggingMeta:
 
         # Verify the class is an instance of the combined metaclass
         assert_with_msg(
-            type(CombinedClass) is ABCImplementationLoggingMeta,
+            type(CombinedClass) is StrictABCLoggingMeta,
             "Expected class to be instance of ABCImplementationLoggingMeta",
         )
 
@@ -580,7 +584,7 @@ class TestABCImplementationLoggingMeta:
         """Test that ABC functionality works correctly."""
 
         # Create an abstract class
-        class AbstractClass(metaclass=ABCImplementationLoggingMeta):
+        class AbstractClass(metaclass=StrictABCLoggingMeta):
             CLASS_VAR: str = NotImplemented
 
             @abstractmethod
