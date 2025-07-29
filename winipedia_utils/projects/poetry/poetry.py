@@ -11,7 +11,8 @@ from winipedia_utils.os.os import run_subprocess, which_with_raise
 
 logger = get_logger(__name__)
 
-POETRY_PATH = which_with_raise("poetry")
+
+POETRY_PATH = which_with_raise("poetry", raise_error=False) or "poetry"
 
 POETRY_RUN_ARGS = [POETRY_PATH, "run"]
 

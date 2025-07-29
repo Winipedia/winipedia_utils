@@ -11,11 +11,12 @@ from pathlib import Path
 from typing import Any
 
 
-def which_with_raise(cmd: str) -> str:
+def which_with_raise(cmd: str, *, raise_error: bool = True) -> str | None:
     """Give the path to the given command.
 
     Args:
         cmd: The command to find
+        raise_error: Whether to raise an error if the command is not found
 
     Returns:
         The path to the command
@@ -27,7 +28,8 @@ def which_with_raise(cmd: str) -> str:
     path = shutil.which(cmd)
     if path is None:
         msg = f"Command {cmd} not found"
-        raise FileNotFoundError(msg)
+        if raise_error:
+            raise FileNotFoundError(msg)
     return path
 
 
