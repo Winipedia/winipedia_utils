@@ -68,6 +68,32 @@ def _test_dev_dependencies_const_correct() -> None:
 
 
 @autouse_session_fixture
+def _test_dev_dependencies_are_in_pyproject_toml() -> None:
+    """Verify that the dev dependencies are installed.
+
+    This fixture runs once per test session and checks that the dev dependencies
+    are installed by trying to import them.
+
+    Raises:
+        ImportError: If a dev dependency is not installed
+
+    """
+    toml_dict = laod_pyproject_toml()
+    dev_dependencies = (
+        toml_dict.get("tool", {})
+        .get("poetry", {})
+        .get("group", {})
+        .get("dev", {})
+        .get("dependencies", {})
+        .keys()
+    )
+    assert_with_msg(
+        set(_DEV_DEPENDENCIES).issubset(set(dev_dependencies)),
+        "Dev dependencies in consts.py are not a subset of the ones in pyproject.toml",
+    )
+
+
+@autouse_session_fixture
 def _test_conftest_exists_and_is_correct() -> None:
     """Verify that the conftest.py file exists and has the correct content.
 

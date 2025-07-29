@@ -47,8 +47,10 @@ def _get_pre_commit_config_dict() -> dict[str, Any]:
 def _pre_commit_config_is_correct() -> bool:
     """Check if the pre-commit config is correct."""
     config = load_pre_commit_config()
-    package_hook_config = _get_pre_commit_config_dict()
-    return bool(config.get("repos", [{}])[0] == package_hook_config)
+    package_hook_config = _get_pre_commit_config_dict().get("hooks", [{}])[0]
+    return bool(
+        config.get("repos", [{}])[0].get("hooks", [{}])[0] == package_hook_config
+    )
 
 
 def _add_package_hook_to_pre_commit_config() -> None:

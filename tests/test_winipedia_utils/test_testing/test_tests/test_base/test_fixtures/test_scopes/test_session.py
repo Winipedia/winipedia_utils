@@ -70,3 +70,9 @@ def test__test_src_package_correctly_named() -> None:
 def test__test_py_typed_exists() -> None:
     """Test func for _test_py_typed_exists."""
     raise NotImplementedError
+
+
+@pytest.mark.skip(reason="Can not test a test")
+def test__test_dev_dependencies_are_in_pyproject_toml() -> None:
+    """Test func for _test_dev_dependencies_are_in_pyproject_toml."""
+    raise NotImplementedError
