@@ -14,9 +14,6 @@ logger.info("Monkeypatched django-stubs")
 if not settings.configured:
     logger.info("Configuring minimal django settings")
     settings.configure(
-        INSTALLED_APPS=[
-            "django.contrib.contenttypes",
-        ],
         DATABASES={
             "default": {
                 "ENGINE": "django.db.backends.sqlite3",

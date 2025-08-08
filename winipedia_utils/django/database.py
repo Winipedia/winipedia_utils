@@ -9,7 +9,6 @@ from datetime import datetime
 from graphlib import TopologicalSorter
 from typing import TYPE_CHECKING, Any, Self
 
-from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import connection
 from django.db.models import DateTimeField, Field, Model
 from django.db.models.fields.related import ForeignKey, ForeignObjectRel
@@ -18,6 +17,7 @@ from django.forms.models import model_to_dict
 from winipedia_utils.logging.logger import get_logger
 
 if TYPE_CHECKING:
+    from django.contrib.contenttypes.fields import GenericForeignKey
     from django.db.models.options import Options
 
 logger = get_logger(__name__)
@@ -51,7 +51,7 @@ def get_model_meta(model: type[Model]) -> "Options[Model]":
 
 def get_fields(
     model: type[Model],
-) -> list[Field[Any, Any] | ForeignObjectRel | GenericForeignKey]:
+) -> "list[Field[Any, Any] | ForeignObjectRel | GenericForeignKey]":
     """Get all fields from a Django model including relationships.
 
     Retrieves all field objects from a Django model, including regular fields,
@@ -83,7 +83,7 @@ def get_fields(
 
 
 def get_field_names(
-    fields: list[Field[Any, Any] | ForeignObjectRel | GenericForeignKey],
+    fields: "list[Field[Any, Any] | ForeignObjectRel | GenericForeignKey]",
 ) -> list[str]:
     """Get the names of all fields from a Django model including relationships.
 
@@ -222,7 +222,7 @@ def execute_sql(
 
 def hash_model_instance(
     instance: Model,
-    fields: list[Field[Any, Any] | ForeignObjectRel | GenericForeignKey],
+    fields: "list[Field[Any, Any] | ForeignObjectRel | GenericForeignKey]",
 ) -> int:
     """Hash a model instance based on its field values.
 

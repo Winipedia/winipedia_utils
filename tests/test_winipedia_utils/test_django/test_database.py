@@ -1,6 +1,5 @@
 """Tests for winipedia_utils.django.database module."""
 
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from winipedia_utils.django.database import (
@@ -13,6 +12,23 @@ from winipedia_utils.django.database import (
     topological_sort_models,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
+
+
+class CustomContentType(models.Model):
+    """Custom model to replace ContentType for testing."""
+
+    app_label: models.CharField[str, str] = models.CharField(max_length=100)
+    model: models.CharField[str, str] = models.CharField(max_length=100)
+
+    class Meta:
+        """Meta class for CustomContentType."""
+
+        app_label = "test_app"
+        db_table = "custom_content_type"
+
+    def __str__(self) -> str:
+        """String representation of CustomContentType."""
+        return f"{self.app_label}.{self.model}"
 
 
 def test_get_model_meta() -> None:
@@ -51,15 +67,15 @@ def test_get_model_meta() -> None:
         "Expected meta object to have app_label attribute",
     )
 
-    # Test with ContentType model
-    meta_ct = get_model_meta(ContentType)
+    # Test with CustomContentType model
+    meta_ct = get_model_meta(CustomContentType)
     assert_with_msg(
-        meta_ct is ContentType._meta,  # noqa: SLF001
-        "Expected get_model_meta to work with ContentType model",
+        meta_ct is CustomContentType._meta,  # noqa: SLF001
+        "Expected get_model_meta to work with CustomContentType model",
     )
     assert_with_msg(
-        meta_ct.db_table == "django_content_type",
-        f"Expected ContentType db_table to be 'django_content_type', "
+        meta_ct.db_table == "custom_content_type",
+        f"Expected CustomContentType db_table to be 'custom_content_type', "
         f"got {meta_ct.db_table}",
     )
 
@@ -104,16 +120,16 @@ def test_get_fields() -> None:
             f"got {field_names}",
         )
 
-    # Test with ContentType model to check for relationships
-    ct_fields = get_fields(ContentType)
+    # Test with CustomContentType model to check for relationships
+    ct_fields = get_fields(CustomContentType)
     ct_field_names = [f.name for f in ct_fields if hasattr(f, "name")]
 
-    # ContentType model should have basic fields
+    # CustomContentType model should have basic fields
     expected_ct_fields = {"id", "app_label", "model"}
     for expected_field in expected_ct_fields:
         assert_with_msg(
             expected_field in ct_field_names,
-            f"Expected field '{expected_field}' to be in ContentType fields, "
+            f"Expected field '{expected_field}' to be in CustomContentType fields, "
             f"got {ct_field_names}",
         )
 
@@ -159,16 +175,16 @@ def test_get_field_names() -> None:
             f"got {field_names}",
         )
 
-    # Test with ContentType model
-    ct_fields = get_fields(ContentType)
+    # Test with CustomContentType model
+    ct_fields = get_fields(CustomContentType)
     ct_field_names = get_field_names(ct_fields)
 
     expected_ct_names = {"id", "app_label", "model"}
     for expected_name in expected_ct_names:
         assert_with_msg(
             expected_name in ct_field_names,
-            f"Expected field name '{expected_name}' to be in ContentType field names, "
-            f"got {ct_field_names}",
+            f"Expected field name '{expected_name}' to be in CustomContentType "
+            f"field names, got {ct_field_names}",
         )
 
     # Test that different models have different field names

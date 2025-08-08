@@ -9,9 +9,8 @@ from collections import defaultdict
 from collections.abc import Callable, Generator, Iterable
 from functools import partial
 from itertools import islice
-from typing import Any, Literal, cast, get_args
+from typing import TYPE_CHECKING, Any, Literal, cast, get_args
 
-from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import router, transaction
 from django.db.models import (
     Field,
@@ -19,7 +18,6 @@ from django.db.models import (
     QuerySet,
 )
 from django.db.models.deletion import Collector
-from django.db.models.fields.related import ForeignObjectRel
 
 from winipedia_utils.concurrent.multithreading import multithread_loop
 from winipedia_utils.django.database import (
@@ -27,6 +25,10 @@ from winipedia_utils.django.database import (
     topological_sort_models,
 )
 from winipedia_utils.logging.logger import get_logger
+
+if TYPE_CHECKING:
+    from django.contrib.contenttypes.fields import GenericForeignKey
+    from django.db.models.fields.related import ForeignObjectRel
 
 logger = get_logger(__name__)
 
@@ -389,7 +391,7 @@ def bulk_create_bulks_in_steps(
 def get_differences_between_bulks(
     bulk1: list[Model],
     bulk2: list[Model],
-    fields: list[Field[Any, Any] | ForeignObjectRel | GenericForeignKey],
+    fields: "list[Field[Any, Any] | ForeignObjectRel | GenericForeignKey]",
 ) -> tuple[list[Model], list[Model], list[Model], list[Model]]:
     """Compare two bulks and return their differences and intersections.
 
