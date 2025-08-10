@@ -442,7 +442,8 @@ class TestMediaPlayer:
     def test_play_video(self, mocker: MockFixture) -> None:
         """Test method for play_video."""
         player = MediaPlayer.__new__(MediaPlayer)
-        mock_stop = mocker.patch.object(player, "stop")
+        player.io_device = None  # Initialize the attribute that __init__ would set
+        mock_stop_and_close = mocker.patch.object(player, "stop_and_close_io_device")
         mock_media_status_changed = mocker.patch.object(player, "mediaStatusChanged")
         mock_timer = mocker.patch(
             "winipedia_utils.pyside.ui.widgets.media_player.QTimer"
@@ -457,10 +458,26 @@ class TestMediaPlayer:
 
         player.play_video(io_device, source_url, position)
 
-        mock_stop.assert_called_once()
+        mock_stop_and_close.assert_called_once()
         mock_media_status_changed.connect.assert_called_once()
         mock_timer.singleShot.assert_called_once()
         mock_partial.assert_called()
+
+    def test_stop_and_close_io_device(self, mocker: MockFixture) -> None:
+        """Test method for stop_and_close_io_device."""
+        player = MediaPlayer.__new__(MediaPlayer)
+        mock_stop = mocker.patch.object(player, "stop")
+        mock_io_device = mocker.MagicMock()
+        player.io_device = mock_io_device
+
+        player.stop_and_close_io_device()
+
+        mock_stop.assert_called_once()
+        mock_io_device.close.assert_called_once()
+
+        # Test with None io_device
+        player.io_device = None
+        player.stop_and_close_io_device()  # Should not raise an error
 
     def test_resume_to_position(self, mocker: MockFixture) -> None:
         """Test method for resume_to_position."""

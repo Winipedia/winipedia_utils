@@ -44,6 +44,7 @@ class MediaPlayer(QMediaPlayer):
         """
         super().__init__(*args, **kwargs)
         self.parent_layout = parent_layout
+        self.io_device: PyQIODevice | None = None
         self.make_widget()
 
     def make_widget(self) -> None:
@@ -342,18 +343,24 @@ class MediaPlayer(QMediaPlayer):
             source_url: The QUrl representing the source location.
             position: The position to start playback from in milliseconds.
         """
-        self.stop()
+        self.stop_and_close_io_device()
 
         self.resume_func = partial(self.resume_to_position, position=position)
         self.mediaStatusChanged.connect(self.resume_func)
 
-        # prevents freezing when starting a new video while another is playing
+        # SingleShot prevents freezing when starting new video while another is playing
         QTimer.singleShot(
             100,
             partial(
                 self.set_source_and_play, io_device=io_device, source_url=source_url
             ),
         )
+
+    def stop_and_close_io_device(self) -> None:
+        """Stop playback and close the IO device."""
+        self.stop()
+        if self.io_device is not None:
+            self.io_device.close()
 
     def resume_to_position(
         self, status: QMediaPlayer.MediaStatus, position: int
