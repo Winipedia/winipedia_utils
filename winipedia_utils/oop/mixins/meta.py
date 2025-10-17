@@ -73,7 +73,8 @@ class ABCLoggingMeta(ABCMeta):
         """Determine if a method should have logging applied.
 
         Args:
-            method: The method to check
+            method: The method to check, properties are not logged
+                as they are not callable and it turns out to be tricky with them
 
         Returns:
             True if the method should be wrapped with logging, False otherwise
@@ -81,6 +82,7 @@ class ABCLoggingMeta(ABCMeta):
         """
         return (
             is_func(method)  # must be a method-like attribute
+            and hasattr(method, "__name__")  # must have a name
             and not method.__name__.startswith("__")  # must not be a magic method
         )
 

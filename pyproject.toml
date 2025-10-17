@@ -1,7 +1,7 @@
 # Project section
 [project]
 name = "winipedia-utils"
-version = "0.1.62"
+version = "0.1.63"
 description = "A package with many utility functions"
 readme = "README.md"
 requires-python = ">=3.12,<3.14"
@@ -9,7 +9,7 @@ dynamic = [ "dependencies",]
 authors = [
     { name = "Winipedia", email = "win.steveker@gmx.de"}
 ]
-license = { text = "MIT" }
+license = "MIT"
 
 # Build system section
 [build-system]
@@ -32,6 +32,7 @@ keyring = "^25.6.0"
 cryptography = "^45.0.5"
 pyside6 = "^6.9.1"
 pyqt-toast-notification = "^1.3.3"
+polars = "^1.34.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.11.7"

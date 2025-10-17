@@ -52,8 +52,6 @@ def is_func(obj: Any) -> bool:
     if isinstance(obj, (staticmethod, classmethod, property)):
         return True
 
-    # unwrap any wrappers (@functools.wraps) and retest
-
     unwrapped = inspect.unwrap(obj)
 
     return is_func_or_method(unwrapped)
