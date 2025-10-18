@@ -16,14 +16,17 @@ from collections.abc import Callable, Generator, Iterable
 from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from functools import partial
-from multiprocessing.pool import Pool
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from tqdm import tqdm
 
+from winipedia_utils.concurrent.multiprocessing import get_spwan_pool
 from winipedia_utils.concurrent.multithreading import imap_unordered
 from winipedia_utils.iterating.iterate import get_len_with_default
 from winipedia_utils.logging.logger import get_logger
+
+if TYPE_CHECKING:
+    from multiprocessing.pool import Pool
 
 logger = get_logger(__name__)
 
@@ -218,7 +221,7 @@ def concurrent_loop(  # noqa: PLR0913
     pool_executor = (
         ThreadPoolExecutor(max_workers=max_workers)
         if threading
-        else Pool(processes=max_workers)
+        else get_spwan_pool(processes=max_workers)
     )
     with pool_executor as pool:
         map_func: Callable[[Callable[..., Any], Iterable[Any]], Any]

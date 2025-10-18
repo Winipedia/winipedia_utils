@@ -6,6 +6,7 @@ from typing import Any
 
 from winipedia_utils.concurrent.multiprocessing import (
     cancel_on_timeout,
+    get_spwan_pool,
     multiprocess_loop,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
@@ -57,6 +58,14 @@ def append_to_list(item: str, target_list: list[str]) -> list[str]:
 def simple_identity(x: str) -> str:
     """Identity function for testing process_args_len."""
     return x
+
+
+def test_get_spwan_pool() -> None:
+    """Test func for get_spwan_pool."""
+    with get_spwan_pool(processes=1) as pool:
+        ctx = getattr(pool, "_ctx", None)
+        method = getattr(ctx, "get_start_method", lambda: None)()
+        assert_with_msg(method == "spawn", "Expected spawn context")
 
 
 def test_cancel_on_timeout() -> None:

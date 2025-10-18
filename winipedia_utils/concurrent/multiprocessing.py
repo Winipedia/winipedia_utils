@@ -20,6 +20,20 @@ from winipedia_utils.logging.logger import get_logger
 logger = get_logger(__name__)
 
 
+def get_spwan_pool(*args: Any, **kwargs: Any) -> Pool:
+    """Get a multiprocessing pool with the spawn context.
+
+    Args:
+        *args: Positional arguments to pass to the Pool constructor
+        **kwargs: Keyword arguments to pass to the Pool constructor
+
+    Returns:
+        A multiprocessing pool with the spawn context
+
+    """
+    return multiprocessing.get_context("spawn").Pool(*args, **kwargs)
+
+
 def cancel_on_timeout(seconds: float, message: str) -> Callable[..., Any]:
     """Cancel a function execution if it exceeds a specified timeout.
 
@@ -48,7 +62,8 @@ def cancel_on_timeout(seconds: float, message: str) -> Callable[..., Any]:
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         def wrapper(*args: object, **kwargs: object) -> object:
-            with Pool(processes=1) as pool:
+            spawn_pool = get_spwan_pool(processes=1)
+            with spawn_pool as pool:
                 async_result = pool.apply_async(func, args, kwargs)
                 try:
                     return async_result.get(timeout=seconds)
