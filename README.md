@@ -118,7 +118,7 @@ When you commit code, the winipedia-utils hook automatically runs a few quality 
 ┌─────────────────────────────────────────────────────────┐
 │         Pre-commit Hook Execution Pipeline              │
 ├─────────────────────────────────────────────────────────┤
-│ 1. Patch Version (poetry version patch)                 │
+│ 1. Patch Version (poetry version patch, git add toml)   │
 │ 2. Update Poetry                                        │
 │ 3. Install Dependencies (poetry install)                │
 │ 4. Update All Dependencies (poetry update)              │
