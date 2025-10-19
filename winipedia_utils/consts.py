@@ -18,6 +18,4 @@ _DEV_DEPENDENCIES = [
     "types-defusedxml",
     "types-pyyaml",
     "pytest-mock",
-    "pytest-qt",
-    "django-stubs",
 ]
