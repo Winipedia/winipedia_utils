@@ -1,10 +1,10 @@
 # Project section
 [project]
 name = "winipedia-utils"
-version = "0.2.0"
+version = "0.2.1"
 description = "A package with many utility functions"
 readme = "README.md"
-requires-python = ">=3.12,<3.14"
+requires-python = ">=3.12"
 dynamic = [ "dependencies",]
 authors = [
     { name = "Winipedia", email = "win.steveker@gmx.de"}
