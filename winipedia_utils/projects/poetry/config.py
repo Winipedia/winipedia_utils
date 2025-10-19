@@ -27,6 +27,7 @@ def get_dev_dependencies_from_pyproject_toml() -> set[str]:
     )
     if not dev_dependencies:
         dev_dependencies = toml.get("dependency-groups", {}).get("dev", [])
+        dev_dependencies = [d.split("(")[0].strip() for d in dev_dependencies]
     return set(dev_dependencies)
 
 
