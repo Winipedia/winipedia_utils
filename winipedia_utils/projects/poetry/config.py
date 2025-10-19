@@ -81,7 +81,14 @@ def _add_configurations_to_pyproject_toml() -> None:
     toml = laod_pyproject_toml()
     actual_tool_dict = toml.get("tool", None)
     if actual_tool_dict is None:
-        actual_tool_dict = toml["tool"] = {}
+        # add tool section
+        toml.add("tool", tomlkit.table())
+
+    actual_tool_dict = toml.get("tool", None)
+    if actual_tool_dict is None:
+        msg = "tool section is None after adding it"
+        raise ValueError(msg)
+
     # update the toml dct and dump it but only update the tools specified not all tools
     for tool, config in expected_tool_dict.items():
         # if tool section already exists skip it
