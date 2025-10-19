@@ -7,6 +7,8 @@ from winipedia_utils.testing.tests.base.utils.utils import (
     _assert_no_untested_objs,
     _conftest_content_is_correct,
     _get_conftest_content,
+    _get_test_0_content,
+    _test_0_content_is_correct,
 )
 
 
@@ -151,4 +153,35 @@ pytest_plugins = ["wrong.plugin"]
     assert_with_msg(
         result is False,
         f"Expected False for partial content, got {result}",
+    )
+
+
+def test__get_test_0_content() -> None:
+    """Test func for _get_test_0_content."""
+    content = _get_test_0_content()
+    assert_with_msg(
+        type(content) is str,
+        f"Expected string content, got {type(content)}",
+    )
+    assert_with_msg(
+        len(content) > 0,
+        "Expected non-empty content",
+    )
+
+
+def test__test_0_content_is_correct() -> None:
+    """Test func for _test_0_content_is_correct."""
+    non_existent_path = Path("non_existent_test_0.py")
+    result = _test_0_content_is_correct(non_existent_path)
+    assert_with_msg(
+        result is False,
+        f"Expected False for non-existent file, got {result}",
+    )
+    correct_content = _get_test_0_content()
+    correct_path = Path("correct_test_0.py")
+    correct_path.write_text(correct_content)
+    result = _test_0_content_is_correct(correct_path)
+    assert_with_msg(
+        result is True,
+        f"Expected True for correct content, got {result}",
     )

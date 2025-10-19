@@ -80,3 +80,35 @@ def _conftest_content_is_correct(conftest_path: Path) -> bool:
     if not conftest_path.exists():
         return False
     return conftest_path.read_text().startswith(_get_conftest_content())
+
+
+def _get_test_0_content() -> str:
+    """Get the content for a test_0.py file when using winipedia_utils."""
+    return '''
+"""Contains an empty test."""
+
+import pytest
+
+
+@pytest.mark.skip(reason="Can not test a test")
+def test_0() -> None:
+    """Empty test.
+
+    Exists so that when no tests are written yet the base fixtures are executed.
+    """
+'''.strip()
+
+
+def _test_0_content_is_correct(test_0_path: Path) -> bool:
+    """Check if the test_0.py file has the correct content.
+
+    Args:
+        test_0_path: The path to the test_0.py file
+
+    Returns:
+        True if the test_0.py file exists and has the correct content, False otherwise
+
+    """
+    if not test_0_path.exists():
+        return False
+    return test_0_path.read_text().startswith(_get_test_0_content())

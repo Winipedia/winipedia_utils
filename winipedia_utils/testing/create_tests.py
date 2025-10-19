@@ -38,6 +38,8 @@ from winipedia_utils.testing.convention import (
 from winipedia_utils.testing.tests.base.utils.utils import (
     _conftest_content_is_correct,
     _get_conftest_content,
+    _get_test_0_content,
+    _test_0_content_is_correct,
 )
 
 
@@ -72,6 +74,10 @@ def create_tests_base() -> None:
     # if conftest does not exist or the content is not the same, overwrite it
     if not _conftest_content_is_correct(conftest_path):
         conftest_path.write_text(_get_conftest_content())
+
+    test_0_path = tests_path / "test_0.py"
+    if not _test_0_content_is_correct(test_0_path):
+        test_0_path.write_text(_get_test_0_content())
 
 
 def create_tests_for_src_package() -> None:
