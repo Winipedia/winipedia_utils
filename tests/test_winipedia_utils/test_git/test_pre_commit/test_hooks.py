@@ -4,6 +4,7 @@ tests.test_winipedia_utils.test_git.test_pre_commit.test_hooks
 """
 
 from winipedia_utils.git.pre_commit.hooks import (
+    _add_version_patch_to_git,
     _check_configurations,
     _creating_tests,
     _formating,
@@ -15,6 +16,7 @@ from winipedia_utils.git.pre_commit.hooks import (
     _type_checking,
     _update_package_manager,
     _update_packages,
+    _version_patch,
 )
 from winipedia_utils.projects.poetry.poetry import (
     POETRY_PATH,
@@ -23,6 +25,36 @@ from winipedia_utils.projects.poetry.poetry import (
     POETRY_RUN_RUFF_ARGS,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
+
+
+def test__version_patch() -> None:
+    """Test func for _version_patch."""
+    # Call the function
+    result = _version_patch()
+
+    # Expected result
+    expected = [POETRY_PATH, "version", "patch"]
+
+    # Verify the result
+    assert_with_msg(
+        result == expected,
+        f"Expected {expected}, got {result}",
+    )
+
+
+def test__add_version_patch_to_git() -> None:
+    """Test func for _add_version_patch_to_git."""
+    # Call the function
+    result = _add_version_patch_to_git()
+
+    # Expected result
+    expected = [*POETRY_RUN_ARGS, "git", "add", "pyproject.toml"]
+
+    # Verify the result
+    assert_with_msg(
+        result == expected,
+        f"Expected {expected}, got {result}",
+    )
 
 
 def test__update_package_manager() -> None:

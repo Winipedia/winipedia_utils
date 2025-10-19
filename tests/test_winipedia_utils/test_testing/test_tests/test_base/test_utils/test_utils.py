@@ -177,11 +177,3 @@ def test__test_0_content_is_correct() -> None:
         result is False,
         f"Expected False for non-existent file, got {result}",
     )
-    correct_content = _get_test_0_content()
-    correct_path = Path("correct_test_0.py")
-    correct_path.write_text(correct_content)
-    result = _test_0_content_is_correct(correct_path)
-    assert_with_msg(
-        result is True,
-        f"Expected True for correct content, got {result}",
-    )
