@@ -79,7 +79,9 @@ def _add_configurations_to_pyproject_toml() -> None:
     """Add tool.* configurations to pyproject.toml."""
     expected_tool_dict = _get_pyproject_toml_tool_configs()
     toml = laod_pyproject_toml()
-    actual_tool_dict = toml.get("tool", {})
+    actual_tool_dict = toml.get("tool", None)
+    if actual_tool_dict is None:
+        actual_tool_dict = toml["tool"] = {}
     # update the toml dct and dump it but only update the tools specified not all tools
     for tool, config in expected_tool_dict.items():
         # if tool section already exists skip it
