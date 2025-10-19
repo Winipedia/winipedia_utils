@@ -118,17 +118,18 @@ When you commit code, the winipedia-utils hook automatically runs a few quality 
 ┌─────────────────────────────────────────────────────────┐
 │         Pre-commit Hook Execution Pipeline              │
 ├─────────────────────────────────────────────────────────┤
-│ 1. Update Poetry                                        │
-│ 2. Install Dependencies (poetry install)                │
-│ 3. Update All Dependencies (poetry update)              │
-│ 4. Lock Dependencies (poetry lock)                      │
-│ 5. Validate Configuration (poetry check)                │
-│ 6. Generate Tests (auto-create test files)              │
-│ 7. Lint Code (ruff check --fix)                         │
-│ 8. Format Code (ruff format)                            │
-│ 9. Type Check (mypy)                                    │
-│ 10. Security Scan (bandit)                              │
-│ 11. Run Tests (pytest)                                  │
+│ 1. Patch Version (poetry version patch)                 │
+│ 2. Update Poetry                                        │
+│ 3. Install Dependencies (poetry install)                │
+│ 4. Update All Dependencies (poetry update)              │
+│ 5. Lock Dependencies (poetry lock)                      │
+│ 6. Validate Configuration (poetry check)                │
+│ 7. Generate Tests (auto-create test files)              │
+│ 8. Lint Code (ruff check --fix)                         │
+│ 9. Format Code (ruff format)                            │
+│ 10. Type Check (mypy)                                   │
+│ 11. Security Scan (bandit)                              │
+│ 12. Run Tests (pytest)                                  │
 └─────────────────────────────────────────────────────────┘
 ```
 

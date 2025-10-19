@@ -17,6 +17,24 @@ from winipedia_utils.projects.poetry.poetry import (
 )
 
 
+def _version_patch() -> list[str | Path]:
+    """Patch the version in pyproject.toml.
+
+    This function returns the input for subprocess.run() to patch the version
+    in pyproject.toml.
+    """
+    return [POETRY_PATH, "version", "patch"]
+
+
+def _add_version_patch_to_git() -> list[str | Path]:
+    """Add the version patch to git.
+
+    This function returns the input for subprocess.run() to add the version
+    patch to git, so that the hook does not fail bc the file was changed.
+    """
+    return [*POETRY_RUN_ARGS, "git", "add", "pyproject.toml"]
+
+
 def _update_package_manager() -> list[str | Path]:
     """Update the package manager.
 
