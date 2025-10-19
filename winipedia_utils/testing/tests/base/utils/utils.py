@@ -87,10 +87,7 @@ def _get_test_0_content() -> str:
     return '''
 """Contains an empty test."""
 
-import pytest
 
-
-@pytest.mark.skip(reason="Can not test a test")
 def test_0() -> None:
     """Empty test.
 
