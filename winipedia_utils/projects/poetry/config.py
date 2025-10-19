@@ -14,6 +14,22 @@ def laod_pyproject_toml() -> TOMLDocument:
     return tomlkit.parse(Path("pyproject.toml").read_text())
 
 
+def get_dev_dependencies_from_pyproject_toml() -> set[str]:
+    """Get the dev dependencies from pyproject.toml."""
+    toml = laod_pyproject_toml()
+    dev_dependencies = (
+        toml.get("tool", {})
+        .get("poetry", {})
+        .get("group", {})
+        .get("dev", {})
+        .get("dependencies", {})
+        .keys()
+    )
+    if not dev_dependencies:
+        dev_dependencies = toml.get("dependency-groups", {}).get("dev", [])
+    return set(dev_dependencies)
+
+
 def dump_pyproject_toml(toml: TOMLDocument) -> None:
     """Dump the pyproject.toml file."""
     with Path("pyproject.toml").open("w") as f:

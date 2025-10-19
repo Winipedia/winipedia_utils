@@ -22,8 +22,8 @@ from winipedia_utils.modules.package import (
 )
 from winipedia_utils.projects.poetry.config import (
     _pyproject_tool_configs_are_correct,
+    get_dev_dependencies_from_pyproject_toml,
     get_poetry_package_name,
-    laod_pyproject_toml,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
 from winipedia_utils.testing.convention import (
@@ -52,15 +52,7 @@ def _test_dev_dependencies_const_correct() -> None:
         # this const is only used in winipedia_utils
         # to be able to install them with setup.py
         return
-    toml_dict = laod_pyproject_toml()
-    actual_dev_dependencies = (
-        toml_dict.get("tool", {})
-        .get("poetry", {})
-        .get("group", {})
-        .get("dev", {})
-        .get("dependencies", {})
-        .keys()
-    )
+    actual_dev_dependencies = get_dev_dependencies_from_pyproject_toml()
     assert_with_msg(
         set(actual_dev_dependencies) == set(_DEV_DEPENDENCIES),
         "Dev dependencies in consts.py are not correct",
@@ -78,15 +70,7 @@ def _test_dev_dependencies_are_in_pyproject_toml() -> None:
         ImportError: If a dev dependency is not installed
 
     """
-    toml_dict = laod_pyproject_toml()
-    dev_dependencies = (
-        toml_dict.get("tool", {})
-        .get("poetry", {})
-        .get("group", {})
-        .get("dev", {})
-        .get("dependencies", {})
-        .keys()
-    )
+    dev_dependencies = get_dev_dependencies_from_pyproject_toml()
     assert_with_msg(
         set(_DEV_DEPENDENCIES).issubset(set(dev_dependencies)),
         "Dev dependencies in consts.py are not a subset of the ones in pyproject.toml",

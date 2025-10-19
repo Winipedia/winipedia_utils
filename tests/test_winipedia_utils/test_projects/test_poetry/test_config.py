@@ -12,6 +12,7 @@ from winipedia_utils.projects.poetry.config import (
     _pyproject_tool_configs_are_correct,
     _tool_config_is_correct,
     dump_pyproject_toml,
+    get_dev_dependencies_from_pyproject_toml,
     get_poetry_package_name,
     laod_pyproject_toml,
 )
@@ -51,6 +52,47 @@ exclude = [".*"]
 
     with pytest.raises(FileNotFoundError):
         laod_pyproject_toml()
+
+
+def test_get_dev_dependencies_from_pyproject_toml(mocker: MockFixture) -> None:
+    """Test func for get_dev_dependencies_from_pyproject_toml."""
+    # Test successful loading
+    mock_toml_content = """
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.11.7"
+pre-commit = "^4.2.0"
+"""
+    # Mock Path.read_text to return our test content
+    mock_read_text = mocker.patch.object(
+        Path, "read_text", return_value=mock_toml_content
+    )
+
+    result = get_dev_dependencies_from_pyproject_toml()
+
+    # Verify Path.read_text was called with correct file
+    mock_read_text.assert_called_once()
+
+    # Verify the result is a set with expected content
+    expected_dependencies = {
+        "ruff",
+        "pre-commit",
+    }
+    assert_with_msg(
+        result == expected_dependencies,
+        f"Expected {expected_dependencies}, got {result}",
+    )
+
+    # mock with dependency-groups
+    mock_toml_content = """
+[dependency-groups]
+dev = ["ruff", "pre-commit"]
+"""
+    mock_read_text.return_value = mock_toml_content
+    result = get_dev_dependencies_from_pyproject_toml()
+    assert_with_msg(
+        result == expected_dependencies,
+        f"Expected {expected_dependencies}, got {result}",
+    )
 
 
 def test_dump_pyproject_toml(mocker: MockFixture) -> None:
