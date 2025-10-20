@@ -14,6 +14,10 @@ from winipedia_utils.git.gitignore.gitignore import _gitignore_is_correct
 from winipedia_utils.git.pre_commit.config import (
     _pre_commit_config_is_correct,
 )
+from winipedia_utils.git.workflows.publish import (
+    PUBLISH_WORKFLOW_PATH,
+    _publish_config_is_correct,
+)
 from winipedia_utils.modules.module import to_path
 from winipedia_utils.modules.package import (
     find_packages,
@@ -161,6 +165,22 @@ def _test_gitignore_is_correct() -> None:
     assert_with_msg(
         _gitignore_is_correct(),
         "Gitignore is not correct.",
+    )
+
+
+@autouse_session_fixture
+def _test_publish_workflow_is_correct() -> None:
+    """Verify that the publish workflow is correctly defined.
+
+    If the file does not exist, we skip this test bc not all projects necessarily
+    need to publish to pypi, e.g. they are binaries or private usage only or for profit.
+    """
+    path = PUBLISH_WORKFLOW_PATH
+    if not path.exists():
+        return
+    assert_with_msg(
+        _publish_config_is_correct(),
+        "Publish workflow is not correct.",
     )
 
 
