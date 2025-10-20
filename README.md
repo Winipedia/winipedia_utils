@@ -102,10 +102,16 @@ Adds tool configurations in pyproject.toml for e.g.:
 - **pytest** - Test discovery and execution
 - **bandit** - Security scanning
 
-### Step 6️⃣ - Create Project Root
+### Step 6️⃣ - Create GitHub Actions Workflow
+Sets up `.github/workflows/publish.yaml` for automated PyPI publishing:
+- Triggers on GitHub releases
+- Configures Poetry with PyPI token
+- Builds and publishes package automatically
+
+### Step 7️⃣ - Create Project Root
 Creates your project's root package directory with `py.typed` marker for type hint support.
 
-### Step 7️⃣ - Run Pre-commit Hook
+### Step 8️⃣ - Run Pre-commit Hook
 Executes the complete quality pipeline (see below).
 
 ---
@@ -260,15 +266,19 @@ print(data.df)  # Cleaned and validated dataframe
 
 ### 3. 🔧 Git Utilities
 
-Manage gitignore patterns and pre-commit configuration.
+Manage gitignore patterns, pre-commit configuration, and GitHub Actions workflows.
 
-**Use Cases:** Project setup, git workflow automation
+**Use Cases:** Project setup, git workflow automation, CI/CD pipeline setup
 
 ```python
 from winipedia_utils.git.gitignore.gitignore import (
     path_is_in_gitignore,
     walk_os_skipping_gitignore_patterns,
     add_patterns_to_gitignore
+)
+from winipedia_utils.git.workflows.publish import (
+    load_publish_workflow,
+    dump_publish_workflow
 )
 
 # Check if path is ignored
@@ -281,12 +291,18 @@ for root, dirs, files in walk_os_skipping_gitignore_patterns("."):
 
 # Add patterns to gitignore
 add_patterns_to_gitignore(["*.log", "temp/"])
+
+# Load and modify publish workflow
+workflow = load_publish_workflow()
+print(f"Workflow name: {workflow.get('name')}")
 ```
 
 **Key Functions:**
 - `path_is_in_gitignore()` - Check if path matches gitignore patterns
 - `walk_os_skipping_gitignore_patterns()` - Directory traversal respecting gitignore
 - `add_patterns_to_gitignore()` - Add patterns to .gitignore file
+- `load_publish_workflow()` - Load GitHub Actions publish workflow
+- `dump_publish_workflow()` - Save GitHub Actions publish workflow
 - Pre-commit configuration management
 
 ---
