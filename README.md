@@ -113,7 +113,6 @@ Executes the complete quality pipeline (see below).
 ## Pre-commit Hook Workflow
 
 When you commit code, the winipedia-utils hook automatically runs a few quality checks e.g.:
-
 ```
 ┌─────────────────────────────────────────────────────────┐
 │         Pre-commit Hook Execution Pipeline              │
