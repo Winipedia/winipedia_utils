@@ -176,7 +176,8 @@ def _test_publish_workflow_is_correct() -> None:
     need to publish to pypi, e.g. they are binaries or private usage only or for profit.
     """
     path = PUBLISH_WORKFLOW_PATH
-    if not path.exists():
+    # if folder exists but the file not then we skip this test
+    if path.parent.exists() and not path.exists():
         return
     assert_with_msg(
         _publish_config_is_correct(),

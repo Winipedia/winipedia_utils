@@ -107,7 +107,7 @@ Sets up `.github/workflows/publish.yaml` for automated PyPI publishing:
 - Triggers on GitHub releases
 - Configures Poetry with PyPI token
 - Builds and publishes package automatically
-- If you do not want to publish to pypi, you can delete the file, tests will not fail bc of it and it won't be added again unless you run the setup script again.
+- If you do not want to publish to pypi, you can delete the file, tests will not fail bc of it and it won't be added again unless you run the setup script again or delete the .github folder/workflows folder.
 
 ### Step 7️⃣ - Create Project Root
 Creates your project's root package directory with `py.typed` marker for type hint support.
