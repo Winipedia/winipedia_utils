@@ -16,6 +16,7 @@ from winipedia_utils.git.pre_commit.config import (
 )
 from winipedia_utils.git.pre_commit.run_hooks import _run_all_hooks
 from winipedia_utils.git.workflows.publish import _add_publish_workflow
+from winipedia_utils.git.workflows.release import _add_release_workflow
 from winipedia_utils.logging.logger import get_logger
 from winipedia_utils.projects.poetry.config import (
     _add_configurations_to_pyproject_toml,
@@ -33,6 +34,7 @@ SETUP_STEPS = [
     _add_package_hook_to_pre_commit_config,
     _pre_commit_install,
     _add_package_patterns_to_gitignore,
+    _add_release_workflow,
     _add_publish_workflow,
     _add_configurations_to_pyproject_toml,
     _create_project_root,

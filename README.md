@@ -102,7 +102,13 @@ Adds tool configurations in pyproject.toml for e.g.:
 - **pytest** - Test discovery and execution
 - **bandit** - Security scanning
 
-### Step 6️⃣ - Create GitHub Actions Workflow
+### Step 6️⃣ - Create GitHub Actions Workflows
+Sets up `.github/workflows/release.yaml` for automated versioning and publishing:
+- Triggers on pushing tags in the form of v*
+- Creates a release on GitHub
+- Triggers publish.yaml workflow if publish.yaml exists
+- Tests will fail if you do not have release.yaml
+
 Sets up `.github/workflows/publish.yaml` for automated PyPI publishing:
 - Triggers on GitHub releases
 - Configures Poetry with PyPI token

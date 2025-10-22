@@ -82,3 +82,9 @@ def test__test_dev_dependencies_are_in_pyproject_toml() -> None:
 def test__test_publish_workflow_is_correct() -> None:
     """Test func for _test_publish_workflow_is_correct."""
     raise NotImplementedError
+
+
+@pytest.mark.skip(reason="Can not test a test")
+def test__test_release_workflow_is_correct() -> None:
+    """Test func for _test_release_workflow_is_correct."""
+    raise NotImplementedError

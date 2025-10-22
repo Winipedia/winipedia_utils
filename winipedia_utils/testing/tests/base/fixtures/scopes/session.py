@@ -18,6 +18,7 @@ from winipedia_utils.git.workflows.publish import (
     PUBLISH_WORKFLOW_PATH,
     _publish_config_is_correct,
 )
+from winipedia_utils.git.workflows.release import _release_config_is_correct
 from winipedia_utils.modules.module import to_path
 from winipedia_utils.modules.package import (
     find_packages,
@@ -182,6 +183,18 @@ def _test_publish_workflow_is_correct() -> None:
     assert_with_msg(
         _publish_config_is_correct(),
         "Publish workflow is not correct.",
+    )
+
+
+@autouse_session_fixture
+def _test_release_workflow_is_correct() -> None:
+    """Verify that the release workflow is correctly defined.
+
+    This workflow is mandatory for all projects.
+    """
+    assert_with_msg(
+        _release_config_is_correct(),
+        "Release workflow is not correct.",
     )
 
 

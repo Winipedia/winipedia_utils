@@ -2,7 +2,7 @@
 
 import pytest
 
-from winipedia_utils.testing.assertions import assert_with_msg
+from winipedia_utils.testing.assertions import assert_with_info, assert_with_msg
 
 
 def test_assert_with_msg() -> None:
@@ -78,3 +78,17 @@ def test_assert_with_msg() -> None:
         expr=original_msg == "Original message",
         msg="Original message should be unchanged",
     )
+
+
+def test_assert_with_info() -> None:
+    """Test func for assert_with_info."""
+    # Test with True expression - should not raise
+    assert_with_info(
+        expr=True, expected="True", actual="True", msg="This should not raise"
+    )
+    # Test with False expression - should raise AssertionError with custom message
+    custom_message = "This is a custom error message"
+    with pytest.raises(AssertionError, match=custom_message):
+        assert_with_info(
+            expr=False, expected="True", actual="False", msg=custom_message
+        )
