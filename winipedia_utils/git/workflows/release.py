@@ -42,7 +42,10 @@ def _get_release_config() -> dict[str, Any]:
                         "uses": "actions/setup-python@v6",
                         "with": {"python-version": "3.x"},
                     },
-                    {"name": "Install Poetry", "run": "pip install poetry"},
+                    {
+                        "name": "Install Poetry",
+                        "run": "curl -sSL https://install.python-poetry.org | python3 -",  # noqa: E501
+                    },
                     {"name": "Install Dependencies", "run": "poetry install"},
                     {
                         "name": "Install Pre-commit",
@@ -50,7 +53,7 @@ def _get_release_config() -> dict[str, Any]:
                     },
                     {
                         "name": "Run Pre-commit Hooks",
-                        "run": "poetry run pre-commit run",
+                        "run": "poetry run pre-commit run --all-files",
                     },
                     {
                         "name": "Build Changelog",

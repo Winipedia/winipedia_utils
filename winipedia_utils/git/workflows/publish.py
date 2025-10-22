@@ -42,7 +42,10 @@ def _get_publish_config() -> dict[str, Any]:
                         "uses": "actions/setup-python@v6",
                         "with": {"python-version": "3.x"},
                     },
-                    {"name": "Install Poetry", "run": "pip install poetry"},
+                    {
+                        "name": "Install Poetry",
+                        "run": "curl -sSL https://install.python-poetry.org | python3 -",  # noqa: E501
+                    },
                     {
                         "name": "Configure Poetry",
                         "run": "poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}",  # noqa: E501
