@@ -3,8 +3,8 @@ name: Create Release
   push:
     tags:
     - v*
-  branches:
-  - main
+    branches:
+    - main
 permissions:
   contents: write
 jobs:

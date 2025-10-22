@@ -35,7 +35,7 @@ def _get_release_config() -> dict[str, Any]:
     """Dict that represents the release workflow yaml."""
     return {
         "name": WORKFLOW_NAME,
-        "on": {"push": {"tags": ["v*"]}, "branches": ["main"]},
+        "on": {"push": {"tags": ["v*"], "branches": ["main"]}},
         "permissions": {
             "contents": "write",
         },
