@@ -35,7 +35,7 @@ def _get_release_config() -> dict[str, Any]:
     """Dict that represents the release workflow yaml."""
     return {
         "name": WORKFLOW_NAME,
-        "on": {"push": {"tags": ["v*"], "branches": ["main"]}},
+        "on": {"push": {"tags": ["v*"]}},
         "permissions": {
             "contents": "write",
         },
@@ -47,6 +47,7 @@ def _get_release_config() -> dict[str, Any]:
                         _get_poetry_setup_steps(
                             install_dependencies=True,
                             fetch_depth=0,
+                            force_main_head=True,
                         )
                     ),
                     {

@@ -38,9 +38,7 @@ def _get_publish_config() -> dict[str, Any]:
             "workflow_run": {
                 "workflows": [WORKFLOW_NAME],
                 "types": ["completed"],
-                "branches": ["main"],
             },
-            "release": {"types": ["published"]},
         },
         "jobs": {
             "publish": {

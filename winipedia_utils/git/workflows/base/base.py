@@ -3,8 +3,17 @@
 from typing import Any
 
 
-def _get_checkout_step(fetch_depth: int | None = None) -> dict[str, Any]:
-    """Get the checkout step."""
+def _get_checkout_step(
+    fetch_depth: int | None = None,
+) -> dict[str, Any]:
+    """Get the checkout step.
+
+    Args:
+        fetch_depth: The fetch depth to use. If None, no fetch depth is specified.
+
+    Returns:
+        The checkout step.
+    """
     step: dict[str, Any] = {
         "name": "Checkout repository",
         "uses": "actions/checkout@v5",
@@ -19,9 +28,37 @@ def _get_poetry_setup_steps(
     install_dependencies: bool = False,
     fetch_depth: int | None = None,
     configure_pipy_token: bool = False,
+    force_main_head: bool = False,
 ) -> list[dict[str, Any]]:
-    """Get the poetry steps."""
+    """Get the poetry steps.
+
+    Args:
+        install_dependencies: Whether to install dependencies.
+        fetch_depth: The fetch depth to use. If None, no fetch depth is specified.
+        configure_pipy_token: Whether to configure the pipy token.
+        force_main_head: Whether to exit if the running branch or current commit is not
+            equal to the most recent commit on main. This is useful for workflows that
+            should only run on main.
+
+    Returns:
+        The poetry steps.
+    """
     steps = [_get_checkout_step(fetch_depth)]
+    if force_main_head:
+        # exit with code 1 if the running branch is not main
+        steps.append(
+            {
+                "name": "Assert running on head of main",
+                "run": """|
+git fetch origin main --depth=1
+main_sha=$(git rev-parse origin/main)
+if [ "$GITHUB_SHA" != "$main_sha" ]; then
+echo "Tag commit is not the latest commit on main."
+exit 1
+fi
+""",
+            }
+        )
     steps.append(
         {
             "name": "Setup Python",

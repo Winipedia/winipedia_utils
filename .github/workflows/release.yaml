@@ -3,8 +3,6 @@ name: Create Release
   push:
     tags:
     - v*
-    branches:
-    - main
 permissions:
   contents: write
 jobs:
@@ -15,6 +13,22 @@ jobs:
       uses: actions/checkout@v5
       with:
         fetch-depth: 0
+    - name: Assert running on head of main
+      run: '|
+
+        git fetch origin main --depth=1
+
+        main_sha=$(git rev-parse origin/main)
+
+        if [ "$GITHUB_SHA" != "$main_sha" ]; then
+
+        echo "Tag commit is not the latest commit on main."
+
+        exit 1
+
+        fi
+
+        '
     - name: Setup Python
       uses: actions/setup-python@v6
       with:
