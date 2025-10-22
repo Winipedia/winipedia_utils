@@ -4,7 +4,7 @@ name: Create Release
     tags:
     - v*
 permissions:
-  releases: write
+  contents: write
 jobs:
   release:
     runs-on: ubuntu-latest

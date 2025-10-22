@@ -35,7 +35,7 @@ def _get_release_config() -> dict[str, Any]:
         "name": "Create Release",
         "on": {"push": {"tags": ["v*"]}},
         "permissions": {
-            "releases": "write",
+            "contents": "write",
         },
         "jobs": {
             "release": {
