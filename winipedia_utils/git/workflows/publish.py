@@ -8,6 +8,8 @@ from typing import Any
 
 import yaml
 
+from winipedia_utils.git.workflows.base.base import _get_poetry_setup_steps
+
 PUBLISH_WORKFLOW_PATH = Path(".github/workflows/publish.yaml")
 
 
@@ -36,20 +38,11 @@ def _get_publish_config() -> dict[str, Any]:
             "publish": {
                 "runs-on": "ubuntu-latest",
                 "steps": [
-                    {"name": "Checkout repository", "uses": "actions/checkout@v4"},
-                    {
-                        "name": "Set up Python",
-                        "uses": "actions/setup-python@v6",
-                        "with": {"python-version": "3.x"},
-                    },
-                    {
-                        "name": "Install Poetry",
-                        "run": "curl -sSL https://install.python-poetry.org | python3 -",  # noqa: E501
-                    },
-                    {
-                        "name": "Configure Poetry",
-                        "run": "poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}",  # noqa: E501
-                    },
+                    *(
+                        _get_poetry_setup_steps(
+                            configure_pipy_token=True,
+                        )
+                    ),
                     {
                         "name": "Build and publish to PyPI",
                         "run": "poetry publish --build",

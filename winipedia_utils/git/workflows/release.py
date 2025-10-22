@@ -8,6 +8,8 @@ from typing import Any
 
 import yaml
 
+from winipedia_utils.git.workflows.base.base import _get_poetry_setup_steps
+
 RELEASE_WORKFLOW_PATH = Path(".github/workflows/release.yaml")
 
 
@@ -36,21 +38,12 @@ def _get_release_config() -> dict[str, Any]:
             "release": {
                 "runs-on": "ubuntu-latest",
                 "steps": [
-                    {"uses": "actions/checkout@v4", "with": {"fetch-depth": 0}},
-                    {
-                        "name": "Setup Python",
-                        "uses": "actions/setup-python@v6",
-                        "with": {"python-version": "3.x"},
-                    },
-                    {
-                        "name": "Install Poetry",
-                        "run": "curl -sSL https://install.python-poetry.org | python3 -",  # noqa: E501
-                    },
-                    {"name": "Install Dependencies", "run": "poetry install"},
-                    {
-                        "name": "Install Pre-commit",
-                        "run": "poetry run pre-commit install",
-                    },
+                    *(
+                        _get_poetry_setup_steps(
+                            install_dependencies=True,
+                            fetch_depth=0,
+                        )
+                    ),
                     {
                         "name": "Run Pre-commit Hooks",
                         "run": "poetry run pre-commit run --all-files",
@@ -58,7 +51,7 @@ def _get_release_config() -> dict[str, Any]:
                     {
                         "name": "Build Changelog",
                         "id": "build_changelog",
-                        "uses": "mikepenz/release-changelog-builder-action@v6",
+                        "uses": "mikepenz/release-changelog-builder-action@v5",
                         "with": {"token": "${{ secrets.GITHUB_TOKEN }}"},
                     },
                     {
