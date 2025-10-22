@@ -3,6 +3,8 @@ name: Create Release
   push:
     tags:
     - v*
+permissions:
+  releases: write
 jobs:
   release:
     runs-on: ubuntu-latest

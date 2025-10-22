@@ -34,6 +34,9 @@ def _get_release_config() -> dict[str, Any]:
     return {
         "name": "Create Release",
         "on": {"push": {"tags": ["v*"]}},
+        "permissions": {
+            "releases": "write",
+        },
         "jobs": {
             "release": {
                 "runs-on": "ubuntu-latest",
