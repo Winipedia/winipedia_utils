@@ -38,6 +38,21 @@ def _get_release_config() -> dict[str, Any]:
                 "steps": [
                     {"uses": "actions/checkout@v4", "with": {"fetch-depth": 0}},
                     {
+                        "name": "Setup Python",
+                        "uses": "actions/setup-python@v6",
+                        "with": {"python-version": "3.x"},
+                    },
+                    {"name": "Install Poetry", "run": "pip install poetry"},
+                    {"name": "Install Dependencies", "run": "poetry install"},
+                    {
+                        "name": "Install Pre-commit",
+                        "run": "poetry run pre-commit install",
+                    },
+                    {
+                        "name": "Run Pre-commit Hooks",
+                        "run": "poetry run pre-commit run",
+                    },
+                    {
                         "name": "Build Changelog",
                         "id": "build_changelog",
                         "uses": "mikepenz/release-changelog-builder-action@v6",

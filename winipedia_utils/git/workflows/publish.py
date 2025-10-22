@@ -39,7 +39,7 @@ def _get_publish_config() -> dict[str, Any]:
                     {"name": "Checkout repository", "uses": "actions/checkout@v4"},
                     {
                         "name": "Set up Python",
-                        "uses": "actions/setup-python@v5",
+                        "uses": "actions/setup-python@v6",
                         "with": {"python-version": "3.x"},
                     },
                     {"name": "Install Poetry", "run": "pip install poetry"},
