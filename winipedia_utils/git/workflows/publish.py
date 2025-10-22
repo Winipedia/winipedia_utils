@@ -9,6 +9,7 @@ from typing import Any
 import yaml
 
 from winipedia_utils.git.workflows.base.base import _get_poetry_setup_steps
+from winipedia_utils.git.workflows.release import WORKFLOW_NAME
 
 PUBLISH_WORKFLOW_PATH = Path(".github/workflows/publish.yaml")
 
@@ -33,7 +34,14 @@ def _get_publish_config() -> dict[str, Any]:
     """Dict that represents the publish workflow yaml."""
     return {
         "name": "Publish to PyPI",
-        "on": {"release": {"types": ["published"]}},
+        "on": {
+            "workflow_run": {
+                "workflows": [WORKFLOW_NAME],
+                "types": ["completed"],
+                "branches": ["main"],
+            },
+            "release": {"types": ["published"]},
+        },
         "jobs": {
             "publish": {
                 "runs-on": "ubuntu-latest",

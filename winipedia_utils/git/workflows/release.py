@@ -12,6 +12,8 @@ from winipedia_utils.git.workflows.base.base import _get_poetry_setup_steps
 
 RELEASE_WORKFLOW_PATH = Path(".github/workflows/release.yaml")
 
+WORKFLOW_NAME = "Create Release"
+
 
 def load_release_workflow() -> dict[str, Any]:
     """Load the release workflow."""
@@ -32,8 +34,8 @@ def dump_release_workflow(config: dict[str, Any]) -> None:
 def _get_release_config() -> dict[str, Any]:
     """Dict that represents the release workflow yaml."""
     return {
-        "name": "Create Release",
-        "on": {"push": {"tags": ["v*"]}},
+        "name": WORKFLOW_NAME,
+        "on": {"push": {"tags": ["v*"]}, "branches": ["main"]},
         "permissions": {
             "contents": "write",
         },
@@ -58,7 +60,7 @@ def _get_release_config() -> dict[str, Any]:
                         "with": {"token": "${{ secrets.GITHUB_TOKEN }}"},
                     },
                     {
-                        "name": "Create Release",
+                        "name": "Create GitHub Release",
                         "uses": "ncipollo/release-action@v1",
                         "with": {
                             "tag": "${{ github.ref_name }}",

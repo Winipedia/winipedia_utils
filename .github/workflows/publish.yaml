@@ -1,5 +1,12 @@
 name: Publish to PyPI
 'on':
+  workflow_run:
+    workflows:
+    - Create Release
+    types:
+    - completed
+    branches:
+    - main
   release:
     types:
     - published

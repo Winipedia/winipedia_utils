@@ -3,6 +3,8 @@ name: Create Release
   push:
     tags:
     - v*
+  branches:
+  - main
 permissions:
   contents: write
 jobs:
@@ -28,7 +30,7 @@ jobs:
       uses: mikepenz/release-changelog-builder-action@v5
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Create Release
+    - name: Create GitHub Release
       uses: ncipollo/release-action@v1
       with:
         tag: ${{ github.ref_name }}
