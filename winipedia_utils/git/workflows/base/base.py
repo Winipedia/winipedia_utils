@@ -49,7 +49,7 @@ def _get_poetry_setup_steps(
         steps.append(
             {
                 "name": "Assert running on head of main",
-                "run": 'git fetch origin main --depth=1; main_sha=$(git rev-parse origin/main); if [ "$GITHUB_SHA" != "$main_sha" ]; then echo "Tag commit is not the latest commit on main."; exit 1; fi',  # noqa: E501
+                "run": 'gsgsgsg git fetch origin main --depth=1; main_sha=$(git rev-parse origin/main); if [ "$GITHUB_SHA" != "$main_sha" ]; then echo "Tag commit is not the latest commit on main."; exit 1; fi',  # noqa: E501
             }
         )
     steps.append(
