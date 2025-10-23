@@ -5,6 +5,8 @@ name: Create Release
     - v*
 permissions:
   contents: write
+run-name: 'Create Release: ${{ github.event.repository.name }}-${{ github.ref_name
+  }}'
 jobs:
   release:
     runs-on: ubuntu-latest

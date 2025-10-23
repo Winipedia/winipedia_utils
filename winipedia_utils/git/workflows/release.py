@@ -33,12 +33,14 @@ def dump_release_workflow(config: dict[str, Any]) -> None:
 
 def _get_release_config() -> dict[str, Any]:
     """Dict that represents the release workflow yaml."""
+    repo_plus_ref = "${{ github.event.repository.name }}-${{ github.ref_name }}"
     return {
         "name": WORKFLOW_NAME,
         "on": {"push": {"tags": ["v*"]}},
         "permissions": {
             "contents": "write",
         },
+        "run-name": WORKFLOW_NAME + ": " + repo_plus_ref,
         "jobs": {
             "release": {
                 "runs-on": "ubuntu-latest",
@@ -65,7 +67,7 @@ def _get_release_config() -> dict[str, Any]:
                         "uses": "ncipollo/release-action@v1",
                         "with": {
                             "tag": "${{ github.ref_name }}",
-                            "name": "${{ github.event.repository.name }}-${{ github.ref_name }}",  # noqa: E501
+                            "name": repo_plus_ref,
                             "body": "${{ steps.build_changelog.outputs.changelog }}",
                         },
                     },
