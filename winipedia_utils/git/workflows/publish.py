@@ -37,12 +37,13 @@ def _get_publish_config() -> dict[str, Any]:
         "on": {
             "workflow_run": {
                 "workflows": [WORKFLOW_NAME],
-                "types": ["success"],
+                "types": ["completed"],
             },
         },
         "jobs": {
             "publish": {
                 "runs-on": "ubuntu-latest",
+                "if": "${{ github.event.workflow_run.conclusion == 'success' }}",
                 "steps": [
                     *(
                         _get_poetry_setup_steps(
