@@ -92,13 +92,6 @@ class Workflow(YamlConfigFile):
             )
         steps.append(
             {
-                "name": "Extract Version from pyproject.toml",
-                "id": "version",
-                "run": 'version=$(poetry version -s) && echo "Project version: $version" && echo "version=v$version" >> $GITHUB_OUTPUT',  # noqa: E501
-            },
-        )
-        steps.append(
-            {
                 "name": "Setup Python",
                 "uses": "actions/setup-python@v6",
                 "with": {"python-version": "3.x"},
@@ -109,6 +102,13 @@ class Workflow(YamlConfigFile):
                 "name": "Install Poetry",
                 "run": "curl -sSL https://install.python-poetry.org | python3 -",
             }
+        )
+        steps.append(
+            {
+                "name": "Extract Version from pyproject.toml",
+                "id": "version",
+                "run": 'version=$(poetry version -s) && echo "Project version: $version" && echo "version=v$version" >> $GITHUB_OUTPUT',  # noqa: E501
+            },
         )
         if configure_pipy_token:
             steps.append(
