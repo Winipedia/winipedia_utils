@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@main
       with:
         fetch-depth: 0
     - name: Setup Python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@main
       with:
         python-version: 3.x
     - name: Install Poetry
@@ -33,11 +33,11 @@ jobs:
         }}
     - name: Build Changelog
       id: build_changelog
-      uses: mikepenz/release-changelog-builder-action@v5
+      uses: mikepenz/release-changelog-builder-action@develop
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: Create GitHub Release
-      uses: ncipollo/release-action@v1
+      uses: ncipollo/release-action@main
       with:
         tag: ${{ steps.version.outputs.version }}
         name: ${{ github.event.repository.name }} ${{ steps.version.outputs.version

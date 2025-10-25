@@ -53,7 +53,7 @@ class Workflow(YamlConfigFile):
         """
         step: dict[str, Any] = {
             "name": "Checkout repository",
-            "uses": "actions/checkout@v5",
+            "uses": "actions/checkout@main",
         }
         if fetch_depth is not None:
             step["with"] = {"fetch-depth": fetch_depth}
@@ -93,7 +93,7 @@ class Workflow(YamlConfigFile):
         steps.append(
             {
                 "name": "Setup Python",
-                "uses": "actions/setup-python@v6",
+                "uses": "actions/setup-python@main",
                 "with": {"python-version": "3.x"},
             }
         )

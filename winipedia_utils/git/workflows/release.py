@@ -54,12 +54,12 @@ class ReleaseWorkflow(Workflow):
                     {
                         "name": "Build Changelog",
                         "id": "build_changelog",
-                        "uses": "mikepenz/release-changelog-builder-action@v5",
+                        "uses": "mikepenz/release-changelog-builder-action@develop",
                         "with": {"token": "${{ secrets.GITHUB_TOKEN }}"},
                     },
                     {
                         "name": "Create GitHub Release",
-                        "uses": "ncipollo/release-action@v1",
+                        "uses": "ncipollo/release-action@main",
                         "with": {
                             "tag": self.get_version(),
                             "name": self.get_repo_and_version(),
