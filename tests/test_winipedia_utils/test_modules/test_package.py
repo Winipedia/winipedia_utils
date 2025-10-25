@@ -10,6 +10,8 @@ from typing import Any
 import pytest
 from pytest_mock import MockFixture
 
+from winipedia_utils.git.gitignore.gitignore import walk_os_skipping_gitignore_patterns
+from winipedia_utils.modules.module import make_obj_importpath
 from winipedia_utils.modules.package import (
     copy_package,
     find_packages,
@@ -20,6 +22,7 @@ from winipedia_utils.modules.package import (
     make_dir_with_init_file,
     make_init_module,
     make_init_modules_for_package,
+    make_name_from_package,
     module_is_package,
     package_name_to_path,
     walk_package,
@@ -363,9 +366,7 @@ def test_make_init_modules_for_package(tmp_path: Path, mocker: MockFixture) -> N
     mock_to_path.return_value = test_package
 
     # Mock walk_os_skipping_gitignore_patterns
-    mock_walk = mocker.patch(
-        "winipedia_utils.modules.package.walk_os_skipping_gitignore_patterns"
-    )
+    mock_walk = mocker.patch(make_obj_importpath(walk_os_skipping_gitignore_patterns))
     mock_walk.return_value = [
         (sub_dir1, [], ["__init__.py"]),  # Has __init__.py
         (sub_dir2, [], []),  # No __init__.py
@@ -596,3 +597,39 @@ def test_get_main_package(mocker: MockFixture) -> None:
 
     with pytest.raises(ValueError, match="Not able to determine the main package"):
         get_main_package()
+
+
+def test_make_name_from_package() -> None:
+    """Test func for make_project_name."""
+    # Create mock source package
+    mock_src_package = ModuleType("winipedia_utils")
+    mock_src_package.__name__ = "winipedia_utils"
+
+    result = make_name_from_package(mock_src_package)
+    expected = "Winipedia-Utils"
+    assert_with_msg(
+        result == expected,
+        f"Expected '{expected}', got '{result}'",
+    )
+
+    result = make_name_from_package(mock_src_package, split_on="-", join_on="_")
+    expected = "Winipedia_utils"
+    assert_with_msg(
+        result == expected,
+        f"Expected '{expected}', got '{result}'",
+    )
+    result = make_name_from_package(mock_src_package, capitalize=False)
+    expected = "winipedia-utils"
+    assert_with_msg(
+        result == expected,
+        f"Expected '{expected}', got '{result}'",
+    )
+
+    result = make_name_from_package(
+        mock_src_package, split_on="-", join_on="_", capitalize=False
+    )
+    expected = "winipedia_utils"
+    assert_with_msg(
+        result == expected,
+        f"Expected '{expected}', got '{result}'",
+    )

@@ -20,7 +20,7 @@ class ReleaseWorkflow(Workflow):
 
     def get_workflow_triggers(self) -> dict[str, Any]:
         """Get the workflow triggers."""
-        return {"push": {"tags": ["v*"]}}
+        return {"push": {"branches": ["main"]}}
 
     def get_permissions(self) -> dict[str, Any]:
         """Get the workflow permissions."""
@@ -38,12 +38,18 @@ class ReleaseWorkflow(Workflow):
                         self.get_poetry_setup_steps(
                             install_dependencies=True,
                             fetch_depth=0,
-                            force_main_head=True,
                         )
                     ),
                     {
-                        "name": "Run Pre-commit Hooks",
-                        "run": "poetry run pre-commit run",
+                        # using pre commit in case other hooks are added later
+                        # and bc it fails if files are changed,
+                        # setup script shouldnt change files
+                        "name": "Run Hooks",
+                        "run": "pre-commit run",
+                    },
+                    {
+                        "name": "Create and Push Tag",
+                        "run": f"git tag {self.get_version()} && git push origin {self.get_version()}",  # noqa: E501
                     },
                     {
                         "name": "Build Changelog",
@@ -55,8 +61,8 @@ class ReleaseWorkflow(Workflow):
                         "name": "Create GitHub Release",
                         "uses": "ncipollo/release-action@v1",
                         "with": {
-                            "tag": "${{ github.ref_name }}",
-                            "name": self.get_repo_and_ref_name(),
+                            "tag": self.get_version(),
+                            "name": self.get_repo_and_version(),
                             "body": "${{ steps.build_changelog.outputs.changelog }}",
                         },
                     },

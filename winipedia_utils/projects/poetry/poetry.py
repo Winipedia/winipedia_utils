@@ -3,22 +3,40 @@
 This module provides utility functions for working with Python projects
 """
 
-import sys
+from collections.abc import Iterable
+from types import ModuleType
 
 from winipedia_utils.logging.logger import get_logger
-from winipedia_utils.os.os import which_with_raise
 
 logger = get_logger(__name__)
 
 
-POETRY_PATH = which_with_raise("poetry", raise_error=False) or "poetry"
+POETRY_ARG = "poetry"
 
-POETRY_RUN_ARGS = [POETRY_PATH, "run"]
+POETRY_RUN_ARGS = [POETRY_ARG, "run"]
 
-POETRY_ADD_ARGS = [POETRY_PATH, "add"]
+RUN_PYTHON_MODULE_ARGS = ["python", "-m"]
 
-POETRY_ADD_DEV_ARGS = [*POETRY_ADD_ARGS, "--group", "dev"]
 
-POETRY_RUN_PYTHON_ARGS = [*POETRY_RUN_ARGS, sys.executable]
+def get_script_from_args(args: Iterable[str]) -> str:
+    """Get the script from args."""
+    return " ".join(args)
 
-POETRY_RUN_RUFF_ARGS = [*POETRY_RUN_ARGS, "ruff"]
+
+def get_run_python_module_args(module: ModuleType) -> list[str]:
+    """Get the args to run a module."""
+    from winipedia_utils.modules.module import (  # noqa: PLC0415  # avoid circular import
+        make_obj_importpath,
+    )
+
+    return [*RUN_PYTHON_MODULE_ARGS, make_obj_importpath(module)]
+
+
+def get_run_python_module_script(module: ModuleType) -> str:
+    """Get the script to run a module."""
+    return get_script_from_args(get_run_python_module_args(module))
+
+
+def get_poetry_run_module_script(module: ModuleType) -> str:
+    """Get the script to run a module."""
+    return get_script_from_args([*POETRY_RUN_ARGS, *get_run_python_module_args(module)])

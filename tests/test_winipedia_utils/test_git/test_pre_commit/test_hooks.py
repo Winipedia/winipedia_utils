@@ -8,7 +8,7 @@ from winipedia_utils.git.pre_commit.hooks import (
     check_package_manager_configs,
     check_security,
     check_static_types,
-    create_tests,
+    create_missing_tests,
     format_code,
     install_packages,
     lint_code,
@@ -19,10 +19,7 @@ from winipedia_utils.git.pre_commit.hooks import (
     update_packages,
 )
 from winipedia_utils.projects.poetry.poetry import (
-    POETRY_PATH,
-    POETRY_RUN_ARGS,
-    POETRY_RUN_PYTHON_ARGS,
-    POETRY_RUN_RUFF_ARGS,
+    POETRY_ARG,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
 
@@ -33,7 +30,7 @@ def test_patch_version() -> None:
     result = patch_version()
 
     # Expected result
-    expected = [POETRY_PATH, "version", "patch"]
+    expected = [POETRY_ARG, "version", "patch"]
 
     # Verify the result
     assert_with_msg(
@@ -48,7 +45,7 @@ def test_add_version_patch_to_git() -> None:
     result = add_version_patch_to_git()
 
     # Expected result
-    expected = [*POETRY_RUN_ARGS, "git", "add", "pyproject.toml"]
+    expected = ["git", "add", "pyproject.toml"]
 
     # Verify the result
     assert_with_msg(
@@ -63,7 +60,7 @@ def test_update_package_manager() -> None:
     result = update_package_manager()
 
     # Expected result
-    expected = [POETRY_PATH, "self", "update"]
+    expected = [POETRY_ARG, "self", "update"]
 
     # Verify the result
     assert_with_msg(
@@ -78,7 +75,7 @@ def test_install_packages() -> None:
     result = install_packages()
 
     # Expected result
-    expected = [POETRY_PATH, "install"]
+    expected = [POETRY_ARG, "install"]
 
     # Verify the result
     assert_with_msg(
@@ -93,7 +90,7 @@ def test_update_packages() -> None:
     result = update_packages()
 
     # Expected result
-    expected = [POETRY_PATH, "update"]
+    expected = [POETRY_ARG, "update"]
 
     # Verify the result
     assert_with_msg(
@@ -108,7 +105,7 @@ def test_lock_dependencies() -> None:
     result = lock_dependencies()
 
     # Expected result
-    expected = [POETRY_PATH, "lock"]
+    expected = [POETRY_ARG, "lock"]
 
     # Verify the result
     assert_with_msg(
@@ -123,7 +120,7 @@ def test_check_package_manager_configs() -> None:
     result = check_package_manager_configs()
 
     # Expected result
-    expected = [POETRY_PATH, "check", "--strict"]
+    expected = [POETRY_ARG, "check", "--strict"]
 
     # Verify the result
     assert_with_msg(
@@ -132,13 +129,12 @@ def test_check_package_manager_configs() -> None:
     )
 
 
-def test_create_tests() -> None:
+def test_create_missing_tests() -> None:
     """Test func for create_tests."""
     # Call the function
-    result = create_tests()
+    result = create_missing_tests()
 
-    # Expected result
-    expected = [*POETRY_RUN_PYTHON_ARGS, "-m", "winipedia_utils.testing.create_tests"]
+    expected = ["python", "-m", "winipedia_utils.testing.create_tests"]
 
     # Verify the result
     assert_with_msg(
@@ -153,7 +149,7 @@ def test_lint_code() -> None:
     result = lint_code()
 
     # Expected result
-    expected = [*POETRY_RUN_RUFF_ARGS, "check", "--fix"]
+    expected = ["ruff", "check", "--fix"]
 
     # Verify the result
     assert_with_msg(
@@ -168,7 +164,7 @@ def test_format_code() -> None:
     result = format_code()
 
     # Expected result
-    expected = [*POETRY_RUN_RUFF_ARGS, "format"]
+    expected = ["ruff", "format"]
 
     # Verify the result
     assert_with_msg(
@@ -183,7 +179,7 @@ def test_check_static_types() -> None:
     result = check_static_types()
 
     # Expected result
-    expected = [*POETRY_RUN_ARGS, "mypy"]
+    expected = ["mypy"]
 
     # Verify the result
     assert_with_msg(
@@ -198,7 +194,7 @@ def test_check_security() -> None:
     result = check_security()
 
     # Expected result
-    expected = [*POETRY_RUN_ARGS, "bandit", "-c", "pyproject.toml", "-r", "."]
+    expected = ["bandit", "-c", "pyproject.toml", "-r", "."]
 
     # Verify the result
     assert_with_msg(
@@ -213,7 +209,7 @@ def test_run_tests() -> None:
     result = run_tests()
 
     # Expected result
-    expected = [*POETRY_RUN_ARGS, "pytest"]
+    expected = ["pytest"]
 
     # Verify the result
     assert_with_msg(

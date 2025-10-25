@@ -29,7 +29,7 @@ class Workflow(YamlConfigFile):
 
     def get_run_name(self) -> str:
         """Get the workflow run name."""
-        return self.get_workflow_name() + self.get_repo_and_ref_name_formatted()
+        return f"{self.get_workflow_name()}: {self.get_repo_and_version()}"
 
     def get_configs(self) -> dict[str, Any]:
         """Get the workflow config."""
@@ -92,6 +92,13 @@ class Workflow(YamlConfigFile):
             )
         steps.append(
             {
+                "name": "Extract Version from pyproject.toml",
+                "id": "version",
+                "run": 'version=$(poetry version -s) && echo "Project version: $version" && echo "version=v$version" >> $GITHUB_OUTPUT',  # noqa: E501
+            },
+        )
+        steps.append(
+            {
                 "name": "Setup Python",
                 "uses": "actions/setup-python@v6",
                 "with": {"python-version": "3.x"},
@@ -119,16 +126,17 @@ class Workflow(YamlConfigFile):
         """Get the repository name."""
         return "${{ github.event.repository.name }}"
 
-    def get_ref_name(self) -> str:
+    @staticmethod
+    def get_ref_name() -> str:
         """Get the ref name."""
         return "${{ github.ref_name }}"
 
-    @staticmethod
-    def get_repo_and_ref_name() -> str:
-        """Get the repository name and ref name."""
-        return "${{ github.event.repository.name }}-${{ github.ref_name }}"
-
     @classmethod
-    def get_repo_and_ref_name_formatted(cls) -> str:
+    def get_version(cls) -> str:
+        """Get the version."""
+        return "${{ steps.version.outputs.version }}"
+
+    @staticmethod
+    def get_repo_and_version() -> str:
         """Get the repository name and ref name."""
-        return f": {cls.get_repo_and_ref_name()}"
+        return f"{Workflow.get_repository_name()} {Workflow.get_version()}"

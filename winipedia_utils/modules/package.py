@@ -20,10 +20,6 @@ from types import ModuleType
 from setuptools import find_namespace_packages as _find_namespace_packages
 from setuptools import find_packages as _find_packages
 
-from winipedia_utils.git.gitignore.config import GitIgnoreConfigFile
-from winipedia_utils.git.gitignore.gitignore import (
-    walk_os_skipping_gitignore_patterns,
-)
 from winipedia_utils.logging.logger import get_logger
 
 logger = get_logger(__name__)
@@ -182,6 +178,10 @@ def find_packages(
         find_packages(depth=1) might return ["package1", "package2"]
 
     """
+    from winipedia_utils.git.gitignore.config import (  # noqa: PLC0415
+        GitIgnoreConfigFile,  # avoid circular import
+    )
+
     if exclude is None:
         exclude = GitIgnoreConfigFile.load_static()[GitIgnoreConfigFile.IGNORE_KEY]
         exclude = [
@@ -282,8 +282,11 @@ def make_init_modules_for_package(path: str | Path | ModuleType) -> None:
         from get_default_init_module_content.
 
     """
-    from winipedia_utils.modules.module import (  # noqa: PLC0415  # avoid circular import
-        to_path,
+    from winipedia_utils.git.gitignore.gitignore import (  # noqa: PLC0415
+        walk_os_skipping_gitignore_patterns,  # avoid circular import
+    )
+    from winipedia_utils.modules.module import (  # noqa: PLC0415
+        to_path,  # avoid circular import
     )
 
     path = to_path(path, is_package=True)
@@ -397,3 +400,30 @@ def get_main_package() -> ModuleType:
 
     msg = "Not able to determine the main package"
     raise ValueError(msg)
+
+
+def make_name_from_package(
+    package: ModuleType,
+    split_on: str = "_",
+    join_on: str = "-",
+    *,
+    capitalize: bool = True,
+) -> str:
+    """Make a name from a package.
+
+    takes a package and makes a name from it that is readable by humans.
+
+    Args:
+        package (ModuleType): The package to make a name from
+        split_on (str, optional): what to split the package name on. Defaults to "_".
+        join_on (str, optional): what to join the package name with. Defaults to "-".
+        capitalize (bool, optional): Whether to capitalize each part. Defaults to True.
+
+    Returns:
+        str: _description_
+    """
+    package_name = package.__name__.split(".")[-1]
+    parts = package_name.split(split_on)
+    if capitalize:
+        parts = [part.capitalize() for part in parts]
+    return join_on.join(parts)

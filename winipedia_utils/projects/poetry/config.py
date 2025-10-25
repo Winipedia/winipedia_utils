@@ -3,8 +3,7 @@
 from pathlib import Path
 from typing import Any
 
-from winipedia_utils.modules.package import get_src_package
-from winipedia_utils.projects.project import make_name_from_package
+from winipedia_utils.modules.package import get_src_package, make_name_from_package
 from winipedia_utils.testing.convention import TESTS_PACKAGE_NAME
 from winipedia_utils.text.config import ConfigFile, TomlConfigFile
 

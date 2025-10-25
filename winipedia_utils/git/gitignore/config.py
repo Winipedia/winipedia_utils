@@ -22,7 +22,7 @@ class GitIgnoreConfigFile(ConfigFile):
         return self.load_static()
 
     @classmethod
-    def load_static(cls) -> dict[str, Any]:
+    def load_static(cls) -> dict[str, list[str]]:
         """Load the config file."""
         paths = cls.PATH.read_text().splitlines()
         return {cls.IGNORE_KEY: paths}

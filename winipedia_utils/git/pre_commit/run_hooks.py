@@ -15,7 +15,7 @@ from winipedia_utils.os.os import run_subprocess
 logger = get_logger(__name__)
 
 
-def run_all() -> None:
+def run_hooks() -> None:
     """Import all funcs defined in hooks.py and runs them."""
     hook_funcs = get_all_functions_from_module(hooks)
 
@@ -43,7 +43,3 @@ def run_all() -> None:
         )
 
     sys.exit(exit_code)
-
-
-if __name__ == "__main__":
-    run_all()

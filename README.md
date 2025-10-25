@@ -64,8 +64,8 @@ The setup creates the following configuration files:
 - `.pre-commit-config.yaml` - Pre-commit hook configuration
 - `.gitignore` - Git ignore rules (assumes you added one on GitHub before.)
 - `pyproject.toml` - Project configuration with Poetry settings
-- `.github/workflows/release.yaml` - Release workflow
-- `.github/workflows/publish.yaml` - Publishing workflow
+- `.github/workflows/release.yaml` - Release workflow (Creates a release on GitHub when oushing to main)
+- `.github/workflows/publish.yaml` - Publishing workflow (Publishes to PyPI when a release is created by the release workflow)
 - `py.typed` - PEP 561 marker for type hints
 - `experiment.py` - For experimentation (ignored by git)
 - `test0.py` - Test file with one empyt test (so that initial tests pass)
@@ -73,21 +73,21 @@ The setup creates the following configuration files:
 
 ### Pre-commit Hook Workflow
 
-When you commit code using `poetry run git commit`, the following checks run automatically:
+When you commit code using `git commit`, the following checks run automatically:
 
-1. Patch version
-2. Add version patch to git
-3. Update package manager
-4. Install packages
-5. Update packages
-6. Lock dependencies
-7. Check package manager configs
-8. Create tests
-9. Lint code
-10. Format code
-11. Check static types
-12. Check security
-13. Run tests
+1. Patch version (poetry version patch)
+2. Add version patch to git (git add pyproject.toml)
+3. Update package manager (poetry self update)
+4. Install packages (poetry install)
+5. Update packages (poetry update)
+6. Lock dependencies (poetry lock)
+7. Check package manager configs (poetry check --strict)
+8. Create tests (python -m winipedia_utils.testing.create_tests)
+9. Lint code (ruff check --fix)
+10. Format code (ruff format)
+11. Check static types (mypy)
+12. Check security (bandit -c pyproject.toml -r .)
+13. Run tests (pytest (uses pyproject.toml as config))
 
 ### Auto-generated Test Structure
 
@@ -258,22 +258,6 @@ Tools for managing Poetry projects and project structure:
 from winipedia_utils.projects.project import create_project_root
 from winipedia_utils.projects.poetry.config import PyProjectTomlConfig
 ```
-
-## Important Notes
-
-### Git Commit Workflow
-
-When using winipedia-utils, you **must** use Poetry to run git commit:
-
-```bash
-# Correct - Uses Python environment for pre-commit hook
-poetry run git commit -m "Your commit message"
-
-# Incorrect - Pre-commit hook won't run properly
-git commit -m "Your commit message"
-```
-
-This is necessary because the pre-commit hook needs access to the Python environment and installed packages.
 
 ### Philosophy
 

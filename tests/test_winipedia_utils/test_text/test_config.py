@@ -206,6 +206,15 @@ class MyYamlConfigFile(YamlConfigFile):
 class TestYamlConfigFile:
     """Test class for YamlConfigFile."""
 
+    def test_get_poetry_run_setup_script(self) -> None:
+        """Test method for get_poetry_run_setup_script."""
+        expected = "poetry run python -m winipedia_utils.setup"
+        actual = YamlConfigFile.get_poetry_run_setup_script()
+        assert_with_msg(
+            expected == actual,
+            f"Expected {expected} to be poetry run setup script, got {actual}",
+        )
+
     def test_load(self, tmp_path: Path) -> None:
         """Test method for load."""
         config_file = MyYamlConfigFile(tmp_path)

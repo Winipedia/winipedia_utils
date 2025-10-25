@@ -151,27 +151,24 @@ class TestWorkflow:
             f"Expected github variable in ref_name, got {ref_name}",
         )
 
-    def test_get_repo_and_ref_name(self) -> None:
-        """Test method for get_repo_and_ref_name."""
-        repo_and_ref_name = ConcreteWorkflow.get_repo_and_ref_name()
+    def test_get_version(self, tmp_path: Path) -> None:
+        """Test method for get_version."""
+        workflow = ConcreteWorkflow(tmp_path)
+        version = workflow.get_version()
         assert_with_msg(
-            "${{ github.event.repository.name }}" in repo_and_ref_name,
-            f"Expected github variable in repo_and_ref_name, got {repo_and_ref_name}",
-        )
-        assert_with_msg(
-            "${{ github.ref_name }}" in repo_and_ref_name,
-            f"Expected github variable in repo_and_ref_name, got {repo_and_ref_name}",
+            "${{ steps.version.outputs.version }}" in version,
+            f"Expected github variable in version, got {version}",
         )
 
-    def test_get_repo_and_ref_name_formatted(self, tmp_path: Path) -> None:
-        """Test method for get_repo_and_ref_name_formatted."""
+    def test_get_repo_and_version(self, tmp_path: Path) -> None:
+        """Test method for get_repo_and_version."""
         workflow = ConcreteWorkflow(tmp_path)
-        formatted = workflow.get_repo_and_ref_name_formatted()
+        repo_and_version = workflow.get_repo_and_version()
         assert_with_msg(
-            ":" in formatted,
-            f"Expected ':' in formatted string, got {formatted}",
+            "${{ github.event.repository.name }}" in repo_and_version,
+            f"Expected github variable in repo_and_version, got {repo_and_version}",
         )
         assert_with_msg(
-            "-" in formatted,
-            f"Expected '-' in formatted string, got {formatted}",
+            "${{ steps.version.outputs.version }}" in repo_and_version,
+            f"Expected github variable in repo_and_version, got {repo_and_version}",
         )

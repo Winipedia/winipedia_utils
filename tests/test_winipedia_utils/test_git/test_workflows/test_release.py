@@ -38,8 +38,8 @@ class TestReleaseWorkflow:
             f"Expected 'push' key in triggers, got {triggers.keys()}",
         )
         assert_with_msg(
-            "tags" in triggers["push"],
-            f"Expected 'tags' key in push trigger, got {triggers['push'].keys()}",
+            "branches" in triggers["push"],
+            f"Expected 'branches' key in push trigger, got {triggers['push'].keys()}",
         )
 
     def test_get_permissions(self, tmp_path: Path) -> None:

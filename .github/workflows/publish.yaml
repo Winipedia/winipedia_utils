@@ -7,7 +7,7 @@ name: Publish Workflow
     - completed
 permissions:
   contents: read
-run-name: 'Publish Workflow: ${{ github.event.repository.name }}-${{ github.ref_name
+run-name: 'Publish Workflow: ${{ github.event.repository.name }} ${{ steps.version.outputs.version
   }}'
 jobs:
   publish:
@@ -16,6 +16,10 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v5
+    - name: Extract Version from pyproject.toml
+      id: version
+      run: 'version=$(poetry version -s) && echo "Project version: $version" && echo
+        "version=v$version" >> $GITHUB_OUTPUT'
     - name: Setup Python
       uses: actions/setup-python@v6
       with:
@@ -24,6 +28,5 @@ jobs:
       run: curl -sSL https://install.python-poetry.org | python3 -
     - name: Configure Poetry
       run: poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
-    - name: 'Build and publish to PyPI: ${{ github.event.repository.name }}-${{ github.ref_name
-        }}'
+    - name: Build and publish to PyPI
       run: poetry publish --build

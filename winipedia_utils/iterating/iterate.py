@@ -70,7 +70,7 @@ def nested_structure_is_subset(
             """Get actual value from superset."""
             return superset[key_or_index] if key_or_index < len(superset) else None
     else:
-        return (subset == superset) or (subset is Any)
+        return subset == superset
 
     all_good = True
     for key_or_index, value in iterable:
