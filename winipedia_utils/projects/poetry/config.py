@@ -3,115 +3,127 @@
 from pathlib import Path
 from typing import Any
 
-import tomlkit
-from tomlkit.toml_document import TOMLDocument
-
-from winipedia_utils.projects.poetry.poetry import logger
-
-
-def laod_pyproject_toml() -> TOMLDocument:
-    """Load the pyproject.toml file."""
-    return tomlkit.parse(Path("pyproject.toml").read_text())
+from winipedia_utils.modules.package import get_src_package
+from winipedia_utils.projects.project import make_name_from_package
+from winipedia_utils.testing.convention import TESTS_PACKAGE_NAME
+from winipedia_utils.text.config import ConfigFile, TomlConfigFile
 
 
-def get_dev_dependencies_from_pyproject_toml() -> set[str]:
-    """Get the dev dependencies from pyproject.toml."""
-    toml = laod_pyproject_toml()
-    dev_dependencies = (
-        toml.get("tool", {})
-        .get("poetry", {})
-        .get("group", {})
-        .get("dev", {})
-        .get("dependencies", {})
-        .keys()
-    )
-    if not dev_dependencies:
-        dev_dependencies = toml.get("dependency-groups", {}).get("dev", [])
-        dev_dependencies = [d.split("(")[0].strip() for d in dev_dependencies]
-    return set(dev_dependencies)
+class PyProjectTomlConfig(TomlConfigFile):
+    """Config file for pyproject.toml."""
 
+    PATH = Path("pyproject.toml")
 
-def dump_pyproject_toml(toml: TOMLDocument) -> None:
-    """Dump the pyproject.toml file."""
-    with Path("pyproject.toml").open("w") as f:
-        tomlkit.dump(toml, f)
+    def get_path(self) -> Path:
+        """Get the path to the config file."""
+        return self.PATH
 
-
-def get_poetry_package_name() -> str:
-    """Get the name of the project from pyproject.toml."""
-    toml = laod_pyproject_toml()
-    project_dict = toml.get("project", {})
-    project_name = str(project_dict.get("name", ""))
-    return project_name.replace("-", "_")
-
-
-def _get_pyproject_toml_tool_configs() -> dict[str, Any]:
-    """Get the tool configurations for pyproject.toml."""
-    return {
-        "ruff": {
-            "exclude": [".*", "**/migrations/*.py"],
-            "lint": {
-                "select": ["ALL"],
-                "ignore": ["D203", "D213", "COM812", "ANN401"],
-                "fixable": ["ALL"],
-                "pydocstyle": {
-                    "convention": "google",
-                },
+    def get_configs(self) -> dict[str, Any]:
+        """Get the config."""
+        return {
+            "project": {
+                "name": make_name_from_package(get_src_package(), capitalize=False),
+                "readme": "README.md",
+                "dynamic": ["dependencies"],
             },
-        },
-        "mypy": {
-            "strict": True,
-            "warn_unreachable": True,
-            "show_error_codes": True,
-            "files": ".",
-        },
-        "pytest": {
-            "ini_options": {
-                "testpaths": ["tests"],
-            }
-        },
-        "bandit": {},
-    }
+            "build-system": {
+                "requires": ["poetry-core>=2.0.0,<3.0.0"],
+                "build-backend": "poetry.core.masonry.api",
+            },
+            "tool": {
+                "poetry": {
+                    "packages": [{"include": get_src_package().__name__}],
+                    "group": {
+                        "dev": {
+                            "dependencies": dict.fromkeys(
+                                [
+                                    "ruff",
+                                    "pre-commit",
+                                    "mypy",
+                                    "pytest",
+                                    "bandit",
+                                    "types-setuptools",
+                                    "types-tqdm",
+                                    "types-defusedxml",
+                                    "types-pyyaml",
+                                    "pytest-mock",
+                                ],
+                                "*",
+                            )
+                        }
+                    },
+                },
+                "ruff": {
+                    "exclude": [".*", "**/migrations/*.py"],
+                    "lint": {
+                        "select": ["ALL"],
+                        "ignore": ["D203", "D213", "COM812", "ANN401"],
+                        "fixable": ["ALL"],
+                        "pydocstyle": {"convention": "google"},
+                    },
+                },
+                "mypy": {
+                    "strict": True,
+                    "warn_unreachable": True,
+                    "show_error_codes": True,
+                    "files": ".",
+                },
+                "pytest": {"ini_options": {"testpaths": [TESTS_PACKAGE_NAME]}},
+                "bandit": {},
+            },
+        }
+
+    def get_package_name(self) -> str:
+        """Get the package name."""
+        project_dict = self.load().get("project", {})
+        package_name = str(project_dict.get("name", ""))
+        return package_name.replace("-", "_")
+
+    def get_dev_dependencies(self) -> set[str]:
+        """Get the dev dependencies."""
+        dev_dependencies = set(
+            self.load()
+            .get("tool", {})
+            .get("poetry", {})
+            .get("group", {})
+            .get("dev", {})
+            .get("dependencies", {})
+            .keys()
+        )
+        if not dev_dependencies:
+            dev_dependencies = set(
+                self.load().get("dependency-groups", {}).get("dev", [])
+            )
+            dev_dependencies = {d.split("(")[0].strip() for d in dev_dependencies}
+        return dev_dependencies
+
+    def get_expected_dev_dependencies(self) -> set[str]:
+        """Get the expected dev dependencies."""
+        return set(
+            self.get_configs()["tool"]["poetry"]["group"]["dev"]["dependencies"].keys()
+        )
 
 
-def _tool_config_is_correct(tool: str, config: dict[str, Any]) -> bool:
-    """Check if the tool configuration in pyproject.toml is correct."""
-    toml = laod_pyproject_toml()
-    actual_tools = toml.get("tool", {})
+class PyTypedConfigFile(ConfigFile):
+    """Config file for py.typed."""
 
-    return bool(actual_tools.get(tool) == config)
+    def get_path(self) -> Path:
+        """Get the path to the config file."""
+        toml_config = PyProjectTomlConfig()
+        package_name = toml_config.get_package_name()
+        return Path(package_name) / "py.typed"
 
+    def load(self) -> dict[str, Any]:
+        """Load the config file."""
+        return {}
 
-def _pyproject_tool_configs_are_correct() -> bool:
-    """Check if the tool configurations in pyproject.toml are correct."""
-    expected_tool_dict = _get_pyproject_toml_tool_configs()
-    for tool, config in expected_tool_dict.items():
-        if not _tool_config_is_correct(tool, config):
-            return False
+    def dump(self, config: dict[str, Any]) -> None:
+        """Dump the config file."""
+        if config:
+            msg = "Cannot dump to py.typed file."
+            raise ValueError(msg)
+        self.path.touch()
 
-    return True
-
-
-def _add_configurations_to_pyproject_toml() -> None:
-    """Add tool.* configurations to pyproject.toml."""
-    expected_tool_dict = _get_pyproject_toml_tool_configs()
-    toml = laod_pyproject_toml()
-    actual_tool_dict = toml.get("tool", None)
-    if actual_tool_dict is None:
-        # add tool section
-        toml.add("tool", tomlkit.table())
-
-    actual_tool_dict = toml.get("tool", None)
-    if actual_tool_dict is None:
-        msg = "tool section is None after adding it"
-        raise ValueError(msg)
-
-    # update the toml dct and dump it but only update the tools specified not all tools
-    for tool, config in expected_tool_dict.items():
-        # if tool section already exists skip it
-        if not _tool_config_is_correct(tool, config):
-            logger.info("Adding tool.%s configuration to pyproject.toml", tool)
-            # updates inplace of toml_dict["tool"][tool]
-            actual_tool_dict[tool] = config
-
-    dump_pyproject_toml(toml)
+    def get_configs(self) -> dict[str, Any]:
+        """Get the config."""
+        return {}

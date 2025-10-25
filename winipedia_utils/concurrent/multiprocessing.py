@@ -15,6 +15,7 @@ from functools import wraps
 from multiprocessing.pool import Pool
 from typing import Any
 
+from winipedia_utils.concurrent.concurrent import concurrent_loop
 from winipedia_utils.logging.logger import get_logger
 
 logger = get_logger(__name__)
@@ -118,8 +119,6 @@ def multiprocess_loop(
         Also given functions must be pickle-able.
 
     """
-    from winipedia_utils.concurrent.concurrent import concurrent_loop
-
     return concurrent_loop(
         threading=False,
         process_function=process_function,

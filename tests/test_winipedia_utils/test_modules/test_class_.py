@@ -8,11 +8,14 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Any, ClassVar
 
+from pytest_mock import MockFixture
+
 from winipedia_utils.modules.class_ import (
     get_all_cls_from_module,
     get_all_methods_from_cls,
     get_all_nonabstract_subclasses,
     get_all_subclasses,
+    init_all_nonabstract_subclasses,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
 
@@ -107,6 +110,10 @@ class AbstractParent(ABC):
 
 class ConcreteChild(AbstractParent):
     """Concrete implementation of AbstractParent."""
+
+    def __init__(self) -> None:
+        """Initialize ConcreteChild."""
+        super().__init__()
 
     def abstract_method(self) -> str:
         """Implement the abstract method."""
@@ -233,4 +240,17 @@ def test_get_all_nonabstract_subclasses() -> None:
         AnotherAbstractChild not in subclasses,
         f"Expected AnotherAbstractChild NOT in non-abstract subclasses, "
         f"got {subclasses}",
+    )
+
+
+def test_init_all_nonabstract_subclasses(mocker: MockFixture) -> None:
+    """Test func for init_all_nonabstract_subclasses."""
+    # spy on __init__ of ConcreteChild
+    spy = mocker.spy(ConcreteChild, ConcreteChild.__init__.__name__)
+
+    init_all_nonabstract_subclasses(AbstractParent)
+
+    assert_with_msg(
+        spy.call_count == 1,
+        f"Expected __init__ of ConcreteChild to be called once, got {spy.call_count}",
     )

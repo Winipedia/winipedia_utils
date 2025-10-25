@@ -9,6 +9,7 @@ from typing import Any, final
 import pytest
 from pytest_mock import MockFixture
 
+from winipedia_utils.oop.mixins.meta import StrictABCLoggingMeta
 from winipedia_utils.oop.mixins.mixin import StrictABCLoggingMixin
 from winipedia_utils.testing.assertions import assert_with_msg
 
@@ -19,7 +20,6 @@ class TestStrictABCLoggingMixin:
     def test_mixin_metaclass(self) -> None:
         """Test that the mixin uses the correct metaclass."""
         # Verify that ABCImplementationLoggingMixin uses ABCImplementationLoggingMeta
-        from winipedia_utils.oop.mixins.meta import StrictABCLoggingMeta
 
         expected_msg = (
             "Expected ABCImplementationLoggingMixin to use ABCImplementationLoggingMeta"
@@ -189,7 +189,7 @@ class TestStrictABCLoggingMixin:
                 """Satisfy method decorator requirements."""
 
         # Attempt to create a concrete class without implementing required attributes
-        with pytest.raises(ValueError, match="required_attr.*must be implemented"):
+        with pytest.raises(ValueError, match=r"required_attr.*must be implemented"):
             # Missing required_attr implementation
             class FailingConcrete(FailureTestMixin):
                 @final

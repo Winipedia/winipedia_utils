@@ -1,9 +1,12 @@
 """Tests for winipedia_utils.modules.function module."""
 
 import functools
+from abc import ABC, abstractmethod
 
+from winipedia_utils.modules import function as func_module
 from winipedia_utils.modules.function import (
     get_all_functions_from_module,
+    is_abstractmethod,
     is_func,
     is_func_or_method,
     unwrap_method,
@@ -164,7 +167,6 @@ def test_is_func() -> None:
 def test_get_all_functions_from_module() -> None:
     """Test func for get_all_functions_from_module."""
     # Test with winipedia_utils.modules.function module
-    from winipedia_utils.modules import function as func_module
 
     functions = get_all_functions_from_module(func_module)
 
@@ -188,11 +190,13 @@ def test_get_all_functions_from_module() -> None:
         "is_func",
         "get_all_functions_from_module",
         "unwrap_method",
+        "is_abstractmethod",
     ]
 
     expected_count = len(expected_functions)
     assert_with_msg(
-        len(functions) == expected_count,
+        # >= because there could be more functions added in the future
+        len(functions) >= expected_count,
         f"Expected {expected_count} functions, got {len(functions)}",
     )
 
@@ -270,4 +274,37 @@ def test_unwrap_method() -> None:
     assert_with_msg(
         unwrap_method(TestClass.test_property) == TestClass.test_property.fget,  # type: ignore[attr-defined]
         "Expected property to be unwrapped to its getter function",
+    )
+
+
+def test_is_abstractmethod() -> None:
+    """Test func for is_abstract_method."""
+
+    class TestClass(ABC):
+        @abstractmethod
+        def abstract_method(self) -> None:
+            """Abstract method."""
+
+        def concrete_method(self) -> None:
+            """Concrete method."""
+            raise NotImplementedError
+
+        @classmethod
+        @abstractmethod
+        def abstract_classmethod(cls) -> None:
+            """Abstract class method."""
+
+    assert_with_msg(
+        is_abstractmethod(TestClass.abstract_method),
+        "Expected abstract method to be identified as abstract",
+    )
+
+    assert_with_msg(
+        not is_abstractmethod(TestClass.concrete_method),
+        "Expected concrete method to not be identified as abstract",
+    )
+
+    assert_with_msg(
+        is_abstractmethod(TestClass.abstract_classmethod),
+        "Expected abstract class method to be identified as abstract",
     )

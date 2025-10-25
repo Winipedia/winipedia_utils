@@ -8,12 +8,14 @@ mechanism.
 
 import pytest
 
+from winipedia_utils.modules.module import to_module_name
+from winipedia_utils.testing.config import ZeroTestConfigFile
 from winipedia_utils.testing.fixtures import autouse_module_fixture
-from winipedia_utils.testing.tests.base.utils.utils import _assert_no_untested_objs
+from winipedia_utils.testing.tests.base.utils.utils import assert_no_untested_objs
 
 
 @autouse_module_fixture
-def _test_all_funcs_and_classes_tested(request: pytest.FixtureRequest) -> None:
+def assert_all_funcs_and_classes_tested(request: pytest.FixtureRequest) -> None:
     """Verify that all functions and classes in a module have corresponding tests.
 
     This fixture runs automatically for each test module and checks that every
@@ -28,6 +30,6 @@ def _test_all_funcs_and_classes_tested(request: pytest.FixtureRequest) -> None:
 
     """
     module = request.module
-    if module.__name__ == "tests.test_0":
+    if module.__name__ == to_module_name(ZeroTestConfigFile().get_path()):
         return
-    _assert_no_untested_objs(module)
+    assert_no_untested_objs(module)

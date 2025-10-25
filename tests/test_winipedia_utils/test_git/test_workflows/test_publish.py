@@ -1,115 +1,83 @@
 """module."""
 
-import yaml
-from pytest_mock import MockFixture
+from pathlib import Path
 
-from winipedia_utils.git.workflows.publish import (
-    _add_publish_workflow,
-    _get_publish_config,
-    _publish_config_is_correct,
-    dump_publish_workflow,
-    load_publish_workflow,
-)
-from winipedia_utils.modules.module import make_obj_importpath
+from winipedia_utils.git.workflows.publish import PublishWorkflow
 from winipedia_utils.testing.assertions import assert_with_msg
 
 
-def test_load_publish_workflow(mocker: MockFixture) -> None:
-    """Test func for load_publish_workflow."""
-    # mock the exist to be True
-    mocker.patch("pathlib.Path.exists", return_value=True)
-    # mock the read_text to return empty string
-    fake_yaml_content = """
-name: Test Workflow
-on: push
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-"""
-    mocker.patch("pathlib.Path.read_text", return_value=fake_yaml_content)
+class MyPublishWorkflow(PublishWorkflow):
+    """Publish workflow for testing."""
 
-    result = load_publish_workflow()
-    expected = yaml.safe_load(fake_yaml_content)
-    assert_with_msg(
-        result == expected,
-        f"Expected {expected}, got {result}",
-    )
+    PATH = Path("publish.yaml")
+
+    def __init__(self, tmp_path: Path) -> None:
+        """Initialize with temporary path."""
+        self.PATH = tmp_path / self.PATH
+        super().__init__()
 
 
-def test_dump_publish_workflow(mocker: MockFixture) -> None:
-    """Test func for dump_publish_workflow."""
-    # Get the expected config
-    expected_config = _get_publish_config()
+class TestPublishWorkflow:
+    """Test class for PublishWorkflow."""
 
-    # Mock the file operations
-    mock_file = mocker.mock_open()
-    mocker.patch("pathlib.Path.open", mock_file)
+    def test_get_path(self, tmp_path: Path) -> None:
+        """Test method for get_path."""
+        workflow = MyPublishWorkflow(tmp_path)
+        path = workflow.get_path()
+        assert_with_msg(
+            path.name == "publish.yaml",
+            f"Expected path name to be 'publish.yaml', got {path.name}",
+        )
 
-    dump_publish_workflow(expected_config)
+    def test_get_workflow_triggers(self, tmp_path: Path) -> None:
+        """Test method for get_workflow_triggers."""
+        workflow = MyPublishWorkflow(tmp_path)
+        triggers = workflow.get_workflow_triggers()
+        assert_with_msg(
+            "workflow_run" in triggers,
+            f"Expected 'workflow_run' key in triggers, got {triggers.keys()}",
+        )
+        assert_with_msg(
+            "workflows" in triggers["workflow_run"],
+            f"Expected 'workflows' key in workflow_run, "
+            f"got {triggers['workflow_run'].keys()}",
+        )
+        assert_with_msg(
+            "types" in triggers["workflow_run"],
+            f"Expected 'types' key in workflow_run, "
+            f"got {triggers['workflow_run'].keys()}",
+        )
 
-    # Verify the file was opened in write mode
-    mock_file.assert_called_once_with("w")
+    def test_get_permissions(self, tmp_path: Path) -> None:
+        """Test method for get_permissions."""
+        workflow = MyPublishWorkflow(tmp_path)
+        permissions = workflow.get_permissions()
+        assert_with_msg(
+            "contents" in permissions,
+            f"Expected 'contents' key in permissions, got {permissions.keys()}",
+        )
+        assert_with_msg(
+            permissions["contents"] == "read",
+            f"Expected contents permission to be 'read', got {permissions['contents']}",
+        )
 
-    # Get what was written to the file
-    written_content = "".join(call.args[0] for call in mock_file().write.call_args_list)
-
-    # Parse the written YAML and compare
-    dumped_config = yaml.safe_load(written_content)
-    assert_with_msg(
-        dumped_config == expected_config,
-        f"Expected {expected_config}, got {dumped_config}",
-    )
-
-
-def test__get_publish_config() -> None:
-    """Test func for _get_publish_config."""
-    # Call the function
-    result = _get_publish_config()
-
-    # just assert that dict is not empty
-    assert_with_msg(
-        bool(result),
-        f"Expected non-empty dict, got {result}",
-    )
-
-
-def test__publish_config_is_correct(mocker: MockFixture) -> None:
-    """Test func for _publish_config_is_correct."""
-    # mock the load_publish_workflow to return the correct config
-    mocker.patch(
-        make_obj_importpath(load_publish_workflow),
-        return_value=_get_publish_config(),
-    )
-    result = _publish_config_is_correct()
-    assert_with_msg(
-        result is True,
-        f"Expected True, got {result}",
-    )
-
-
-def test__add_publish_workflow(mocker: MockFixture) -> None:
-    """Test func for _add_publish_workflow."""
-    # mock _publish_config_is_correct to return True
-    # mock _get_publish_config to return a dict
-    # mock dump_publish_workflow to return None
-    # assert dump_publish_workflow is not called
-    mock_publish_config_is_correct = mocker.patch(
-        make_obj_importpath(_publish_config_is_correct),
-        return_value=True,
-    )
-    mock_dump_publish_workflow = mocker.patch(
-        make_obj_importpath(dump_publish_workflow),
-        return_value=None,
-    )
-    _add_publish_workflow()
-    mock_publish_config_is_correct.assert_called_once()
-    mock_dump_publish_workflow.assert_not_called()
-
-    # mock _publish_config_is_correct to return False
-    mock_publish_config_is_correct.return_value = False
-    # assert _get_publish_config and dump_publish_workflow are called once
-    _add_publish_workflow()
-    mock_dump_publish_workflow.assert_called_once()
+    def test_get_jobs(self, tmp_path: Path) -> None:
+        """Test method for get_jobs."""
+        workflow = MyPublishWorkflow(tmp_path)
+        jobs = workflow.get_jobs()
+        assert_with_msg(
+            "publish" in jobs,
+            f"Expected 'publish' key in jobs, got {jobs.keys()}",
+        )
+        assert_with_msg(
+            "runs-on" in jobs["publish"],
+            f"Expected 'runs-on' key in publish job, got {jobs['publish'].keys()}",
+        )
+        assert_with_msg(
+            "if" in jobs["publish"],
+            f"Expected 'if' key in publish job, got {jobs['publish'].keys()}",
+        )
+        assert_with_msg(
+            "steps" in jobs["publish"],
+            f"Expected 'steps' key in publish job, got {jobs['publish'].keys()}",
+        )

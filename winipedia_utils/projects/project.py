@@ -2,23 +2,17 @@
 
 from types import ModuleType
 
-from winipedia_utils.modules.module import create_module, to_path
-from winipedia_utils.modules.package import get_src_package
-from winipedia_utils.projects.poetry.config import get_poetry_package_name
+from winipedia_utils.modules.module import create_module
 
 
-def _create_project_root() -> None:
+def create_project_root() -> None:
     """Create the project root."""
-    src_package_name = get_poetry_package_name()
+    from winipedia_utils.projects.poetry.config import (  # noqa: PLC0415  # avoid circular import
+        PyProjectTomlConfig,
+    )
+
+    src_package_name = PyProjectTomlConfig().get_package_name()
     create_module(src_package_name, is_package=True)
-    _create_py_typed()
-
-
-def _create_py_typed() -> None:
-    """Create the py.typed file."""
-    src_package_name = get_src_package().__name__
-    py_typed_path = to_path(src_package_name, is_package=True) / "py.typed"
-    py_typed_path.touch()
 
 
 def make_name_from_package(

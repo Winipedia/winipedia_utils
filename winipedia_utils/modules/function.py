@@ -71,7 +71,10 @@ def get_all_functions_from_module(module: ModuleType | str) -> list[Callable[...
         A list of callable functions defined in the module
 
     """
-    from winipedia_utils.modules.module import get_def_line, get_module_of_obj
+    from winipedia_utils.modules.module import (  # noqa: PLC0415  # avoid circular import
+        get_def_line,
+        get_module_of_obj,
+    )
 
     if isinstance(module, str):
         module = import_module(module)
@@ -99,3 +102,17 @@ def unwrap_method(method: Any) -> Callable[..., Any] | Any:
     if isinstance(method, property):
         method = method.fget
     return inspect.unwrap(method)
+
+
+def is_abstractmethod(method: Any) -> bool:
+    """Check if a method is an abstract method.
+
+    Args:
+        method: The method to check
+
+    Returns:
+        True if the method is an abstract method, False otherwise
+
+    """
+    method = unwrap_method(method)
+    return getattr(method, "__isabstractmethod__", False)

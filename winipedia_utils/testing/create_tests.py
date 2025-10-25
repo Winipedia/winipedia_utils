@@ -6,7 +6,6 @@ It creates the basic test structure and generates skeleton test functions with
 NotImplementedError to indicate tests that need to be written.
 """
 
-from pathlib import Path
 from types import ModuleType
 from typing import cast
 
@@ -28,18 +27,12 @@ from winipedia_utils.modules.package import (
     walk_package,
 )
 from winipedia_utils.testing import tests
+from winipedia_utils.testing.config import ConftestConfigFile, ZeroTestConfigFile
 from winipedia_utils.testing.convention import (
-    TESTS_PACKAGE_NAME,
     get_test_obj_from_obj,
     make_test_obj_importpath_from_obj,
     make_test_obj_name,
     reverse_make_test_obj_name,
-)
-from winipedia_utils.testing.tests.base.utils.utils import (
-    _conftest_content_is_correct,
-    _get_conftest_content,
-    _get_test_0_content,
-    _test_0_content_is_correct,
 )
 
 
@@ -63,21 +56,14 @@ def create_tests_base() -> None:
     4. Creates a conftest.py file with the appropriate pytest plugin configuration
     5. Does not overwrite anything if it already exists except conftest.py
     """
-    tests_path = Path(TESTS_PACKAGE_NAME)
     copy_package(
         src_package=tests,
         dst=".",
         with_file_content=False,
     )
-    # write pytest_plugin in the conftest.py
-    conftest_path = tests_path / "conftest.py"
-    # if conftest does not exist or the content is not the same, overwrite it
-    if not _conftest_content_is_correct(conftest_path):
-        conftest_path.write_text(_get_conftest_content())
-
-    test_0_path = tests_path / "test_0.py"
-    if not _test_0_content_is_correct(test_0_path):
-        test_0_path.write_text(_get_test_0_content())
+    # write the config files
+    _ = ConftestConfigFile()
+    _ = ZeroTestConfigFile()
 
 
 def create_tests_for_src_package() -> None:

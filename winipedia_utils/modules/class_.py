@@ -31,7 +31,10 @@ def get_all_methods_from_cls(
         A list of callable methods from the class
 
     """
-    from winipedia_utils.modules.module import get_def_line, get_module_of_obj
+    from winipedia_utils.modules.module import (  # noqa: PLC0415  # avoid circular import
+        get_def_line,
+        get_module_of_obj,
+    )
 
     methods = [
         (method, name) for name, method in inspect.getmembers(class_) if is_func(method)
@@ -63,7 +66,10 @@ def get_all_cls_from_module(module: ModuleType | str) -> list[type]:
         A list of class types defined in the module
 
     """
-    from winipedia_utils.modules.module import get_def_line, get_module_of_obj
+    from winipedia_utils.modules.module import (  # noqa: PLC0415  # avoid circular import
+        get_def_line,
+        get_module_of_obj,
+    )
 
     if isinstance(module, str):
         module = import_module(module)
@@ -79,7 +85,9 @@ def get_all_cls_from_module(module: ModuleType | str) -> list[type]:
     return sorted(classes, key=get_def_line)
 
 
-def get_all_subclasses(cls: type) -> list[type]:
+def get_all_subclasses(
+    cls: type, load_package_before: ModuleType | None = None
+) -> set[type]:
     """Get all subclasses of a class.
 
     Retrieves all classes that are subclasses of the specified class.
@@ -87,18 +95,37 @@ def get_all_subclasses(cls: type) -> list[type]:
 
     Args:
         cls: The class to find subclasses of
+        load_package_before: If provided,
+        walks the package before loading the subclasses
+        This is useful when the subclasses are defined in other modules that need
+        to be imported before they can be found by __subclasses__
 
     Returns:
         A list of subclasses of the given class
 
     """
+    from winipedia_utils.modules.package import (  # noqa: PLC0415  # avoid circular import
+        walk_package,
+    )
+
+    if load_package_before:
+        _ = list(walk_package(load_package_before))
     subclasses_set = set(cls.__subclasses__())
     for subclass in cls.__subclasses__():
         subclasses_set.update(get_all_subclasses(subclass))
-    return list(subclasses_set)
+    if load_package_before is not None:
+        # remove all not in the package
+        subclasses_set = {
+            subclass
+            for subclass in subclasses_set
+            if subclass.__module__.startswith(load_package_before.__name__)
+        }
+    return subclasses_set
 
 
-def get_all_nonabstract_subclasses(cls: type) -> list[type]:
+def get_all_nonabstract_subclasses(
+    cls: type, load_package_before: ModuleType | None = None
+) -> set[type]:
     """Get all non-abstract subclasses of a class.
 
     Retrieves all classes that are subclasses of the specified class,
@@ -107,13 +134,36 @@ def get_all_nonabstract_subclasses(cls: type) -> list[type]:
 
     Args:
         cls: The class to find subclasses of
+        load_package_before: If provided,
+        walks the package before loading the subclasses
+        This is useful when the subclasses are defined in other modules that need
+        to be imported before they can be found by __subclasses__
 
     Returns:
         A list of non-abstract subclasses of the given class
 
     """
-    return [
+    return {
         subclass
-        for subclass in get_all_subclasses(cls)
+        for subclass in get_all_subclasses(cls, load_package_before=load_package_before)
         if not inspect.isabstract(subclass)
-    ]
+    }
+
+
+def init_all_nonabstract_subclasses(
+    cls: type, load_package_before: ModuleType | None = None
+) -> None:
+    """Initialize all non-abstract subclasses of a class.
+
+    Args:
+        cls: The class to find subclasses of
+        load_package_before: If provided,
+        walks the package before loading the subclasses
+        This is useful when the subclasses are defined in other modules that need
+        to be imported before they can be found by __subclasses__
+
+    """
+    for subclass in get_all_nonabstract_subclasses(
+        cls, load_package_before=load_package_before
+    ):
+        subclass()

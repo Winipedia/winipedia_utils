@@ -1,5 +1,7 @@
 """Tests for winipedia_utils.security.cryptography module."""
 
+import pytest
+from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from winipedia_utils.security.cryptography import (
@@ -110,28 +112,12 @@ def test_decrypt_with_aes_gcm() -> None:
 
     # Test that decryption with wrong AAD fails
     wrong_aad = b"wrong_aad"
-    try:
+    with pytest.raises(InvalidTag):  # InvalidTag from cryptography library
         decrypt_with_aes_gcm(aes_gcm, encrypted_with_aad, wrong_aad)
-        decryption_failed = False
-    except (ValueError, Exception):  # Catch cryptography exceptions
-        decryption_failed = True
-
-    assert_with_msg(
-        decryption_failed,
-        "Expected decryption with wrong AAD to fail",
-    )
 
     # Test that decryption without AAD when AAD was used fails
-    try:
+    with pytest.raises(InvalidTag):  # InvalidTag from cryptography library
         decrypt_with_aes_gcm(aes_gcm, encrypted_with_aad, None)
-        decryption_failed_no_aad = False
-    except (ValueError, Exception):  # Catch cryptography exceptions
-        decryption_failed_no_aad = True
-
-    assert_with_msg(
-        decryption_failed_no_aad,
-        "Expected decryption without AAD when AAD was used to fail",
-    )
 
     # Test round-trip with empty data
     empty_data = b""

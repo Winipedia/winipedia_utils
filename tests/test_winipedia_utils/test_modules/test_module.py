@@ -119,8 +119,6 @@ def test_to_module_name() -> None:
     )
 
     # Test with ModuleType
-    import sys
-
     sys_module_name = to_module_name(sys)
     assert_with_msg(
         sys_module_name == "sys", f"Expected 'sys', got {sys_module_name!r}"
@@ -145,8 +143,6 @@ def test_to_path() -> None:
     assert_with_msg(result == expected, f"Expected {expected}, got {result}")
 
     # Test with ModuleType
-    import sys
-
     result = to_path(sys, is_package=True)
     # sys module should resolve to a .py file path
     assert_with_msg(
@@ -162,6 +158,9 @@ def test_create_module(tmp_path: Path) -> None:
     original_path = sys.path[:]
     os.chdir(tmp_path)
     sys.path.insert(0, str(tmp_path))
+
+    # add a gitignore file to the tmp_path
+    (tmp_path / ".gitignore").write_text("*.pyc\n__pycache__/\n")
 
     try:
         # Test creating a regular module
@@ -244,8 +243,6 @@ def test_make_obj_importpath() -> None:
     assert_with_msg(result == expected, f"Expected {expected}, got {result}")
 
     # Test with a module
-    import sys
-
     result = make_obj_importpath(sys)
     assert_with_msg(result == "sys", f"Expected 'sys', got {result}")
 
@@ -263,7 +260,6 @@ def test_import_obj_from_importpath() -> None:
 
     # Test importing a function from a module
     result = import_obj_from_importpath("os.path.join")
-    import os.path
 
     assert_with_msg(
         result is os.path.join, f"Expected os.path.join function, got {result}"
@@ -271,7 +267,6 @@ def test_import_obj_from_importpath() -> None:
 
     # Test importing a class
     result = import_obj_from_importpath("pathlib.Path")
-    from pathlib import Path
 
     assert_with_msg(result is Path, f"Expected pathlib.Path class, got {result}")
 
@@ -286,14 +281,10 @@ def test_import_obj_from_importpath() -> None:
 def test_get_isolated_obj_name() -> None:
     """Test func for get_isolated_obj_name."""
     # Test with a module
-    import sys
-
     result = get_isolated_obj_name(sys)
     assert_with_msg(result == "sys", f"Expected 'sys', got {result}")
 
     # Test with a nested module
-    import os.path
-
     result = get_isolated_obj_name(os.path)
     # On Windows, os.path is ntpath; on Unix, it's posixpath
     expected_names = ["path", "ntpath", "posixpath"]
@@ -551,8 +542,6 @@ def test_get_module_of_obj() -> None:
     )
 
     # Test with built-in function
-    import os
-
     os_module = get_module_of_obj(os.path.join)
     assert_with_msg(
         "posixpath" in os_module.__name__ or "ntpath" in os_module.__name__,

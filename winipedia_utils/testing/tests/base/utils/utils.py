@@ -10,10 +10,10 @@ Returns:
 """
 
 from collections.abc import Callable
-from pathlib import Path
 from types import ModuleType
 from typing import Any
 
+from winipedia_utils.modules.function import is_abstractmethod
 from winipedia_utils.modules.module import get_objs_from_obj, make_obj_importpath
 from winipedia_utils.testing.assertions import assert_with_msg
 from winipedia_utils.testing.convention import (
@@ -23,7 +23,7 @@ from winipedia_utils.testing.convention import (
 )
 
 
-def _assert_no_untested_objs(
+def assert_no_untested_objs(
     test_obj: ModuleType | type | Callable[..., Any],
 ) -> None:
     """Assert that all objects in the source have corresponding test objects.
@@ -51,61 +51,17 @@ def _assert_no_untested_objs(
     assert_with_msg(not untested_objs, make_untested_summary_error_msg(untested_objs))
 
 
-def _get_conftest_content() -> str:
-    """Get the content for a conftest.py file when using winipedia_utils."""
-    return '''
-"""Pytest configuration for tests.
-
-This module configures pytest plugins for the test suite, setting up the necessary
-fixtures and hooks for the different
-test scopes (function, class, module, package, session).
-It also import custom plugins from tests/base/scopes.
-This file should not be modified manually.
-"""
-
-pytest_plugins = ["winipedia_utils.testing.tests.conftest"]
-'''.strip()
-
-
-def _conftest_content_is_correct(conftest_path: Path) -> bool:
-    """Check if the conftest.py file has the correct content.
+def assert_isabstrct_method(method: Any) -> None:
+    """Assert that a method is an abstract method.
 
     Args:
-        conftest_path: The path to the conftest.py file
+        method: The method to check
 
-    Returns:
-        True if the conftest.py file exists and has the correct content, False otherwise
-
-    """
-    if not conftest_path.exists():
-        return False
-    return conftest_path.read_text().startswith(_get_conftest_content())
-
-
-def _get_test_0_content() -> str:
-    """Get the content for a test_0.py file when using winipedia_utils."""
-    return '''
-"""Contains an empty test."""
-
-
-def test_0() -> None:
-    """Empty test.
-
-    Exists so that when no tests are written yet the base fixtures are executed.
-    """
-'''.strip()
-
-
-def _test_0_content_is_correct(test_0_path: Path) -> bool:
-    """Check if the test_0.py file has the correct content.
-
-    Args:
-        test_0_path: The path to the test_0.py file
-
-    Returns:
-        True if the test_0.py file exists and has the correct content, False otherwise
+    Raises:
+        AssertionError: If the method is not an abstract method
 
     """
-    if not test_0_path.exists():
-        return False
-    return test_0_path.read_text().startswith(_get_test_0_content())
+    assert_with_msg(
+        is_abstractmethod(method),
+        f"Expected {method} to be abstract method",
+    )

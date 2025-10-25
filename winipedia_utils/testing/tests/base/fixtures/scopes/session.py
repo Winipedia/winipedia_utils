@@ -9,26 +9,14 @@ through pytest's autouse mechanism.
 from importlib import import_module
 from pathlib import Path
 
-from winipedia_utils.consts import _DEV_DEPENDENCIES
-from winipedia_utils.git.gitignore.gitignore import _gitignore_is_correct
-from winipedia_utils.git.pre_commit.config import (
-    _pre_commit_config_is_correct,
-)
-from winipedia_utils.git.workflows.publish import (
-    PUBLISH_WORKFLOW_PATH,
-    _publish_config_is_correct,
-)
-from winipedia_utils.git.workflows.release import _release_config_is_correct
-from winipedia_utils.modules.module import to_path
+import winipedia_utils
 from winipedia_utils.modules.package import (
     find_packages,
     get_src_package,
     walk_package,
 )
 from winipedia_utils.projects.poetry.config import (
-    _pyproject_tool_configs_are_correct,
-    get_dev_dependencies_from_pyproject_toml,
-    get_poetry_package_name,
+    PyProjectTomlConfig,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
 from winipedia_utils.testing.convention import (
@@ -36,13 +24,11 @@ from winipedia_utils.testing.convention import (
     make_test_obj_importpath_from_obj,
 )
 from winipedia_utils.testing.fixtures import autouse_session_fixture
-from winipedia_utils.testing.tests.base.utils.utils import (
-    _conftest_content_is_correct,
-)
+from winipedia_utils.text.config import ConfigFile
 
 
 @autouse_session_fixture
-def _test_dev_dependencies_const_correct() -> None:
+def assert_dev_dependencies_config_is_correct() -> None:
     """Verify that the dev dependencies in consts.py are correct.
 
     This fixture runs once per test session and checks that the dev dependencies
@@ -53,19 +39,23 @@ def _test_dev_dependencies_const_correct() -> None:
         AssertionError: If the dev dependencies in consts.py are not correct
 
     """
-    if get_poetry_package_name() != "winipedia_utils":
+    config = PyProjectTomlConfig()
+    if config.get_package_name() != winipedia_utils.__name__:
         # this const is only used in winipedia_utils
         # to be able to install them with setup.py
         return
-    actual_dev_dependencies = get_dev_dependencies_from_pyproject_toml()
+    actual_dev_dependencies = config.get_dev_dependencies()
+    expected_dev_dependencies = config.get_configs()["tool"]["poetry"]["group"]["dev"][
+        "dependencies"
+    ].keys()
     assert_with_msg(
-        set(actual_dev_dependencies) == set(_DEV_DEPENDENCIES),
+        set(actual_dev_dependencies) == set(expected_dev_dependencies),
         "Dev dependencies in consts.py are not correct",
     )
 
 
 @autouse_session_fixture
-def _test_dev_dependencies_are_in_pyproject_toml() -> None:
+def assert_config_files_are_correct() -> None:
     """Verify that the dev dependencies are installed.
 
     This fixture runs once per test session and checks that the dev dependencies
@@ -75,131 +65,12 @@ def _test_dev_dependencies_are_in_pyproject_toml() -> None:
         ImportError: If a dev dependency is not installed
 
     """
-    dev_dependencies = get_dev_dependencies_from_pyproject_toml()
-    assert_with_msg(
-        set(_DEV_DEPENDENCIES).issubset(set(dev_dependencies)),
-        "Dev dependencies in consts.py are not a subset of the ones in pyproject.toml",
-    )
+    # subclasses of ConfigFile
+    ConfigFile.init_config_files()
 
 
 @autouse_session_fixture
-def _test_conftest_exists_and_is_correct() -> None:
-    """Verify that the conftest.py file exists and has the correct content.
-
-    This fixture runs once per test session and checks that the conftest.py file
-    exists in the tests directory and contains the correct pytest_plugins configuration.
-
-    Raises:
-        AssertionError: If the conftest.py file doesn't exist or has incorrect content
-
-    """
-    conftest_path = Path(TESTS_PACKAGE_NAME, "conftest.py")
-    assert_with_msg(
-        conftest_path.is_file(),
-        f"Expected conftest.py file at {conftest_path} but it doesn't exist",
-    )
-
-    assert_with_msg(
-        _conftest_content_is_correct(conftest_path),
-        "conftest.py has incorrect content",
-    )
-
-
-@autouse_session_fixture
-def _test_pyproject_toml_is_correct() -> None:
-    """Verify that the pyproject.toml file exists and has the correct content.
-
-    This fixture runs once per test session and checks that the pyproject.toml file
-    exists in the root directory and contains the correct content.
-
-    Raises:
-        AssertionError: If the pyproject.toml file doesn't exist
-                        or has incorrect content
-
-    """
-    pyproject_toml_path = Path("pyproject.toml")
-    assert_with_msg(
-        pyproject_toml_path.is_file(),
-        f"Expected pyproject.toml file at {pyproject_toml_path} but it doesn't exist",
-    )
-    assert_with_msg(
-        _pyproject_tool_configs_are_correct(),
-        "pyproject.toml has incorrect content.",
-    )
-
-
-@autouse_session_fixture
-def _test_pre_commit_config_yaml_is_correct() -> None:
-    """Verify that the pre-commit yaml is correctly defining winipedia utils hook.
-
-    Checks that the yaml starts with the winipedia utils hook.
-    """
-    pre_commit_config = Path(".pre-commit-config.yaml")
-
-    assert_with_msg(
-        pre_commit_config.is_file(),
-        f"Expected {pre_commit_config} to exist but it doesn't.",
-    )
-    assert_with_msg(
-        _pre_commit_config_is_correct(),
-        "Pre commit config is not correct.",
-    )
-
-
-@autouse_session_fixture
-def _test_gitignore_is_correct() -> None:
-    """Verify that the .gitignore file exists and has the correct content.
-
-    This fixture runs once per test session and checks that the .gitignore file
-    exists in the root directory and contains the correct content.
-
-    Raises:
-        AssertionError: If the .gitignore file doesn't exist
-                        or has incorrect content
-
-    """
-    gitignore_path = Path(".gitignore")
-    assert_with_msg(
-        gitignore_path.is_file(),
-        f"Expected {gitignore_path} to exist but it doesn't.",
-    )
-    assert_with_msg(
-        _gitignore_is_correct(),
-        "Gitignore is not correct.",
-    )
-
-
-@autouse_session_fixture
-def _test_publish_workflow_is_correct() -> None:
-    """Verify that the publish workflow is correctly defined.
-
-    If the file does not exist, we skip this test bc not all projects necessarily
-    need to publish to pypi, e.g. they are binaries or private usage only or for profit.
-    """
-    path = PUBLISH_WORKFLOW_PATH
-    # if folder exists but the file not then we skip this test
-    if path.parent.exists() and not path.exists():
-        return
-    assert_with_msg(
-        _publish_config_is_correct(),
-        "Publish workflow is not correct.",
-    )
-
-
-@autouse_session_fixture
-def _test_release_workflow_is_correct() -> None:
-    """Verify that the release workflow is correctly defined.
-
-    This workflow is mandatory for all projects.
-    """
-    assert_with_msg(
-        _release_config_is_correct(),
-        "Release workflow is not correct.",
-    )
-
-
-@autouse_session_fixture
-def _test_no_namespace_packages() -> None:
+def assert_no_namespace_packages() -> None:
     """Verify that there are no namespace packages in the project.
 
     This fixture runs once per test session and checks that all packages in the
@@ -221,7 +92,7 @@ def _test_no_namespace_packages() -> None:
 
 
 @autouse_session_fixture
-def _test_all_src_code_in_one_package() -> None:
+def assert_all_src_code_in_one_package() -> None:
     """Verify that all source code is in a single package.
 
     This fixture runs once per test session and checks that there is only one
@@ -241,7 +112,7 @@ def _test_all_src_code_in_one_package() -> None:
 
 
 @autouse_session_fixture
-def _test_src_package_correctly_named() -> None:
+def assert_src_package_correctly_named() -> None:
     """Verify that the source package is correctly named.
 
     This fixture runs once per test session and checks that the source package
@@ -252,34 +123,17 @@ def _test_src_package_correctly_named() -> None:
 
     """
     src_package = get_src_package().__name__
+    config = PyProjectTomlConfig()
+    expected_package = config.get_package_name()
     assert_with_msg(
-        src_package == get_poetry_package_name(),
-        f"Expected source package to be named {get_poetry_package_name()}, "
+        src_package == expected_package,
+        f"Expected source package to be named {expected_package}, "
         f"but it is named {src_package}",
     )
 
 
 @autouse_session_fixture
-def _test_py_typed_exists() -> None:
-    """Verify that the py.typed file exists in the source package.
-
-    This fixture runs once per test session and checks that the py.typed file
-    exists in the source package.
-
-    Raises:
-        AssertionError: If the py.typed file doesn't exist
-
-    """
-    src_package = get_src_package()
-    py_typed_path = to_path(src_package.__name__, is_package=True) / "py.typed"
-    assert_with_msg(
-        py_typed_path.exists(),
-        f"Expected py.typed file to exist at {py_typed_path}",
-    )
-
-
-@autouse_session_fixture
-def _test_project_structure_mirrored() -> None:
+def assert_project_structure_mirrored() -> None:
     """Verify that the project structure is mirrored in tests.
 
     This fixture runs once per test session and checks that for every package and
@@ -311,20 +165,18 @@ def _test_project_structure_mirrored() -> None:
 
 
 @autouse_session_fixture
-def _test_no_unitest_package_usage() -> None:
-    """Verify that the unittest package is not used in the project.
+def assert_no_unit_test_package_usage() -> None:
+    """Verify that the unit test package is not used in the project.
 
-    This fixture runs once per test session and checks that the unittest package
+    This fixture runs once per test session and checks that the unit test package
     is not used in the project.
 
     Raises:
-        AssertionError: If the unittest package is used
+        AssertionError: If the unit test package is used
 
     """
     for path in Path().rglob("*.py"):
-        if path == to_path(__name__, is_package=False):
-            continue
         assert_with_msg(
-            "unittest" not in path.read_text(encoding="utf-8"),
-            f"Found unittest usage in {path}. Use pytest instead.",
+            "UnitTest".lower() not in path.read_text(encoding="utf-8"),
+            f"Found unit test package usage in {path}. Use pytest instead.",
         )

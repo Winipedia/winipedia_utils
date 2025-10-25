@@ -9,11 +9,11 @@ mechanism.
 import pytest
 
 from winipedia_utils.testing.fixtures import autouse_class_fixture
-from winipedia_utils.testing.tests.base.utils.utils import _assert_no_untested_objs
+from winipedia_utils.testing.tests.base.utils.utils import assert_no_untested_objs
 
 
 @autouse_class_fixture
-def _test_all_methods_tested(request: pytest.FixtureRequest) -> None:
+def assert_all_methods_tested(request: pytest.FixtureRequest) -> None:
     """Verify that all methods in a class have corresponding tests.
 
     This fixture runs automatically for each test class and checks that every
@@ -30,4 +30,4 @@ def _test_all_methods_tested(request: pytest.FixtureRequest) -> None:
     class_ = request.node.cls
     if class_ is None:
         return
-    _assert_no_untested_objs(class_)
+    assert_no_untested_objs(class_)

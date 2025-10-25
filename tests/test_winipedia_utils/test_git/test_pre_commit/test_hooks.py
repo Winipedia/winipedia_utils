@@ -4,19 +4,19 @@ tests.test_winipedia_utils.test_git.test_pre_commit.test_hooks
 """
 
 from winipedia_utils.git.pre_commit.hooks import (
-    _add_version_patch_to_git,
-    _check_configurations,
-    _creating_tests,
-    _formating,
-    _install_packages,
-    _linting,
-    _lock_dependencies,
-    _security_checking,
-    _testing,
-    _type_checking,
-    _update_package_manager,
-    _update_packages,
-    _version_patch,
+    add_version_patch_to_git,
+    check_package_manager_configs,
+    check_security,
+    check_static_types,
+    create_tests,
+    format_code,
+    install_packages,
+    lint_code,
+    lock_dependencies,
+    patch_version,
+    run_tests,
+    update_package_manager,
+    update_packages,
 )
 from winipedia_utils.projects.poetry.poetry import (
     POETRY_PATH,
@@ -27,10 +27,10 @@ from winipedia_utils.projects.poetry.poetry import (
 from winipedia_utils.testing.assertions import assert_with_msg
 
 
-def test__version_patch() -> None:
-    """Test func for _version_patch."""
+def test_patch_version() -> None:
+    """Test func for patch_version."""
     # Call the function
-    result = _version_patch()
+    result = patch_version()
 
     # Expected result
     expected = [POETRY_PATH, "version", "patch"]
@@ -42,10 +42,10 @@ def test__version_patch() -> None:
     )
 
 
-def test__add_version_patch_to_git() -> None:
-    """Test func for _add_version_patch_to_git."""
+def test_add_version_patch_to_git() -> None:
+    """Test func for add_version_patch_to_git."""
     # Call the function
-    result = _add_version_patch_to_git()
+    result = add_version_patch_to_git()
 
     # Expected result
     expected = [*POETRY_RUN_ARGS, "git", "add", "pyproject.toml"]
@@ -57,10 +57,10 @@ def test__add_version_patch_to_git() -> None:
     )
 
 
-def test__update_package_manager() -> None:
-    """Test func for _update_package_manager."""
+def test_update_package_manager() -> None:
+    """Test func for update_package_manager."""
     # Call the function
-    result = _update_package_manager()
+    result = update_package_manager()
 
     # Expected result
     expected = [POETRY_PATH, "self", "update"]
@@ -72,10 +72,10 @@ def test__update_package_manager() -> None:
     )
 
 
-def test__install_packages() -> None:
-    """Test func for _install_packages."""
+def test_install_packages() -> None:
+    """Test func for install_packages."""
     # Call the function
-    result = _install_packages()
+    result = install_packages()
 
     # Expected result
     expected = [POETRY_PATH, "install"]
@@ -87,10 +87,10 @@ def test__install_packages() -> None:
     )
 
 
-def test__update_packages() -> None:
-    """Test func for _update_packages."""
+def test_update_packages() -> None:
+    """Test func for update_packages."""
     # Call the function
-    result = _update_packages()
+    result = update_packages()
 
     # Expected result
     expected = [POETRY_PATH, "update"]
@@ -102,10 +102,10 @@ def test__update_packages() -> None:
     )
 
 
-def test__lock_dependencies() -> None:
-    """Test func for _lock_dependencies."""
+def test_lock_dependencies() -> None:
+    """Test func for lock_dependencies."""
     # Call the function
-    result = _lock_dependencies()
+    result = lock_dependencies()
 
     # Expected result
     expected = [POETRY_PATH, "lock"]
@@ -117,10 +117,10 @@ def test__lock_dependencies() -> None:
     )
 
 
-def test__check_configurations() -> None:
-    """Test func for _check_configurations."""
+def test_check_package_manager_configs() -> None:
+    """Test func for check_package_manager_configs."""
     # Call the function
-    result = _check_configurations()
+    result = check_package_manager_configs()
 
     # Expected result
     expected = [POETRY_PATH, "check", "--strict"]
@@ -132,10 +132,10 @@ def test__check_configurations() -> None:
     )
 
 
-def test__creating_tests() -> None:
-    """Test func for _creating_tests."""
+def test_create_tests() -> None:
+    """Test func for create_tests."""
     # Call the function
-    result = _creating_tests()
+    result = create_tests()
 
     # Expected result
     expected = [*POETRY_RUN_PYTHON_ARGS, "-m", "winipedia_utils.testing.create_tests"]
@@ -147,10 +147,10 @@ def test__creating_tests() -> None:
     )
 
 
-def test__linting() -> None:
-    """Test func for _linting."""
+def test_lint_code() -> None:
+    """Test func for lint_code."""
     # Call the function
-    result = _linting()
+    result = lint_code()
 
     # Expected result
     expected = [*POETRY_RUN_RUFF_ARGS, "check", "--fix"]
@@ -162,10 +162,10 @@ def test__linting() -> None:
     )
 
 
-def test__formating() -> None:
-    """Test func for _formating."""
+def test_format_code() -> None:
+    """Test func for format_code."""
     # Call the function
-    result = _formating()
+    result = format_code()
 
     # Expected result
     expected = [*POETRY_RUN_RUFF_ARGS, "format"]
@@ -177,10 +177,10 @@ def test__formating() -> None:
     )
 
 
-def test__type_checking() -> None:
-    """Test func for _type_checking."""
+def test_check_static_types() -> None:
+    """Test func for check_static_types."""
     # Call the function
-    result = _type_checking()
+    result = check_static_types()
 
     # Expected result
     expected = [*POETRY_RUN_ARGS, "mypy"]
@@ -192,10 +192,10 @@ def test__type_checking() -> None:
     )
 
 
-def test__security_checking() -> None:
-    """Test func for _security_checking."""
+def test_check_security() -> None:
+    """Test func for check_security."""
     # Call the function
-    result = _security_checking()
+    result = check_security()
 
     # Expected result
     expected = [*POETRY_RUN_ARGS, "bandit", "-c", "pyproject.toml", "-r", "."]
@@ -207,10 +207,10 @@ def test__security_checking() -> None:
     )
 
 
-def test__testing() -> None:
-    """Test func for _testing."""
+def test_run_tests() -> None:
+    """Test func for run_tests."""
     # Call the function
-    result = _testing()
+    result = run_tests()
 
     # Expected result
     expected = [*POETRY_RUN_ARGS, "pytest"]

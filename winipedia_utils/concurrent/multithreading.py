@@ -15,6 +15,8 @@ from collections.abc import Callable, Generator, Iterable
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from typing import Any
 
+from winipedia_utils.concurrent.concurrent import concurrent_loop
+
 
 def get_future_results_as_completed(
     futures: Iterable[Future[Any]],
@@ -62,8 +64,6 @@ def multithread_loop(
         ThreadPoolExecutor is used for I/O-bound tasks, not for CPU-bound tasks.
 
     """
-    from winipedia_utils.concurrent.concurrent import concurrent_loop
-
     return concurrent_loop(
         threading=True,
         process_function=process_function,

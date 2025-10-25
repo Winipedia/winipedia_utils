@@ -5,20 +5,20 @@ from typing import Any
 from pytest_mock import MockFixture
 
 from winipedia_utils.modules.module import make_obj_importpath
-from winipedia_utils.setup import SETUP_STEPS, _get_setup_steps, _setup
+from winipedia_utils.setup import SETUP_STEPS, get_setup_steps, setup
 from winipedia_utils.testing.assertions import assert_with_msg
 
 
-def test__get_setup_steps() -> None:
+def test_get_setup_steps() -> None:
     """Test func for _get_setup_steps."""
-    setup_steps = _get_setup_steps()
+    setup_steps = get_setup_steps()
     assert_with_msg(
         setup_steps == SETUP_STEPS,
         f"Expected {SETUP_STEPS}, got {setup_steps}",
     )
 
 
-def test__setup(mocker: MockFixture) -> None:
+def test_setup(mocker: MockFixture) -> None:
     """Test func for _setup."""
     # patch _get_setup_steps to return a list of mock functions
     # which we assert are called once
@@ -29,12 +29,12 @@ def test__setup(mocker: MockFixture) -> None:
         mock_setup_steps.append(mock_step)
 
     mocker.patch(
-        make_obj_importpath(_get_setup_steps),
+        make_obj_importpath(get_setup_steps),
         return_value=mock_setup_steps,
     )
 
     # assert all mock setup steps are called once
-    _setup()
+    setup()
     for mock_setup_step in mock_setup_steps:
         assert_with_msg(
             mock_setup_step.call_count == 1,

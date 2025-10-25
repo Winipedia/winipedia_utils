@@ -20,8 +20,8 @@ from types import ModuleType
 from setuptools import find_namespace_packages as _find_namespace_packages
 from setuptools import find_packages as _find_packages
 
+from winipedia_utils.git.gitignore.config import GitIgnoreConfigFile
 from winipedia_utils.git.gitignore.gitignore import (
-    load_gitignore,
     walk_os_skipping_gitignore_patterns,
 )
 from winipedia_utils.logging.logger import get_logger
@@ -44,7 +44,9 @@ def get_src_package() -> ModuleType:
                        if only the test package exists
 
     """
-    from winipedia_utils.testing.convention import TESTS_PACKAGE_NAME
+    from winipedia_utils.testing.convention import (  # noqa: PLC0415  # avoid circular import
+        TESTS_PACKAGE_NAME,
+    )
 
     packages = find_packages_as_modules(depth=0)
     return next(p for p in packages if p.__name__ != TESTS_PACKAGE_NAME)
@@ -181,7 +183,7 @@ def find_packages(
 
     """
     if exclude is None:
-        exclude = load_gitignore()
+        exclude = GitIgnoreConfigFile.load_static()[GitIgnoreConfigFile.IGNORE_KEY]
         exclude = [
             p.replace("/", ".").removesuffix(".") for p in exclude if p.endswith("/")
         ]
@@ -280,7 +282,9 @@ def make_init_modules_for_package(path: str | Path | ModuleType) -> None:
         from get_default_init_module_content.
 
     """
-    from winipedia_utils.modules.module import to_path
+    from winipedia_utils.modules.module import (  # noqa: PLC0415  # avoid circular import
+        to_path,
+    )
 
     path = to_path(path, is_package=True)
 
@@ -305,7 +309,10 @@ def make_init_module(path: str | Path) -> None:
         Creates parent directories if they don't exist.
 
     """
-    from winipedia_utils.modules.module import get_default_init_module_content, to_path
+    from winipedia_utils.modules.module import (  # noqa: PLC0415  # avoid circular import
+        get_default_init_module_content,
+        to_path,
+    )
 
     path = to_path(path, is_package=True)
 
@@ -338,7 +345,7 @@ def copy_package(
         with_file_content (bool, optional): copies the content of the files.
 
     """
-    from winipedia_utils.modules.module import (
+    from winipedia_utils.modules.module import (  # noqa: PLC0415  # avoid circular import
         create_module,
         get_isolated_obj_name,
         get_module_content_as_str,
@@ -368,7 +375,9 @@ def get_main_package() -> ModuleType:
 
     Even when this package is installed as a module.
     """
-    from winipedia_utils.modules.module import to_module_name
+    from winipedia_utils.modules.module import (  # noqa: PLC0415  # avoid circular import
+        to_module_name,
+    )
 
     main = sys.modules.get("__main__")
     if main is None:

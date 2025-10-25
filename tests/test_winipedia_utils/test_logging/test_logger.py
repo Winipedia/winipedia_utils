@@ -3,11 +3,13 @@
 tests.test_winipedia_utils.test_logging.test_logger
 """
 
+import importlib
 import logging
 
 import pytest
 from pytest_mock import MockFixture
 
+import winipedia_utils.logging.logger
 from winipedia_utils.logging.config import LOGGING_CONFIG
 from winipedia_utils.logging.logger import get_logger
 from winipedia_utils.testing.assertions import assert_with_msg
@@ -84,9 +86,6 @@ def test_get_logger(caplog: pytest.LogCaptureFixture, mocker: MockFixture) -> No
     mock_dict_config = mocker.patch("logging.config.dictConfig")
 
     # Force a reload of the module to trigger the dictConfig call
-    import importlib
-
-    import winipedia_utils.logging.logger
 
     importlib.reload(winipedia_utils.logging.logger)
     mock_dict_config.assert_called_once_with(LOGGING_CONFIG)

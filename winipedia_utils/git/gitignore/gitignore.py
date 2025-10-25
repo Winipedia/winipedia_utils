@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pathspec
 
+from winipedia_utils.git.gitignore.config import GitIgnoreConfigFile
 from winipedia_utils.logging.logger import get_logger
 
 logger = get_logger(__name__)
@@ -37,7 +38,10 @@ def path_is_in_gitignore(relative_path: str | Path) -> bool:
     if is_dir and not as_posix.endswith("/"):
         as_posix += "/"
 
-    spec = pathspec.PathSpec.from_lines("gitwildmatch", load_gitignore())
+    spec = pathspec.PathSpec.from_lines(
+        "gitwildmatch",
+        GitIgnoreConfigFile.load_static()[GitIgnoreConfigFile.IGNORE_KEY],
+    )
 
     return spec.match_file(as_posix)
 
@@ -72,65 +76,3 @@ def walk_os_skipping_gitignore_patterns(
         valid_dirs = [d for d in dirs if not path_is_in_gitignore(rel_root / d)]
 
         yield rel_root, valid_dirs, valid_files
-
-
-def load_gitignore() -> list[str]:
-    """Load the .gitignore file."""
-    gitignore_path = Path(".gitignore")
-    if not gitignore_path.exists():
-        gitignore_path.touch()
-    return gitignore_path.read_text().splitlines()
-
-
-def dump_gitignore(patterns: list[str]) -> None:
-    """Dump the given patterns to a .gitignore file (overwrites it)."""
-    gitignore_path = Path(".gitignore")
-    gitignore_path.write_text("\n".join(patterns))
-
-
-def add_patterns_to_gitignore(patterns: list[str]) -> None:
-    """Add the given patterns to the .gitignore file."""
-    existing_patterns = load_gitignore()
-    new_patterns = [p for p in patterns if p not in existing_patterns]
-    if new_patterns:
-        logger.info("Adding patterns to .gitignore: %s", new_patterns)
-        dump_gitignore(existing_patterns + new_patterns)
-
-
-def _get_gitignore_patterns() -> list[str]:
-    """Get the patterns that should be in the .gitignore file.
-
-    Those are the patterns that should be in there when using winipedia_utils.
-    """
-    return [
-        "__pycache__/",
-        ".idea/",
-        ".mypy_cache/",
-        ".pytest_cache/",
-        ".ruff_cache/",
-        ".vscode/",
-        "dist/",
-        "test.py",  # I use this for testing code
-        ".git/",  # ignore the .git folder for walk_os_skipping_gitignore_patterns func
-    ]
-
-
-def _get_missing_patterns() -> list[str]:
-    """Get the patterns that are in the .gitignore file but shouldn't be."""
-    needed_patterns = _get_gitignore_patterns()
-    existing_patterns = load_gitignore()
-    return [p for p in needed_patterns if p not in existing_patterns]
-
-
-def _gitignore_is_correct() -> bool:
-    """Check if the .gitignore file contains all the patterns it should."""
-    missing_patterns = _get_missing_patterns()
-    return not missing_patterns
-
-
-def _add_package_patterns_to_gitignore() -> None:
-    """Add any missing patterns to the .gitignore file."""
-    if _gitignore_is_correct():
-        return
-    missing_patterns = _get_missing_patterns()
-    add_patterns_to_gitignore(missing_patterns)

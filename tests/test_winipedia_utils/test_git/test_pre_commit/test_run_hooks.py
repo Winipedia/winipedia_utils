@@ -10,20 +10,20 @@ import pytest
 from pytest_mock import MockFixture
 
 from winipedia_utils.git.pre_commit import hooks
-from winipedia_utils.git.pre_commit.run_hooks import _run_all_hooks
+from winipedia_utils.git.pre_commit.run_hooks import run_all
 from winipedia_utils.modules.function import get_all_functions_from_module
 from winipedia_utils.os.os import run_subprocess
 from winipedia_utils.testing.assertions import assert_with_msg
 
 
-def test__run_all_hooks(caplog: pytest.LogCaptureFixture, mocker: MockFixture) -> None:
+def test_run_all(caplog: pytest.LogCaptureFixture, mocker: MockFixture) -> None:
     """Test func for _run_all_hooks with both success and failure cases."""
     # patch sys.exit to prevent the test from exiting
     mocker.patch(f"{sys.__name__}.exit")
 
     # patch run_subprocess to simulate some hooks passing and some failing
     mock_run_subprocess = mocker.patch(
-        f"{_run_all_hooks.__module__}.{run_subprocess.__name__}"
+        f"{run_all.__module__}.{run_subprocess.__name__}"
     )
 
     # create a list of CompletedProcess objects with mixed results
@@ -47,7 +47,7 @@ def test__run_all_hooks(caplog: pytest.LogCaptureFixture, mocker: MockFixture) -
 
     # call the function with caplog at info and error level
     with caplog.at_level("INFO"):
-        _run_all_hooks()
+        run_all()
 
     # verify the results
     for hook_func in hook_functions:

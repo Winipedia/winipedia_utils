@@ -17,7 +17,7 @@ from winipedia_utils.projects.poetry.poetry import (
 )
 
 
-def _version_patch() -> list[str | Path]:
+def patch_version() -> list[str | Path]:
     """Patch the version in pyproject.toml.
 
     This function returns the input for subprocess.run() to patch the version
@@ -26,7 +26,7 @@ def _version_patch() -> list[str | Path]:
     return [POETRY_PATH, "version", "patch"]
 
 
-def _add_version_patch_to_git() -> list[str | Path]:
+def add_version_patch_to_git() -> list[str | Path]:
     """Add the version patch to git.
 
     This function returns the input for subprocess.run() to add the version
@@ -35,7 +35,7 @@ def _add_version_patch_to_git() -> list[str | Path]:
     return [*POETRY_RUN_ARGS, "git", "add", "pyproject.toml"]
 
 
-def _update_package_manager() -> list[str | Path]:
+def update_package_manager() -> list[str | Path]:
     """Update the package manager.
 
     This function returns the input for subprocess.run() to update the package
@@ -44,7 +44,7 @@ def _update_package_manager() -> list[str | Path]:
     return [POETRY_PATH, "self", "update"]
 
 
-def _install_packages() -> list[str | Path]:
+def install_packages() -> list[str | Path]:
     """Install all dependencies.
 
     This function returns the input for subprocess.run() to install all dependencies.
@@ -52,7 +52,7 @@ def _install_packages() -> list[str | Path]:
     return [POETRY_PATH, "install"]
 
 
-def _update_packages() -> list[str | Path]:
+def update_packages() -> list[str | Path]:
     """Update all dependencies.
 
     This function returns the input for subprocess.run() to update all dependencies.
@@ -60,7 +60,7 @@ def _update_packages() -> list[str | Path]:
     return [POETRY_PATH, "update"]
 
 
-def _lock_dependencies() -> list[str | Path]:
+def lock_dependencies() -> list[str | Path]:
     """Lock the dependencies.
 
     This function returns the input for subprocess.run() to lock the dependencies.
@@ -68,7 +68,7 @@ def _lock_dependencies() -> list[str | Path]:
     return [POETRY_PATH, "lock"]
 
 
-def _check_configurations() -> list[str | Path]:
+def check_package_manager_configs() -> list[str | Path]:
     """Check that poetry.lock and pyproject.toml is up to date.
 
     This function returns the input for subprocess.run() to check that poetry.lock
@@ -77,7 +77,7 @@ def _check_configurations() -> list[str | Path]:
     return [POETRY_PATH, "check", "--strict"]
 
 
-def _creating_tests() -> list[str | Path]:
+def create_tests() -> list[str | Path]:
     """Create all tests for the project.
 
     This function returns the input for subprocess.run() to create all tests.
@@ -85,7 +85,7 @@ def _creating_tests() -> list[str | Path]:
     return [*POETRY_RUN_PYTHON_ARGS, "-m", "winipedia_utils.testing.create_tests"]
 
 
-def _linting() -> list[str | Path]:
+def lint_code() -> list[str | Path]:
     """Check the code.
 
     This function returns the input for subprocess.run() to lint the code.
@@ -94,7 +94,7 @@ def _linting() -> list[str | Path]:
     return [*POETRY_RUN_RUFF_ARGS, "check", "--fix"]
 
 
-def _formating() -> list[str | Path]:
+def format_code() -> list[str | Path]:
     """Format the code.
 
     This function calls ruff format to format the code.
@@ -102,7 +102,7 @@ def _formating() -> list[str | Path]:
     return [*POETRY_RUN_RUFF_ARGS, "format"]
 
 
-def _type_checking() -> list[str | Path]:
+def check_static_types() -> list[str | Path]:
     """Check the types.
 
     This function returns the input for subprocess.run() to check the static types.
@@ -110,7 +110,7 @@ def _type_checking() -> list[str | Path]:
     return [*POETRY_RUN_ARGS, "mypy"]
 
 
-def _security_checking() -> list[str | Path]:
+def check_security() -> list[str | Path]:
     """Check the security of the code.
 
     This function returns the input for subprocess.run() to check the security of
@@ -119,7 +119,7 @@ def _security_checking() -> list[str | Path]:
     return [*POETRY_RUN_ARGS, "bandit", "-c", "pyproject.toml", "-r", "."]
 
 
-def _testing() -> list[str | Path]:
+def run_tests() -> list[str | Path]:
     """Run the tests.
 
     This function returns the input for subprocess.run() to run all tests.

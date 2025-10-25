@@ -449,7 +449,7 @@ class TestStrictABCMeta:
             implemented_attr: Any = NotImplemented
 
         # This should raise a ValueError during class creation for the missing attribute
-        with pytest.raises(ValueError, match="missing_attr.*must be implemented"):
+        with pytest.raises(ValueError, match=r"missing_attr.*must be implemented"):
 
             class TestClass(BaseClass, metaclass=StrictABCMeta):
                 implemented_attr: str = "value"

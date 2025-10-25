@@ -1,10 +1,14 @@
-name: Publish to PyPI
+name: Publish Workflow
 'on':
   workflow_run:
     workflows:
-    - Create Release
+    - Release Workflow
     types:
     - completed
+permissions:
+  contents: read
+run-name: 'Publish Workflow: ${{ github.event.repository.name }}-${{ github.ref_name
+  }}'
 jobs:
   publish:
     runs-on: ubuntu-latest

@@ -20,8 +20,6 @@ from typing import TYPE_CHECKING, Any, cast
 
 from tqdm import tqdm
 
-from winipedia_utils.concurrent.multiprocessing import get_spwan_pool
-from winipedia_utils.concurrent.multithreading import imap_unordered
 from winipedia_utils.iterating.iterate import get_len_with_default
 from winipedia_utils.logging.logger import get_logger
 
@@ -210,6 +208,13 @@ def concurrent_loop(  # noqa: PLR0913
     Returns:
         list[Any]: Results from the process_function executions
     """
+    from winipedia_utils.concurrent.multiprocessing import (  # noqa: PLC0415  # avoid circular import
+        get_spwan_pool,
+    )
+    from winipedia_utils.concurrent.multithreading import (  # noqa: PLC0415  # avoid circular import
+        imap_unordered,
+    )
+
     process_args_len = get_len_with_default(process_args, process_args_len)
     process_args = generate_process_args(
         process_function=process_function,
