@@ -75,6 +75,10 @@ The setup creates the following configuration files:
 
 When you commit code using `git commit`, the following checks run automatically:
 
+Info: If git commit fails bc of ModuleNotFoundError or smth similar, you need to run `poetry run git commit` instead.
+winipedia_utils hook is a python script that depends on winipedia_utils being installed. Poetry is needed to install winipedia_utils.
+Usually VSCode or other IDEs activates the venv automatically when opening the terminal but if not you need to activate it manually or run `poetry run git commit` instead.
+
 1. Patch version (poetry version patch)
 2. Add version patch to git (git add pyproject.toml)
 3. Update package manager (poetry self update)

@@ -6,8 +6,8 @@ from pytest_mock import MockFixture
 
 from winipedia_utils.projects.poetry.poetry import (
     get_poetry_run_module_script,
+    get_python_module_script,
     get_run_python_module_args,
-    get_run_python_module_script,
     get_script_from_args,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
@@ -50,13 +50,13 @@ def test_get_run_python_module_args(mocker: MockFixture) -> None:
     )
 
 
-def test_get_run_python_module_script(mocker: MockFixture) -> None:
+def test_get_python_module_script(mocker: MockFixture) -> None:
     """Test func for get_run_python_module_script."""
     # Create a mock module
     mock_module = mocker.MagicMock(spec=ModuleType)
     mock_module.__name__ = "my_module"
 
-    result = get_run_python_module_script(mock_module)
+    result = get_python_module_script(mock_module)
     assert_with_msg(
         result == "python -m my_module",
         f"Expected 'python -m my_module', got '{result}'",

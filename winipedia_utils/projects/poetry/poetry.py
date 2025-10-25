@@ -32,7 +32,7 @@ def get_run_python_module_args(module: ModuleType) -> list[str]:
     return [*RUN_PYTHON_MODULE_ARGS, make_obj_importpath(module)]
 
 
-def get_run_python_module_script(module: ModuleType) -> str:
+def get_python_module_script(module: ModuleType) -> str:
     """Get the script to run a module."""
     return get_script_from_args(get_run_python_module_args(module))
 

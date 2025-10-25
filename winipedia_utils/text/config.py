@@ -10,7 +10,9 @@ import yaml
 import winipedia_utils
 from winipedia_utils.iterating.iterate import nested_structure_is_subset
 from winipedia_utils.modules.class_ import init_all_nonabstract_subclasses
-from winipedia_utils.projects.poetry.poetry import get_poetry_run_module_script
+from winipedia_utils.projects.poetry.poetry import (
+    get_python_module_script,
+)
 
 
 class ConfigFile(ABC):
@@ -131,11 +133,11 @@ class YamlConfigFile(ConfigFile):
             yaml.safe_dump(config, f, sort_keys=False)
 
     @staticmethod
-    def get_poetry_run_setup_script() -> str:
+    def get_python_setup_script() -> str:
         """Get the poetry run setup script."""
         from winipedia_utils import setup  # noqa: PLC0415  # avoid circular import
 
-        return get_poetry_run_module_script(setup)
+        return get_python_module_script(setup)
 
 
 class TomlConfigFile(ConfigFile):

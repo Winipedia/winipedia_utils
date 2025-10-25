@@ -38,7 +38,7 @@ class PreCommitConfigFile(YamlConfigFile):
                         {
                             "id": hook_name,
                             "name": hook_name,
-                            "entry": self.get_poetry_run_setup_script(),
+                            "entry": self.get_python_setup_script(),
                             "language": "system",
                             "always_run": True,
                             "pass_filenames": False,
