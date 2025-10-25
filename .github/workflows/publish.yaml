@@ -7,8 +7,7 @@ name: Publish Workflow
     - completed
 permissions:
   contents: read
-run-name: 'Publish Workflow: ${{ github.event.repository.name }} ${{ steps.version.outputs.version
-  }}'
+run-name: Publish Workflow
 jobs:
   publish:
     runs-on: ubuntu-latest

@@ -29,7 +29,7 @@ class Workflow(YamlConfigFile):
 
     def get_run_name(self) -> str:
         """Get the workflow run name."""
-        return f"{self.get_workflow_name()}: {self.get_repo_and_version()}"
+        return f"{self.get_workflow_name()}"
 
     def get_configs(self) -> dict[str, Any]:
         """Get the workflow config."""

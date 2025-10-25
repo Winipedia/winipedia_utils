@@ -5,8 +5,7 @@ name: Release Workflow
     - main
 permissions:
   contents: write
-run-name: 'Release Workflow: ${{ github.event.repository.name }} ${{ steps.version.outputs.version
-  }}'
+run-name: Release Workflow
 jobs:
   release:
     runs-on: ubuntu-latest
