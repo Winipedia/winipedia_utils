@@ -27,7 +27,7 @@ jobs:
     - name: Install Dependencies
       run: poetry install
     - name: Run Hooks
-      run: poetry run pre-commit run
+      run: poetry run pre-commit run --all-files --verbose
     - name: Create and Push Tag
       run: git tag ${{ steps.version.outputs.version }} && git push origin ${{ steps.version.outputs.version
         }}

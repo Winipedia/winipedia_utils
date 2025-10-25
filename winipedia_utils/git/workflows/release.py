@@ -45,7 +45,7 @@ class ReleaseWorkflow(Workflow):
                         # and bc it fails if files are changed,
                         # setup script shouldnt change files
                         "name": "Run Hooks",
-                        "run": "poetry run pre-commit run",
+                        "run": "poetry run pre-commit run --all-files --verbose",
                     },
                     {
                         "name": "Create and Push Tag",
