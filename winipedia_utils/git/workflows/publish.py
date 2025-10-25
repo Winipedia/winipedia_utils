@@ -47,7 +47,8 @@ class PublishWorkflow(Workflow):
                         )
                     ),
                     {
-                        "name": "Build and publish to PyPI",
+                        "name": "Build and publish to PyPI"
+                        + self.get_repo_and_ref_name_formatted(),
                         "run": "poetry publish --build",
                     },
                 ],

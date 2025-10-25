@@ -114,7 +114,8 @@ class Workflow(YamlConfigFile):
             steps.append({"name": "Install Dependencies", "run": "poetry install"})
         return steps
 
-    def get_repository_name(self) -> str:
+    @staticmethod
+    def get_repository_name() -> str:
         """Get the repository name."""
         return "${{ github.event.repository.name }}"
 
@@ -122,6 +123,12 @@ class Workflow(YamlConfigFile):
         """Get the ref name."""
         return "${{ github.ref_name }}"
 
-    def get_repo_and_ref_name_formatted(self) -> str:
+    @staticmethod
+    def get_repo_and_ref_name() -> str:
         """Get the repository name and ref name."""
-        return f": {self.get_repository_name()}-{self.get_ref_name()}"
+        return "${{ github.event.repository.name }}-${{ github.ref_name }}"
+
+    @classmethod
+    def get_repo_and_ref_name_formatted(cls) -> str:
+        """Get the repository name and ref name."""
+        return f": {cls.get_repo_and_ref_name()}"

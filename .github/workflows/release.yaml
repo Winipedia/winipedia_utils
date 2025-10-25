@@ -38,5 +38,5 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         tag: ${{ github.ref_name }}
-        name: ': ${{ github.event.repository.name }}-${{ github.ref_name }}'
+        name: ${{ github.event.repository.name }}-${{ github.ref_name }}
         body: ${{ steps.build_changelog.outputs.changelog }}

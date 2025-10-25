@@ -151,6 +151,18 @@ class TestWorkflow:
             f"Expected github variable in ref_name, got {ref_name}",
         )
 
+    def test_get_repo_and_ref_name(self) -> None:
+        """Test method for get_repo_and_ref_name."""
+        repo_and_ref_name = ConcreteWorkflow.get_repo_and_ref_name()
+        assert_with_msg(
+            "${{ github.event.repository.name }}" in repo_and_ref_name,
+            f"Expected github variable in repo_and_ref_name, got {repo_and_ref_name}",
+        )
+        assert_with_msg(
+            "${{ github.ref_name }}" in repo_and_ref_name,
+            f"Expected github variable in repo_and_ref_name, got {repo_and_ref_name}",
+        )
+
     def test_get_repo_and_ref_name_formatted(self, tmp_path: Path) -> None:
         """Test method for get_repo_and_ref_name_formatted."""
         workflow = ConcreteWorkflow(tmp_path)

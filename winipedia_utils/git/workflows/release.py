@@ -56,7 +56,7 @@ class ReleaseWorkflow(Workflow):
                         "uses": "ncipollo/release-action@v1",
                         "with": {
                             "tag": "${{ github.ref_name }}",
-                            "name": self.get_repo_and_ref_name_formatted(),
+                            "name": self.get_repo_and_ref_name(),
                             "body": "${{ steps.build_changelog.outputs.changelog }}",
                         },
                     },
