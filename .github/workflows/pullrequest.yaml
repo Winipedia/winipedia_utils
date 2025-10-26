@@ -9,7 +9,7 @@ permissions:
   contents: read
 run-name: Pull Request Workflow
 jobs:
-  check pull request:
+  check-pull-request:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
