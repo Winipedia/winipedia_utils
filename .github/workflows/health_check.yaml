@@ -6,7 +6,7 @@ name: Health Check Workflow
     - synchronize
     - reopened
   schedule:
-  - cron: 30 2 * * 0
+  - cron: 0 5 * * 1
   workflow_dispatch: {}
 permissions:
   contents: read

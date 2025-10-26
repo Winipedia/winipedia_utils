@@ -24,8 +24,8 @@ class HealthCheckWorkflow(Workflow):
             # also run once a week on main
             "schedule": [
                 {
-                    # run every Sunday at 2:30 am
-                    "cron": "30 2 * * 0",
+                    # run every Monday at 5 am
+                    "cron": "0 5 * * 1",
                 },
             ],
             "workflow_dispatch": {},
