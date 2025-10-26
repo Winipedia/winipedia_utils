@@ -40,7 +40,6 @@ class HealthCheckWorkflow(Workflow):
     def get_jobs(self) -> dict[str, Any]:
         """Get the workflow jobs."""
         return self.get_standard_job(
-            "check-pull-request",
             steps=[
                 *(
                     self.get_poetry_setup_steps(

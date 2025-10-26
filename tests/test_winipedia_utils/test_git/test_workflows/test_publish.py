@@ -61,18 +61,19 @@ class TestPublishWorkflow:
         workflow = MyPublishWorkflow(tmp_path)
         jobs = workflow.get_jobs()
         assert_with_msg(
-            "publish" in jobs,
-            f"Expected 'publish' key in jobs, got {jobs.keys()}",
+            len(jobs) > 0,
+            f"Expected non-empty jobs dict, got {jobs}",
+        )
+        job_name = next(iter(jobs.keys()))
+        assert_with_msg(
+            "runs-on" in jobs[job_name],
+            f"Expected 'runs-on' key in job, got {jobs[job_name].keys()}",
         )
         assert_with_msg(
-            "runs-on" in jobs["publish"],
-            f"Expected 'runs-on' key in publish job, got {jobs['publish'].keys()}",
+            "if" in jobs[job_name],
+            f"Expected 'if' key in job, got {jobs[job_name].keys()}",
         )
         assert_with_msg(
-            "if" in jobs["publish"],
-            f"Expected 'if' key in publish job, got {jobs['publish'].keys()}",
-        )
-        assert_with_msg(
-            "steps" in jobs["publish"],
-            f"Expected 'steps' key in publish job, got {jobs['publish'].keys()}",
+            "steps" in jobs[job_name],
+            f"Expected 'steps' key in job, got {jobs[job_name].keys()}",
         )

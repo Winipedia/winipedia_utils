@@ -25,27 +25,28 @@ class Workflow(YamlConfigFile):
 
     def get_path(self) -> Path:
         """Get the path to the config file."""
-        file_name = (
-            "_".join(
-                split_on_uppercase(
-                    self.__class__.__name__.removesuffix(Workflow.__name__)
-                )
-            ).lower()
-            + ".yaml"
-        )
+        file_name = self.get_standard_job_name() + ".yaml"
         return Path(".github/workflows") / file_name
 
-    @staticmethod
+    @classmethod
     def get_standard_job(
-        name: str,
-        steps: list[dict[str, Any]],
+        cls,
+        name: str | None = None,
+        runs_on: str = "ubuntu-latest",
         permissions: dict[str, Any] | None = None,
         if_condition: str | None = None,
+        steps: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         """Get a standard job."""
+        if name is None:
+            name = cls.get_standard_job_name()
+
+        if steps is None:
+            steps = []
+
         job: dict[str, Any] = {
             name: {
-                "runs-on": "ubuntu-latest",
+                "runs-on": runs_on,
                 "steps": steps,
             }
         }
@@ -55,6 +56,13 @@ class Workflow(YamlConfigFile):
         if if_condition is not None:
             job[name]["if"] = if_condition
         return job
+
+    @classmethod
+    def get_standard_job_name(cls) -> str:
+        """Get the standard job name."""
+        return "_".join(
+            split_on_uppercase(cls.__name__.removesuffix(Workflow.__name__))
+        ).lower()
 
     @classmethod
     def get_workflow_name(cls) -> str:
