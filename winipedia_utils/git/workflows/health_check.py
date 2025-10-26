@@ -8,7 +8,7 @@ from typing import Any
 from winipedia_utils.git.workflows.base.base import Workflow
 
 
-class PullRequestWorkflow(Workflow):
+class HealthCheckWorkflow(Workflow):
     """Pull request workflow.
 
     This workflow is triggered by a pull request.
@@ -21,6 +21,14 @@ class PullRequestWorkflow(Workflow):
             "pull_request": {
                 "types": ["opened", "synchronize", "reopened"],
             },
+            # also run once a week on main
+            "schedule": [
+                {
+                    # run every Sunday at 2:10 am
+                    "cron": "10 2 * * 0",
+                },
+            ],
+            "workflow_dispatch": {},
         }
 
     def get_permissions(self) -> dict[str, Any]:

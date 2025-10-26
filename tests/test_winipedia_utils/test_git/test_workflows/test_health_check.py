@@ -2,11 +2,11 @@
 
 from pathlib import Path
 
-from winipedia_utils.git.workflows.pullrequest import PullRequestWorkflow
+from winipedia_utils.git.workflows.health_check import HealthCheckWorkflow
 from winipedia_utils.testing.assertions import assert_with_msg
 
 
-class MyPullRequestWorkflow(PullRequestWorkflow):
+class MyHealthCheckWorkflow(HealthCheckWorkflow):
     """Pull request workflow for testing."""
 
     def __init__(self, tmp_path: Path) -> None:
@@ -19,12 +19,12 @@ class MyPullRequestWorkflow(PullRequestWorkflow):
         return self.path
 
 
-class TestPullRequestWorkflow:
+class TestHealthCheckWorkflow:
     """Test class for PullRequestWorkflow."""
 
     def test_get_workflow_triggers(self, tmp_path: Path) -> None:
         """Test method for get_workflow_triggers."""
-        workflow = MyPullRequestWorkflow(tmp_path)
+        workflow = MyHealthCheckWorkflow(tmp_path)
         triggers = workflow.get_workflow_triggers()
         assert_with_msg(
             "pull_request" in triggers,
@@ -38,7 +38,7 @@ class TestPullRequestWorkflow:
 
     def test_get_permissions(self, tmp_path: Path) -> None:
         """Test method for get_permissions."""
-        workflow = MyPullRequestWorkflow(tmp_path)
+        workflow = MyHealthCheckWorkflow(tmp_path)
         permissions = workflow.get_permissions()
         assert_with_msg(
             "contents" in permissions,
@@ -51,7 +51,7 @@ class TestPullRequestWorkflow:
 
     def test_get_jobs(self, tmp_path: Path) -> None:
         """Test method for get_jobs."""
-        workflow = MyPullRequestWorkflow(tmp_path)
+        workflow = MyHealthCheckWorkflow(tmp_path)
         jobs = workflow.get_jobs()
         # assert is a list of dicts, dont check names
         for job in jobs.values():
