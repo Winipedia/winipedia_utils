@@ -5,10 +5,10 @@ This workflow is used to create a release on GitHub.
 
 from typing import Any
 
-from winipedia_utils.git.workflows.base.base import Workflow
+from winipedia_utils.git.workflows.health_check import HealthCheckWorkflow
 
 
-class ReleaseWorkflow(Workflow):
+class ReleaseWorkflow(HealthCheckWorkflow):
     """Release workflow.
 
     This workflow is triggered by a push to the main branch.
@@ -28,16 +28,6 @@ class ReleaseWorkflow(Workflow):
 
     def get_jobs(self) -> dict[str, Any]:
         """Get the workflow jobs."""
-        return self.get_standard_job(
-            "release",
-            steps=[
-                *(
-                    self.get_poetry_setup_steps(
-                        install_dependencies=True,
-                        fetch_depth=0,
-                    )
-                ),
-                self.get_pre_commit_step(),
-                *self.get_release_steps(),
-            ],
-        )
+        steps = super().get_jobs()
+        steps[self.get_standard_job_name()]["steps"].extend(self.get_release_steps())
+        return steps

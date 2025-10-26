@@ -34,7 +34,6 @@ class PublishWorkflow(Workflow):
     def get_jobs(self) -> dict[str, Any]:
         """Get the workflow jobs."""
         return self.get_standard_job(
-            "publish",
             steps=[
                 *(
                     self.get_poetry_setup_steps(

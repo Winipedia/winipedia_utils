@@ -56,14 +56,15 @@ class TestReleaseWorkflow:
         workflow = MyReleaseWorkflow(tmp_path)
         jobs = workflow.get_jobs()
         assert_with_msg(
-            "release" in jobs,
-            f"Expected 'release' key in jobs, got {jobs.keys()}",
+            len(jobs) > 0,
+            f"Expected non-empty jobs dict, got {jobs}",
+        )
+        job_name = next(iter(jobs.keys()))
+        assert_with_msg(
+            "runs-on" in jobs[job_name],
+            f"Expected 'runs-on' key in job, got {jobs[job_name].keys()}",
         )
         assert_with_msg(
-            "runs-on" in jobs["release"],
-            f"Expected 'runs-on' key in release job, got {jobs['release'].keys()}",
-        )
-        assert_with_msg(
-            "steps" in jobs["release"],
-            f"Expected 'steps' key in release job, got {jobs['release'].keys()}",
+            "steps" in jobs[job_name],
+            f"Expected 'steps' key in job, got {jobs[job_name].keys()}",
         )

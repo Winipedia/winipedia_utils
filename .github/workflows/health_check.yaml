@@ -12,7 +12,7 @@ permissions:
   contents: read
 run-name: Health Check Workflow
 jobs:
-  check-pull-request:
+  health_check:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
