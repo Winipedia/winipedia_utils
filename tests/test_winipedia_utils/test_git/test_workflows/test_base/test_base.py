@@ -37,6 +37,77 @@ class ConcreteWorkflow(Workflow):
 class TestWorkflow:
     """Test class for Workflow."""
 
+    def test_get_path(self, tmp_path: Path) -> None:
+        """Test method for get_path."""
+        workflow = ConcreteWorkflow(tmp_path)
+        path = workflow.get_path()
+        assert_with_msg(
+            path == tmp_path / "test_workflow.yaml",
+            f"Expected {tmp_path / 'test_workflow.yaml'}, got {path}",
+        )
+
+    def test_get_standard_job(self) -> None:
+        """Test method for get_standard_job."""
+        job = Workflow.get_standard_job(
+            "test_job", [{"name": "Test Step", "run": "echo test"}]
+        )
+        assert_with_msg(
+            "test_job" in job,
+            f"Expected 'test_job' key in job, got {job.keys()}",
+        )
+        assert_with_msg(
+            job["test_job"]["runs-on"] == "ubuntu-latest",
+            f"Expected runs-on to be 'ubuntu-latest', got {job['test_job']['runs-on']}",
+        )
+        assert_with_msg(
+            len(job["test_job"]["steps"]) > 0,
+            f"Expected non-empty steps, got {job['test_job']['steps']}",
+        )
+
+    def test_get_release_steps(self) -> None:
+        """Test method for get_release_steps."""
+        steps = Workflow.get_release_steps()
+        assert_with_msg(
+            len(steps) > 0,
+            f"Expected non-empty steps list, got {steps}",
+        )
+        assert_with_msg(
+            any("tag" in step.get("name", "").lower() for step in steps),
+            f"Expected a step with 'tag' in name, got {[s.get('name') for s in steps]}",
+        )
+
+    def test_get_publish_to_pypi_step(self) -> None:
+        """Test method for get_publish_to_pypi_step."""
+        step = Workflow.get_publish_to_pypi_step()
+        assert_with_msg(
+            "name" in step,
+            f"Expected 'name' key in step, got {step.keys()}",
+        )
+        assert_with_msg(
+            "PyPI" in step["name"],
+            f"Expected 'PyPI' in step name, got {step['name']}",
+        )
+        assert_with_msg(
+            "run" in step,
+            f"Expected 'run' key in step, got {step.keys()}",
+        )
+
+    def test_get_pre_commit_step(self) -> None:
+        """Test method for get_pre_commit_step."""
+        step = Workflow.get_pre_commit_step()
+        assert_with_msg(
+            "name" in step,
+            f"Expected 'name' key in step, got {step.keys()}",
+        )
+        assert_with_msg(
+            "Hooks" in step["name"],
+            f"Expected 'Hooks' in step name, got {step['name']}",
+        )
+        assert_with_msg(
+            "run" in step,
+            f"Expected 'run' key in step, got {step.keys()}",
+        )
+
     def test_get_workflow_triggers(self, tmp_path: Path) -> None:
         """Test method for get_workflow_triggers."""
         # This is abstract, tested via concrete implementation

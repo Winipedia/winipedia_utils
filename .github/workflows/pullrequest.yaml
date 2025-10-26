@@ -1,15 +1,15 @@
-name: Publish Workflow
+name: Pull Request Workflow
 'on':
-  workflow_run:
-    workflows:
-    - Release Workflow
+  pull_request:
     types:
-    - completed
+    - opened
+    - synchronize
+    - reopened
 permissions:
   contents: read
-run-name: Publish Workflow
+run-name: Pull Request Workflow
 jobs:
-  publish:
+  check pull request:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -24,8 +24,7 @@ jobs:
       id: version
       run: 'version=$(poetry version -s) && echo "Project version: $version" && echo
         "version=v$version" >> $GITHUB_OUTPUT'
-    - name: Configure Poetry
-      run: poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
-    - name: Build and publish to PyPI
-      run: poetry publish --build
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    - name: Install Dependencies
+      run: poetry install
+    - name: Run Hooks
+      run: poetry run pre-commit run --all-files --verbose

@@ -20,15 +20,6 @@ class MyReleaseWorkflow(ReleaseWorkflow):
 class TestReleaseWorkflow:
     """Test class for ReleaseWorkflow."""
 
-    def test_get_path(self, tmp_path: Path) -> None:
-        """Test method for get_path."""
-        workflow = MyReleaseWorkflow(tmp_path)
-        path = workflow.get_path()
-        assert_with_msg(
-            path.name == "release.yaml",
-            f"Expected path name to be 'release.yaml', got {path.name}",
-        )
-
     def test_get_workflow_triggers(self, tmp_path: Path) -> None:
         """Test method for get_workflow_triggers."""
         workflow = MyReleaseWorkflow(tmp_path)

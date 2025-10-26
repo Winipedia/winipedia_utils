@@ -1,6 +1,6 @@
-"""Contains the release workflow.
+"""Contains the pull request workflow.
 
-This workflow is used to create a release on GitHub.
+This workflow is used to run tests on pull requests.
 """
 
 from typing import Any
@@ -8,36 +8,37 @@ from typing import Any
 from winipedia_utils.git.workflows.base.base import Workflow
 
 
-class ReleaseWorkflow(Workflow):
-    """Release workflow.
+class PullRequestWorkflow(Workflow):
+    """Pull request workflow.
 
-    This workflow is triggered by a push to the main branch.
-    It creates a tag for the release and builds a changelog.
-    With tag and changelog it creates a release on GitHub
+    This workflow is triggered by a pull request.
+    It runs tests on the pull request.
     """
 
     def get_workflow_triggers(self) -> dict[str, Any]:
         """Get the workflow triggers."""
-        return {"push": {"branches": ["main"]}}
+        return {
+            "pull_request": {
+                "types": ["opened", "synchronize", "reopened"],
+            },
+        }
 
     def get_permissions(self) -> dict[str, Any]:
         """Get the workflow permissions."""
         return {
-            "contents": "write",
+            "contents": "read",
         }
 
     def get_jobs(self) -> dict[str, Any]:
         """Get the workflow jobs."""
         return self.get_standard_job(
-            "release",
+            "check pull request",
             steps=[
                 *(
                     self.get_poetry_setup_steps(
                         install_dependencies=True,
-                        fetch_depth=0,
                     )
                 ),
                 self.get_pre_commit_step(),
-                *self.get_release_steps(),
             ],
         )

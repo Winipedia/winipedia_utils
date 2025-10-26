@@ -227,7 +227,6 @@ String manipulation and configuration file handling:
 
 ```python
 from winipedia_utils.text.string import value_to_truncated_string
-from winipedia_utils.text.config import ConfigFile
 ```
 
 ### OS and System Utilities
@@ -244,23 +243,6 @@ Utilities for working with iterables and nested structures:
 
 ```python
 from winipedia_utils.iterating.iterate import get_len_with_default, nested_structure_is_subset
-```
-
-### Git Utilities
-
-Git-related utilities including .gitignore handling and pre-commit hooks:
-
-```python
-from winipedia_utils.git.gitignore.gitignore import path_is_in_gitignore
-```
-
-### Project Management Utilities
-
-Tools for managing Poetry projects and project structure:
-
-```python
-from winipedia_utils.projects.project import create_project_root
-from winipedia_utils.projects.poetry.config import PyProjectTomlConfig
 ```
 
 ### Philosophy

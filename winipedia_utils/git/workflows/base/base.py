@@ -1,6 +1,7 @@
 """Contains base utilities for git workflows."""
 
 from abc import abstractmethod
+from pathlib import Path
 from typing import Any
 
 from winipedia_utils.text.config import YamlConfigFile
@@ -21,6 +22,34 @@ class Workflow(YamlConfigFile):
     @abstractmethod
     def get_jobs(self) -> dict[str, Any]:
         """Get the workflow jobs."""
+
+    def get_path(self) -> Path:
+        """Get the path to the config file."""
+        return (
+            Path(".github/workflows")
+            / f"{self.__class__.__name__.lower().removesuffix('workflow')}.yaml"
+        )
+
+    @staticmethod
+    def get_standard_job(
+        name: str,
+        steps: list[dict[str, Any]],
+        permissions: dict[str, Any] | None = None,
+        if_condition: str | None = None,
+    ) -> dict[str, Any]:
+        """Get a standard job."""
+        job: dict[str, Any] = {
+            name: {
+                "runs-on": "ubuntu-latest",
+                "steps": steps,
+            }
+        }
+        if permissions is not None:
+            job[name]["permissions"] = permissions
+
+        if if_condition is not None:
+            job[name]["if"] = if_condition
+        return job
 
     @classmethod
     def get_workflow_name(cls) -> str:
@@ -120,6 +149,49 @@ class Workflow(YamlConfigFile):
         if install_dependencies:
             steps.append({"name": "Install Dependencies", "run": "poetry install"})
         return steps
+
+    @staticmethod
+    def get_release_steps() -> list[dict[str, Any]]:
+        """Get the release steps."""
+        return [
+            {
+                "name": "Create and Push Tag",
+                "run": f"git tag {Workflow.get_version()} && git push origin {Workflow.get_version()}",  # noqa: E501
+            },
+            {
+                "name": "Build Changelog",
+                "id": "build_changelog",
+                "uses": "mikepenz/release-changelog-builder-action@develop",
+                "with": {"token": "${{ secrets.GITHUB_TOKEN }}"},
+            },
+            {
+                "name": "Create GitHub Release",
+                "uses": "ncipollo/release-action@main",
+                "with": {
+                    "tag": Workflow.get_version(),
+                    "name": Workflow.get_repo_and_version(),
+                    "body": "${{ steps.build_changelog.outputs.changelog }}",
+                },
+            },
+        ]
+
+    @staticmethod
+    def get_publish_to_pypi_step() -> dict[str, Any]:
+        """Get the publish step."""
+        return {"name": "Build and publish to PyPI", "run": "poetry publish --build"}
+
+    @staticmethod
+    def get_pre_commit_step() -> dict[str, Any]:
+        """Get the pre-commit step.
+
+        using pre commit in case other hooks are added later
+        and bc it fails if files are changed,
+        setup script shouldnt change files
+        """
+        return {
+            "name": "Run Hooks",
+            "run": "poetry run pre-commit run --all-files --verbose",
+        }
 
     @staticmethod
     def get_repository_name() -> str:
