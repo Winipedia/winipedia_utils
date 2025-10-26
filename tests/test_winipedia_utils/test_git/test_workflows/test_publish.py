@@ -20,15 +20,6 @@ class MyPublishWorkflow(PublishWorkflow):
 class TestPublishWorkflow:
     """Test class for PublishWorkflow."""
 
-    def test_get_path(self, tmp_path: Path) -> None:
-        """Test method for get_path."""
-        workflow = MyPublishWorkflow(tmp_path)
-        path = workflow.get_path()
-        assert_with_msg(
-            path.name == "publish.yaml",
-            f"Expected path name to be 'publish.yaml', got {path.name}",
-        )
-
     def test_get_workflow_triggers(self, tmp_path: Path) -> None:
         """Test method for get_workflow_triggers."""
         workflow = MyPublishWorkflow(tmp_path)

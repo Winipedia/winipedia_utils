@@ -37,6 +37,26 @@ class ConcreteWorkflow(Workflow):
 class TestWorkflow:
     """Test class for Workflow."""
 
+    def test_get_path(self) -> None:
+        """Test method for get_path."""
+        raise NotImplementedError
+
+    def test_get_standard_job(self) -> None:
+        """Test method for get_standard_job."""
+        raise NotImplementedError
+
+    def test_get_release_steps(self) -> None:
+        """Test method for get_release_steps."""
+        raise NotImplementedError
+
+    def test_get_publish_to_pypi_step(self) -> None:
+        """Test method for get_publish_to_pypi_step."""
+        raise NotImplementedError
+
+    def test_get_pre_commit_step(self) -> None:
+        """Test method for get_pre_commit_step."""
+        raise NotImplementedError
+
     def test_get_workflow_triggers(self, tmp_path: Path) -> None:
         """Test method for get_workflow_triggers."""
         # This is abstract, tested via concrete implementation

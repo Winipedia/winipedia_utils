@@ -3,7 +3,6 @@
 This workflow is used to publish the package to PyPI with poetry.
 """
 
-from pathlib import Path
 from typing import Any
 
 from winipedia_utils.git.workflows.base.base import Workflow
@@ -11,13 +10,11 @@ from winipedia_utils.git.workflows.release import ReleaseWorkflow
 
 
 class PublishWorkflow(Workflow):
-    """Publish workflow."""
+    """Publish workflow.
 
-    PATH = Path(".github/workflows/publish.yaml")
-
-    def get_path(self) -> Path:
-        """Get the path to the config file."""
-        return self.PATH
+    This workflow is triggered by the release workflow.
+    It publishes the package to PyPI with poetry.
+    """
 
     def get_workflow_triggers(self) -> dict[str, Any]:
         """Get the workflow triggers."""
@@ -36,20 +33,15 @@ class PublishWorkflow(Workflow):
 
     def get_jobs(self) -> dict[str, Any]:
         """Get the workflow jobs."""
-        return {
-            "publish": {
-                "runs-on": "ubuntu-latest",
-                "if": "${{ github.event.workflow_run.conclusion == 'success' }}",
-                "steps": [
-                    *(
-                        self.get_poetry_setup_steps(
-                            configure_pipy_token=True,
-                        )
-                    ),
-                    {
-                        "name": "Build and publish to PyPI",
-                        "run": "poetry publish --build",
-                    },
-                ],
-            }
-        }
+        return self.get_standard_job(
+            "publish",
+            steps=[
+                *(
+                    self.get_poetry_setup_steps(
+                        configure_pipy_token=True,
+                    )
+                ),
+                self.get_publish_to_pypi_step(),
+            ],
+            if_condition="${{ github.event.workflow_run.conclusion == 'success' }}",
+        )
