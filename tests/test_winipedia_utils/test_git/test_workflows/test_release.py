@@ -16,6 +16,10 @@ class MyReleaseWorkflow(ReleaseWorkflow):
         self.PATH = tmp_path / self.PATH
         super().__init__()
 
+    def get_path(self) -> Path:
+        """Get the path to the config file."""
+        return self.PATH
+
 
 class TestReleaseWorkflow:
     """Test class for ReleaseWorkflow."""
