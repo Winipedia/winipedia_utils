@@ -25,10 +25,15 @@ class Workflow(YamlConfigFile):
 
     def get_path(self) -> Path:
         """Get the path to the config file."""
-        return (
-            Path(".github/workflows")
-            / f"{self.__class__.__name__.lower().removesuffix('workflow')}.yaml"
+        file_name = (
+            "_".join(
+                split_on_uppercase(
+                    self.__class__.__name__.removesuffix(Workflow.__name__)
+                )
+            ).lower()
+            + ".yaml"
         )
+        return Path(".github/workflows") / file_name
 
     @staticmethod
     def get_standard_job(
