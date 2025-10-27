@@ -225,6 +225,9 @@ class Workflow(YamlConfigFile):
         return {
             "name": "Protect Repository",
             "run": f"poetry run python -m {make_obj_importpath(protect)}",
+            "env": {
+                "REPO_TOKEN": cls.get_repo_token(),
+            },
         }
 
     @classmethod
@@ -256,3 +259,8 @@ class Workflow(YamlConfigFile):
     def get_github_token(cls) -> str:
         """Get the GitHub token."""
         return "${{ secrets.GITHUB_TOKEN }}"
+
+    @classmethod
+    def get_repo_token(cls) -> str:
+        """Get the repository token."""
+        return "${{ secrets.REPO_TOKEN }}"

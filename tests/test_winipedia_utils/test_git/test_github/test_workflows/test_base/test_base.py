@@ -260,6 +260,18 @@ class TestWorkflow:
             "Expected 'GITHUB_TOKEN' in token",
         )
 
+    def test_get_repo_token(self) -> None:
+        """Test method for get_repo_token."""
+        token = Workflow.get_repo_token()
+        assert_with_msg(
+            "${{" in token,
+            "Expected GitHub context variable in token",
+        )
+        assert_with_msg(
+            "REPO_TOKEN" in token,
+            "Expected 'REPO_TOKEN' in token",
+        )
+
     def test_get_standard_job(self) -> None:
         """Test method for get_standard_job."""
         job = Workflow.get_standard_job()
