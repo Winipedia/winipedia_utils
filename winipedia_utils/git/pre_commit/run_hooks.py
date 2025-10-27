@@ -42,4 +42,5 @@ def run_hooks() -> None:
             passed_str,
         )
 
-    sys.exit(exit_code)
+    if exit_code != 0:
+        sys.exit(exit_code)

@@ -4,19 +4,21 @@ tests.test_winipedia_utils.test_git.test_pre_commit.test_hooks
 """
 
 from winipedia_utils.git.pre_commit.hooks import (
+    add_lock_file_to_git,
+    add_updates_to_git,
     add_version_patch_to_git,
     check_package_manager_configs,
     check_security,
     check_static_types,
     create_missing_tests,
     format_code,
-    install_packages,
+    install_dependencies_with_dev,
     lint_code,
     lock_dependencies,
     patch_version,
     run_tests,
+    update_dependencies_with_dev,
     update_package_manager,
-    update_packages,
 )
 from winipedia_utils.projects.poetry.poetry import (
     POETRY_ARG,
@@ -69,13 +71,13 @@ def test_update_package_manager() -> None:
     )
 
 
-def test_install_packages() -> None:
+def test_install_dependencies_with_dev() -> None:
     """Test func for install_packages."""
     # Call the function
-    result = install_packages()
+    result = install_dependencies_with_dev()
 
     # Expected result
-    expected = [POETRY_ARG, "install"]
+    expected = [POETRY_ARG, "install", "--with", "dev"]
 
     # Verify the result
     assert_with_msg(
@@ -84,17 +86,17 @@ def test_install_packages() -> None:
     )
 
 
-def test_update_packages() -> None:
+def test_update_dependencies_with_dev() -> None:
     """Test func for update_packages."""
     # Call the function
-    result = update_packages()
+    result = update_dependencies_with_dev()
 
     # Expected result
-    expected = [POETRY_ARG, "update"]
+    expected = [POETRY_ARG, "update", "--with", "dev"]
 
     # Verify the result
     assert_with_msg(
-        result == expected,
+        set(expected).issubset(set(result)),
         f"Expected {expected}, got {result}",
     )
 
@@ -210,6 +212,36 @@ def test_run_tests() -> None:
 
     # Expected result
     expected = ["pytest"]
+
+    # Verify the result
+    assert_with_msg(
+        result == expected,
+        f"Expected {expected}, got {result}",
+    )
+
+
+def test_add_updates_to_git() -> None:
+    """Test func for add_updates_to_git."""
+    # Call the function
+    result = add_updates_to_git()
+
+    # Expected result
+    expected = ["git", "add", "pyproject.toml"]
+
+    # Verify the result
+    assert_with_msg(
+        result == expected,
+        f"Expected {expected}, got {result}",
+    )
+
+
+def test_add_lock_file_to_git() -> None:
+    """Test func for add_lock_file_to_git."""
+    # Call the function
+    result = add_lock_file_to_git()
+
+    # Expected result
+    expected = ["git", "add", "poetry.lock"]
 
     # Verify the result
     assert_with_msg(

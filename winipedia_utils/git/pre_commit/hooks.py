@@ -42,20 +42,29 @@ def update_package_manager() -> list[str | Path]:
     return [POETRY_ARG, "self", "update"]
 
 
-def install_packages() -> list[str | Path]:
+def install_dependencies_with_dev() -> list[str | Path]:
     """Install all dependencies.
 
     This function returns the input for subprocess.run() to install all dependencies.
     """
-    return [POETRY_ARG, "install"]
+    return [POETRY_ARG, "install", "--with", "dev"]
 
 
-def update_packages() -> list[str | Path]:
+def update_dependencies_with_dev() -> list[str | Path]:
     """Update all dependencies.
 
     This function returns the input for subprocess.run() to update all dependencies.
     """
-    return [POETRY_ARG, "update"]
+    return [POETRY_ARG, "update", "--with", "dev"]
+
+
+def add_updates_to_git() -> list[str | Path]:
+    """Add the updated dependencies to git.
+
+    This function returns the input for subprocess.run() to add the updated
+    dependencies to git, so that the hook does not fail bc the file was changed.
+    """
+    return ["git", "add", "pyproject.toml"]
 
 
 def lock_dependencies() -> list[str | Path]:
@@ -64,6 +73,15 @@ def lock_dependencies() -> list[str | Path]:
     This function returns the input for subprocess.run() to lock the dependencies.
     """
     return [POETRY_ARG, "lock"]
+
+
+def add_lock_file_to_git() -> list[str | Path]:
+    """Add the lock file to git.
+
+    This function returns the input for subprocess.run() to add the lock file
+    to git, so that the hook does not fail bc the file was changed.
+    """
+    return ["git", "add", "poetry.lock"]
 
 
 def check_package_manager_configs() -> list[str | Path]:

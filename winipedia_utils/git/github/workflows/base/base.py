@@ -4,6 +4,7 @@ from abc import abstractmethod
 from pathlib import Path
 from typing import Any
 
+from winipedia_utils.modules.module import make_obj_importpath
 from winipedia_utils.text.config import YamlConfigFile
 from winipedia_utils.text.string import split_on_uppercase
 
@@ -11,22 +12,36 @@ from winipedia_utils.text.string import split_on_uppercase
 class Workflow(YamlConfigFile):
     """Base class for workflows."""
 
+    @classmethod
     @abstractmethod
-    def get_workflow_triggers(self) -> dict[str, Any]:
+    def get_workflow_triggers(cls) -> dict[str, Any]:
         """Get the workflow triggers."""
 
+    @classmethod
     @abstractmethod
-    def get_permissions(self) -> dict[str, Any]:
+    def get_permissions(cls) -> dict[str, Any]:
         """Get the workflow permissions."""
 
+    @classmethod
     @abstractmethod
-    def get_jobs(self) -> dict[str, Any]:
+    def get_jobs(cls) -> dict[str, Any]:
         """Get the workflow jobs."""
 
-    def get_path(self) -> Path:
+    @classmethod
+    def get_parent_path(cls) -> Path:
         """Get the path to the config file."""
-        file_name = self.get_standard_job_name() + ".yaml"
-        return Path(".github/workflows") / file_name
+        return Path(".github/workflows")
+
+    @classmethod
+    def get_configs(cls) -> dict[str, Any]:
+        """Get the workflow config."""
+        return {
+            "name": cls.get_workflow_name(),
+            "on": cls.get_workflow_triggers(),
+            "permissions": cls.get_permissions(),
+            "run-name": cls.get_run_name(),
+            "jobs": cls.get_jobs(),
+        }
 
     @classmethod
     def get_standard_job(
@@ -39,7 +54,7 @@ class Workflow(YamlConfigFile):
     ) -> dict[str, Any]:
         """Get a standard job."""
         if name is None:
-            name = cls.get_standard_job_name()
+            name = cls.get_filename()
 
         if steps is None:
             steps = []
@@ -58,30 +73,14 @@ class Workflow(YamlConfigFile):
         return job
 
     @classmethod
-    def get_standard_job_name(cls) -> str:
-        """Get the standard job name."""
-        return "_".join(
-            split_on_uppercase(cls.__name__.removesuffix(Workflow.__name__))
-        ).lower()
-
-    @classmethod
     def get_workflow_name(cls) -> str:
         """Get the workflow name."""
         return " ".join(split_on_uppercase(cls.__name__))
 
-    def get_run_name(self) -> str:
+    @classmethod
+    def get_run_name(cls) -> str:
         """Get the workflow run name."""
-        return f"{self.get_workflow_name()}"
-
-    def get_configs(self) -> dict[str, Any]:
-        """Get the workflow config."""
-        return {
-            "name": self.get_workflow_name(),
-            "on": self.get_workflow_triggers(),
-            "permissions": self.get_permissions(),
-            "run-name": self.get_run_name(),
-            "jobs": self.get_jobs(),
-        }
+        return f"{cls.get_workflow_name()}"
 
     @classmethod
     def get_checkout_step(cls, fetch_depth: int | None = None) -> dict[str, Any]:
@@ -145,13 +144,6 @@ class Workflow(YamlConfigFile):
                 "run": "curl -sSL https://install.python-poetry.org | python3 -",
             }
         )
-        steps.append(
-            {
-                "name": "Extract Version from pyproject.toml",
-                "id": "version",
-                "run": 'version=$(poetry version -s) && echo "Project version: $version" && echo "version=v$version" >> $GITHUB_OUTPUT',  # noqa: E501
-            },
-        )
         if configure_pipy_token:
             steps.append(
                 {
@@ -163,38 +155,47 @@ class Workflow(YamlConfigFile):
             steps.append({"name": "Install Dependencies", "run": "poetry install"})
         return steps
 
-    @staticmethod
-    def get_release_steps() -> list[dict[str, Any]]:
+    @classmethod
+    def get_release_steps(cls) -> list[dict[str, Any]]:
         """Get the release steps."""
         return [
             {
                 "name": "Create and Push Tag",
-                "run": f"git tag {Workflow.get_version()} && git push origin {Workflow.get_version()}",  # noqa: E501
+                "run": f"git tag {cls.get_version()} && git push origin {cls.get_version()}",  # noqa: E501
             },
             {
                 "name": "Build Changelog",
                 "id": "build_changelog",
                 "uses": "mikepenz/release-changelog-builder-action@develop",
-                "with": {"token": "${{ secrets.GITHUB_TOKEN }}"},
+                "with": {"token": cls.get_github_token()},
             },
             {
                 "name": "Create GitHub Release",
                 "uses": "ncipollo/release-action@main",
                 "with": {
-                    "tag": Workflow.get_version(),
-                    "name": Workflow.get_repo_and_version(),
+                    "tag": cls.get_version(),
+                    "name": cls.get_repo_and_version(),
                     "body": "${{ steps.build_changelog.outputs.changelog }}",
                 },
             },
         ]
 
-    @staticmethod
-    def get_publish_to_pypi_step() -> dict[str, Any]:
+    @classmethod
+    def get_extract_version_step(cls) -> dict[str, Any]:
+        """Get the extract version step."""
+        return {
+            "name": "Extract Version from pyproject.toml",
+            "id": "version",
+            "run": 'version=$(poetry version -s) && echo "Project version: $version" && echo "version=v$version" >> $GITHUB_OUTPUT',  # noqa: E501
+        }
+
+    @classmethod
+    def get_publish_to_pypi_step(cls) -> dict[str, Any]:
         """Get the publish step."""
         return {"name": "Build and publish to PyPI", "run": "poetry publish --build"}
 
-    @staticmethod
-    def get_pre_commit_step() -> dict[str, Any]:
+    @classmethod
+    def get_pre_commit_step(cls) -> dict[str, Any]:
         """Get the pre-commit step.
 
         using pre commit in case other hooks are added later
@@ -206,13 +207,33 @@ class Workflow(YamlConfigFile):
             "run": "poetry run pre-commit run --all-files --verbose",
         }
 
-    @staticmethod
-    def get_repository_name() -> str:
+    @classmethod
+    def get_commit_step(cls) -> dict[str, Any]:
+        """Get the commit step."""
+        return {
+            "name": "Commit Changes",
+            "run": "poetry run git commit --no-verify -m 'CI/CD: Committing possible changes to pyproject.toml and poetry.lock' && poetry run git push",  # noqa: E501
+        }
+
+    @classmethod
+    def get_protect_repository_step(cls) -> dict[str, Any]:
+        """Get the protect repository step."""
+        from winipedia_utils.git.github.repo import (  # noqa: PLC0415
+            protect,  # avoid circular import
+        )
+
+        return {
+            "name": "Protect Repository",
+            "run": f"poetry run python -m {make_obj_importpath(protect)} --token {cls.get_github_token()}",  # noqa: E501
+        }
+
+    @classmethod
+    def get_repository_name(cls) -> str:
         """Get the repository name."""
         return "${{ github.event.repository.name }}"
 
-    @staticmethod
-    def get_ref_name() -> str:
+    @classmethod
+    def get_ref_name(cls) -> str:
         """Get the ref name."""
         return "${{ github.ref_name }}"
 
@@ -221,7 +242,17 @@ class Workflow(YamlConfigFile):
         """Get the version."""
         return "${{ steps.version.outputs.version }}"
 
-    @staticmethod
-    def get_repo_and_version() -> str:
+    @classmethod
+    def get_repo_and_version(cls) -> str:
         """Get the repository name and ref name."""
-        return f"{Workflow.get_repository_name()} {Workflow.get_version()}"
+        return f"{cls.get_repository_name()} {cls.get_version()}"
+
+    @classmethod
+    def get_ownwer(cls) -> str:
+        """Get the repository owner."""
+        return "${{ github.repository_owner }}"
+
+    @classmethod
+    def get_github_token(cls) -> str:
+        """Get the GitHub token."""
+        return "${{ secrets.GITHUB_TOKEN }}"

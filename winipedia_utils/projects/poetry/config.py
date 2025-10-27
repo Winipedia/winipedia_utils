@@ -1,23 +1,23 @@
 """Config utilities for poetry and pyproject.toml."""
 
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from winipedia_utils.modules.package import get_src_package, make_name_from_package
 from winipedia_utils.testing.convention import TESTS_PACKAGE_NAME
 from winipedia_utils.text.config import ConfigFile, TomlConfigFile
 
 
-class PyProjectTomlConfig(TomlConfigFile):
+class PyprojectConfigFile(TomlConfigFile):
     """Config file for pyproject.toml."""
 
-    PATH = Path("pyproject.toml")
-
-    def get_path(self) -> Path:
+    @classmethod
+    def get_parent_path(cls) -> Path:
         """Get the path to the config file."""
-        return self.PATH
+        return Path()
 
-    def get_configs(self) -> dict[str, Any]:
+    @classmethod
+    def get_configs(cls) -> dict[str, Any]:
         """Get the config."""
         return {
             "project": {
@@ -32,21 +32,14 @@ class PyProjectTomlConfig(TomlConfigFile):
             "tool": {
                 "poetry": {
                     "packages": [{"include": get_src_package().__name__}],
+                    "dependencies": dict.fromkeys(
+                        cls.get_dependencies(),
+                        "*",
+                    ),
                     "group": {
                         "dev": {
                             "dependencies": dict.fromkeys(
-                                [
-                                    "ruff",
-                                    "pre-commit",
-                                    "mypy",
-                                    "pytest",
-                                    "bandit",
-                                    "types-setuptools",
-                                    "types-tqdm",
-                                    "types-defusedxml",
-                                    "types-pyyaml",
-                                    "pytest-mock",
-                                ],
+                                cls.get_dev_dependencies(),
                                 "*",
                             )
                         }
@@ -72,16 +65,23 @@ class PyProjectTomlConfig(TomlConfigFile):
             },
         }
 
-    def get_package_name(self) -> str:
+    @classmethod
+    def get_package_name(cls) -> str:
         """Get the package name."""
-        project_dict = self.load().get("project", {})
+        project_dict = cls.load().get("project", {})
         package_name = str(project_dict.get("name", ""))
         return package_name.replace("-", "_")
 
-    def get_dev_dependencies(self) -> set[str]:
+    @classmethod
+    def get_all_dependencies(cls) -> set[str]:
+        """Get all dependencies."""
+        return cls.get_dependencies() | cls.get_dev_dependencies()
+
+    @classmethod
+    def get_dev_dependencies(cls) -> set[str]:
         """Get the dev dependencies."""
         dev_dependencies = set(
-            self.load()
+            cls.load()
             .get("tool", {})
             .get("poetry", {})
             .get("group", {})
@@ -91,38 +91,76 @@ class PyProjectTomlConfig(TomlConfigFile):
         )
         if not dev_dependencies:
             dev_dependencies = set(
-                self.load().get("dependency-groups", {}).get("dev", [])
+                cls.load().get("dependency-groups", {}).get("dev", [])
             )
             dev_dependencies = {d.split("(")[0].strip() for d in dev_dependencies}
         return dev_dependencies
 
-    def get_expected_dev_dependencies(self) -> set[str]:
+    @classmethod
+    def get_dependencies(cls) -> set[str]:
+        """Get the dependencies."""
+        return set(
+            cls.load().get("tool", {}).get("poetry", {}).get("dependencies", {}).keys()
+        )
+
+    @classmethod
+    def get_expected_dev_dependencies(cls) -> set[str]:
         """Get the expected dev dependencies."""
         return set(
-            self.get_configs()["tool"]["poetry"]["group"]["dev"]["dependencies"].keys()
+            cls.get_configs()["tool"]["poetry"]["group"]["dev"]["dependencies"].keys()
         )
+
+    @classmethod
+    def get_authors(cls) -> list[dict[str, str]]:
+        """Get the authors."""
+        return cast(
+            "list[dict[str, str]]", cls.load().get("project", {}).get("authors", [])
+        )
+
+    @classmethod
+    def get_main_author(cls) -> dict[str, str]:
+        """Get the main author.
+
+        Assumes the main author is the first author.
+        """
+        return cls.get_authors()[0]
+
+    @classmethod
+    def get_main_author_name(cls) -> str:
+        """Get the main author name."""
+        return cls.get_main_author()["name"]
+
+
+class TypedConfigFile(ConfigFile):
+    """Config file for py.typed."""
+
+    @classmethod
+    def get_file_extension(cls) -> str:
+        """Get the file extension of the config file."""
+        return "typed"
+
+    @classmethod
+    def load(cls) -> dict[str, Any] | list[Any]:
+        """Load the config file."""
+        return {}
+
+    @classmethod
+    def dump(cls, config: dict[str, Any] | list[Any]) -> None:
+        """Dump the config file."""
+        if config:
+            msg = "Cannot dump to py.typed file."
+            raise ValueError(msg)
+
+    @classmethod
+    def get_configs(cls) -> dict[str, Any] | list[Any]:
+        """Get the config."""
+        return {}
 
 
 class PyTypedConfigFile(ConfigFile):
     """Config file for py.typed."""
 
-    def get_path(self) -> Path:
+    @classmethod
+    def get_parent_path(cls) -> Path:
         """Get the path to the config file."""
-        toml_config = PyProjectTomlConfig()
-        package_name = toml_config.get_package_name()
-        return Path(package_name) / "py.typed"
-
-    def load(self) -> dict[str, Any]:
-        """Load the config file."""
-        return {}
-
-    def dump(self, config: dict[str, Any]) -> None:
-        """Dump the config file."""
-        if config:
-            msg = "Cannot dump to py.typed file."
-            raise ValueError(msg)
-        self.path.touch()
-
-    def get_configs(self) -> dict[str, Any]:
-        """Get the config."""
-        return {}
+        return Path(PyprojectConfigFile.get_package_name())

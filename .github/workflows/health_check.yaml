@@ -6,10 +6,9 @@ name: Health Check Workflow
     - synchronize
     - reopened
   schedule:
-  - cron: 0 5 * * 1
+  - cron: 0 6 * * *
   workflow_dispatch: {}
-permissions:
-  contents: read
+permissions: {}
 run-name: Health Check Workflow
 jobs:
   health_check:
@@ -23,11 +22,14 @@ jobs:
         python-version: 3.x
     - name: Install Poetry
       run: curl -sSL https://install.python-poetry.org | python3 -
+    - name: Install Dependencies
+      run: poetry install
+    - name: Protect Repository
+      run: poetry run python -m winipedia_utils.git.github.repo.protect --token ${{
+        secrets.GITHUB_TOKEN }}
+    - name: Run Hooks
+      run: poetry run pre-commit run --all-files --verbose
     - name: Extract Version from pyproject.toml
       id: version
       run: 'version=$(poetry version -s) && echo "Project version: $version" && echo
         "version=v$version" >> $GITHUB_OUTPUT'
-    - name: Install Dependencies
-      run: poetry install
-    - name: Run Hooks
-      run: poetry run pre-commit run --all-files --verbose

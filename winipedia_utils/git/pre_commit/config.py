@@ -7,27 +7,27 @@ import winipedia_utils
 from winipedia_utils.logging.logger import get_logger
 from winipedia_utils.modules.package import make_name_from_package
 from winipedia_utils.os.os import run_subprocess
-from winipedia_utils.projects.poetry.poetry import POETRY_RUN_ARGS
 from winipedia_utils.text.config import YamlConfigFile
 
 logger = get_logger(__name__)
 
 
-class PreCommitConfigFile(YamlConfigFile):
+class PreCommitConfigConfigFile(YamlConfigFile):
     """Config file for pre-commit."""
 
-    PATH = Path(".pre-commit-config.yaml")
+    @classmethod
+    def get_filename(cls) -> str:
+        """Get the filename of the config file."""
+        filename = super().get_filename()
+        return f".{filename.replace('_', '-')}"
 
-    def __init__(self) -> None:
-        """Init the file."""
-        super().__init__()
-        self.install()
-
-    def get_path(self) -> Path:
+    @classmethod
+    def get_parent_path(cls) -> Path:
         """Get the path to the config file."""
-        return self.PATH
+        return Path()
 
-    def get_configs(self) -> dict[str, Any]:
+    @classmethod
+    def get_configs(cls) -> dict[str, Any]:
         """Get the config."""
         hook_name = make_name_from_package(winipedia_utils, capitalize=False)
         return {
@@ -38,7 +38,7 @@ class PreCommitConfigFile(YamlConfigFile):
                         {
                             "id": hook_name,
                             "name": hook_name,
-                            "entry": self.get_python_setup_script(),
+                            "entry": cls.get_python_setup_script(),
                             "language": "system",
                             "always_run": True,
                             "pass_filenames": False,
@@ -48,8 +48,13 @@ class PreCommitConfigFile(YamlConfigFile):
             ]
         }
 
+    def __init__(self) -> None:
+        """Init the file."""
+        super().__init__()
+        self.install()
+
     @classmethod
     def install(cls) -> None:
         """Installs the pre commits in the config."""
         logger.info("Running pre-commit install")
-        run_subprocess([*POETRY_RUN_ARGS, "pre-commit", "install"], check=True)
+        run_subprocess(["pre-commit", "install"], check=True)

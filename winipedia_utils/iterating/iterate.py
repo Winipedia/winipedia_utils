@@ -78,10 +78,9 @@ def nested_structure_is_subset(
         if not nested_structure_is_subset(
             value, actual_value, on_false_dict_action, on_false_list_action
         ):
-            fixed = False
+            all_good = False
             if on_false_action is not None:
                 on_false_action(subset, superset, key_or_index)
-                fixed = nested_structure_is_subset(subset, superset)
-            if not fixed:
-                all_good = False
+                all_good = nested_structure_is_subset(subset, superset)
+
     return all_good

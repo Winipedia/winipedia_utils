@@ -16,7 +16,7 @@ from winipedia_utils.modules.package import (
     walk_package,
 )
 from winipedia_utils.projects.poetry.config import (
-    PyProjectTomlConfig,
+    PyprojectConfigFile,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
 from winipedia_utils.testing.convention import (
@@ -39,15 +39,14 @@ def assert_dev_dependencies_config_is_correct() -> None:
         AssertionError: If the dev dependencies in consts.py are not correct
 
     """
-    config = PyProjectTomlConfig()
-    if config.get_package_name() != winipedia_utils.__name__:
+    if PyprojectConfigFile.get_package_name() != winipedia_utils.__name__:
         # this const is only used in winipedia_utils
         # to be able to install them with setup.py
         return
-    actual_dev_dependencies = config.get_dev_dependencies()
-    expected_dev_dependencies = config.get_configs()["tool"]["poetry"]["group"]["dev"][
-        "dependencies"
-    ].keys()
+    actual_dev_dependencies = PyprojectConfigFile.get_dev_dependencies()
+    expected_dev_dependencies = PyprojectConfigFile.get_configs()["tool"]["poetry"][
+        "group"
+    ]["dev"]["dependencies"].keys()
     assert_with_msg(
         set(actual_dev_dependencies) == set(expected_dev_dependencies),
         "Dev dependencies in consts.py are not correct",
@@ -123,7 +122,7 @@ def assert_src_package_correctly_named() -> None:
 
     """
     src_package = get_src_package().__name__
-    config = PyProjectTomlConfig()
+    config = PyprojectConfigFile()
     expected_package = config.get_package_name()
     assert_with_msg(
         src_package == expected_package,

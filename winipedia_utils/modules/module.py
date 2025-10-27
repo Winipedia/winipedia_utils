@@ -215,6 +215,8 @@ def import_obj_from_importpath(
         return import_module(importpath)
     except ImportError:
         # might be a class or function
+        if "." not in importpath:
+            raise
         module_name, obj_name = importpath.rsplit(".", 1)
         module = import_module(module_name)
         obj: Callable[..., Any] | type | ModuleType = getattr(module, obj_name)

@@ -13,34 +13,65 @@ class PythonConfigFile(ConfigFile):
 
     CONTENT_KEY = "content"
 
-    def load(self) -> dict[str, str]:
+    @classmethod
+    def load(cls) -> dict[str, str]:
         """Load the config file."""
-        return {self.CONTENT_KEY: self.path.read_text()}
+        return {cls.CONTENT_KEY: cls.get_path().read_text()}
 
-    def dump(self, config: dict[str, Any]) -> None:
+    @classmethod
+    def dump(cls, config: dict[str, Any] | list[Any]) -> None:
         """Dump the config file."""
-        self.path.write_text(config[self.CONTENT_KEY])
+        if not isinstance(config, dict):
+            msg = f"Cannot dump {config} to python file."
+            raise TypeError(msg)
+        cls.get_path().write_text(config[cls.CONTENT_KEY])
 
-    def get_configs(self) -> dict[str, Any]:
+    @classmethod
+    def get_file_extension(cls) -> str:
+        """Get the file extension of the config file."""
+        return "py"
+
+    @classmethod
+    def get_configs(cls) -> dict[str, Any]:
         """Get the config."""
-        return {self.CONTENT_KEY: self.get_content()}
+        return {cls.CONTENT_KEY: cls.get_content_str()}
 
+    @classmethod
+    def get_file_content(cls) -> str:
+        """Get the file content."""
+        return cls.load()[cls.CONTENT_KEY]
+
+    @classmethod
     @abstractmethod
-    def get_content(self) -> str:
+    def get_content_str(cls) -> str:
         """Get the content."""
-        return self.load()[self.CONTENT_KEY]
+
+    @classmethod
+    def is_correct(cls) -> bool:
+        """Check if the config is correct.
+
+        Python files are correct if they exist and contain the correct content.
+        """
+        return (
+            super().is_correct()
+            or cls.get_content_str().strip() in cls.load()[cls.CONTENT_KEY]
+        )
 
 
-class ConftestConfigFile(PythonConfigFile):
+class PythonTestsConfigFile(PythonConfigFile):
+    """Base class for python config files in the tests directory."""
+
+    @classmethod
+    def get_parent_path(cls) -> Path:
+        """Get the path to the config file."""
+        return Path(TESTS_PACKAGE_NAME)
+
+
+class ConftestConfigFile(PythonTestsConfigFile):
     """Config file for conftest.py."""
 
-    PATH = Path(f"{TESTS_PACKAGE_NAME}/conftest.py")
-
-    def get_path(self) -> Path:
-        """Get the path to the config file."""
-        return self.PATH
-
-    def get_content(self) -> str:
+    @classmethod
+    def get_content_str(cls) -> str:
         """Get the config content."""
         return '''"""Pytest configuration for tests.
 
@@ -55,21 +86,22 @@ pytest_plugins = ["winipedia_utils.testing.tests.conftest"]
 '''
 
 
-class ZeroTestConfigFile(PythonConfigFile):
-    """Config file for test_0.py."""
+class ZeroTestConfigFile(PythonTestsConfigFile):
+    """Config file for test_zero.py."""
 
-    PATH = Path(f"{TESTS_PACKAGE_NAME}/test_0.py")
+    @classmethod
+    def get_filename(cls) -> str:
+        """Get the filename of the config file."""
+        filename = super().get_filename()
+        return "_".join(reversed(filename.split("_")))
 
-    def get_path(self) -> Path:
-        """Get the path to the config file."""
-        return self.PATH
-
-    def get_content(self) -> str:
+    @classmethod
+    def get_content_str(cls) -> str:
         """Get the config."""
         return '''"""Contains an empty test."""
 
 
-def test_0() -> None:
+def test_zero() -> None:
     """Empty test.
 
     Exists so that when no tests are written yet the base fixtures are executed.
@@ -83,13 +115,35 @@ class ExperimentConfigFile(PythonConfigFile):
     Is at root level and in .gitignore for experimentation.
     """
 
-    PATH = Path("experiment.py")
-
-    def get_path(self) -> Path:
+    @classmethod
+    def get_parent_path(cls) -> Path:
         """Get the path to the config file."""
-        return self.PATH
+        return Path()
 
-    def get_content(self) -> str:
+    @classmethod
+    def get_content_str(cls) -> str:
         """Get the config."""
         return '''"""This file is for experimentation and is ignored by git."""
+'''
+
+
+class LocalSecretsConfigFile(PythonConfigFile):
+    """Config file for secrets.py.
+
+    Config file for secrets. Is added to .gitignore automatically.
+    Should be in .gitignore.
+    """
+
+    @classmethod
+    def get_parent_path(cls) -> Path:
+        """Get the path to the config file."""
+        return Path()
+
+    @classmethod
+    def get_content_str(cls) -> str:
+        """Get the config."""
+        return '''"""This file is for secrets you might use and is ignored by git.
+
+Can be used by tests or other developing code.
+"""
 '''

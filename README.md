@@ -38,13 +38,25 @@ A comprehensive Python utility package that enforces best practices, automates p
 
 ## Quick Start
 
-### Installation
+### How to setup a new project
 
 ```bash
-# Add winipedia-utils to your project
+# 1: Create a new repository on GitHub
+# The default branch must be called main
+
+# 2: Clone the repository
+git clone https://github.com/owner/repo.git
+
+# 3: Create a new poetry project
+poetry init # or poetry new
+# 4: Poetry will ask you some stuff when you run poetry init.
+# First author name must be equal to the GitHub repository owner (username).
+# The repository name must be equal to the package/project name.
+
+# 5: Add winipedia-utils to your project
 poetry add winipedia-utils
 
-# Run the automated setup
+# 6: Run the automated setup
 poetry run python -m winipedia_utils.setup
 ```
 
@@ -82,8 +94,8 @@ Usually VSCode or other IDEs activates the venv automatically when opening the t
 1. Patch version (poetry version patch)
 2. Add version patch to git (git add pyproject.toml)
 3. Update package manager (poetry self update)
-4. Install packages (poetry install)
-5. Update packages (poetry update)
+4. Install packages (poetry install --with dev)
+5. Update packages (poetry update --with dev (winipedia_utils forces all dependencies with * to be updated to latest compatible version))
 6. Lock dependencies (poetry lock)
 7. Check package manager configs (poetry check --strict)
 8. Create tests (python -m winipedia_utils.testing.create_tests)

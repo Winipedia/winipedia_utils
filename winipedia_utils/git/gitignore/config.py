@@ -3,52 +3,72 @@
 from pathlib import Path
 from typing import Any
 
+import requests
+
+from winipedia_utils.testing.config import ExperimentConfigFile, LocalSecretsConfigFile
 from winipedia_utils.text.config import ConfigFile
 
 
 class GitIgnoreConfigFile(ConfigFile):
     """Config file for .gitignore."""
 
-    PATH = Path(".gitignore")
-
-    IGNORE_KEY = "ignore"
-
-    def get_path(self) -> Path:
-        """Get the path to the config file."""
-        return self.PATH
-
-    def load(self) -> dict[str, Any]:
-        """Load the config file."""
-        return self.load_static()
+    @classmethod
+    def get_filename(cls) -> str:
+        """Get the filename of the config file."""
+        return ""  # so it builds the path .gitignore and not gitignore.gitignore
 
     @classmethod
-    def load_static(cls) -> dict[str, list[str]]:
+    def get_parent_path(cls) -> Path:
+        """Get the path to the config file."""
+        return Path()
+
+    @classmethod
+    def get_file_extension(cls) -> str:
+        """Get the file extension of the config file."""
+        return "gitignore"
+
+    @classmethod
+    def load(cls) -> list[str]:
         """Load the config file."""
-        paths = cls.PATH.read_text().splitlines()
-        return {cls.IGNORE_KEY: paths}
+        return cls.get_path().read_text().splitlines()
 
-    def dump(self, config: dict[str, Any]) -> None:
+    @classmethod
+    def dump(cls, config: list[str] | dict[str, Any]) -> None:
         """Dump the config file."""
-        patterns = config.get(self.IGNORE_KEY, [])
-        self.path.write_text("\n".join(patterns))
+        if not isinstance(config, list):
+            msg = f"Cannot dump {config} to .gitignore file."
+            raise TypeError(msg)
+        cls.get_path().write_text("\n".join(config))
 
-    def get_configs(self) -> dict[str, Any]:
+    @classmethod
+    def get_configs(cls) -> list[str]:
         """Get the config."""
-        from winipedia_utils.testing.config import (  # noqa: PLC0415  # avoid circular import
-            ExperimentConfigFile,
-        )
-
+        # fetch the standard github gitignore via https://github.com/github/gitignore/blob/main/Python.gitignore
         needed = [
-            "__pycache__/",
-            ".idea/",
-            ".mypy_cache/",
-            ".pytest_cache/",
-            ".ruff_cache/",
+            *cls.get_github_python_gitignore(),
+            "# vscode stuff",
             ".vscode/",
-            "dist/",
-            ".git/",  # for walk_os_skipping_gitignore_patterns func
-            ExperimentConfigFile.PATH.name,  # for executing experimental code
+            "",
+            "# winipedia_utils stuff",
+            "# for walk_os_skipping_gitignore_patterns func",
+            ".git/",
+            "# for executing experimental code",
+            ExperimentConfigFile.get_path().as_posix(),
+            "# for secrets used locally",
+            LocalSecretsConfigFile.get_path().as_posix(),
         ]
-        existing = self.load()[self.IGNORE_KEY]
+        existing = cls.load()
         needed = [p for p in needed if p not in set(existing)]
-        return {self.IGNORE_KEY: existing + needed}
+        return existing + needed
+
+    @classmethod
+    def get_github_python_gitignore(cls) -> list[str]:
+        """Get the standard github python gitignore."""
+        url = "https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore"
+        res = requests.get(url, timeout=10)
+        if not res.ok:
+            if not Path(".gitignore").exists():
+                msg = f"Failed to fetch {url}. Cannot create .gitignore."
+                raise RuntimeError(msg)
+            return []
+        return res.text.splitlines()

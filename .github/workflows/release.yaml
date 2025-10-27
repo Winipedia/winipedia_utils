@@ -3,6 +3,9 @@ name: Release Workflow
   push:
     branches:
     - main
+  workflow_dispatch: {}
+  schedule:
+  - cron: 0 6 * * 2
 permissions:
   contents: write
 run-name: Release Workflow
@@ -18,14 +21,17 @@ jobs:
         python-version: 3.x
     - name: Install Poetry
       run: curl -sSL https://install.python-poetry.org | python3 -
+    - name: Install Dependencies
+      run: poetry install
+    - name: Protect Repository
+      run: poetry run python -m winipedia_utils.git.github.repo.protect --token ${{
+        secrets.GITHUB_TOKEN }}
+    - name: Run Hooks
+      run: poetry run pre-commit run --all-files --verbose
     - name: Extract Version from pyproject.toml
       id: version
       run: 'version=$(poetry version -s) && echo "Project version: $version" && echo
         "version=v$version" >> $GITHUB_OUTPUT'
-    - name: Install Dependencies
-      run: poetry install
-    - name: Run Hooks
-      run: poetry run pre-commit run --all-files --verbose
     - name: Create and Push Tag
       run: git tag ${{ steps.version.outputs.version }} && git push origin ${{ steps.version.outputs.version
         }}

@@ -6,12 +6,15 @@ These fixtures are automatically applied to all test modules through pytest's au
 mechanism.
 """
 
+from typing import TYPE_CHECKING
+
 import pytest
 
-from winipedia_utils.modules.module import to_module_name
-from winipedia_utils.testing.config import ZeroTestConfigFile
 from winipedia_utils.testing.fixtures import autouse_module_fixture
 from winipedia_utils.testing.tests.base.utils.utils import assert_no_untested_objs
+
+if TYPE_CHECKING:
+    from types import ModuleType
 
 
 @autouse_module_fixture
@@ -29,7 +32,5 @@ def assert_all_funcs_and_classes_tested(request: pytest.FixtureRequest) -> None:
         AssertionError: If any function or class in the source module lacks a test
 
     """
-    module = request.module
-    if module.__name__ == to_module_name(ZeroTestConfigFile().get_path()):
-        return
+    module: ModuleType = request.module
     assert_no_untested_objs(module)

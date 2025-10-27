@@ -1,88 +1,119 @@
 """module."""
 
+from collections.abc import Callable
 from pathlib import Path
+
+import pytest
+from pytest_mock import MockFixture
 
 from winipedia_utils.git.gitignore.config import GitIgnoreConfigFile
 from winipedia_utils.testing.assertions import assert_with_msg
+from winipedia_utils.text.config import ConfigFile
 
 
-class MyGitIgnoreConfigFile(GitIgnoreConfigFile):
-    """GitIgnore config file for testing."""
+@pytest.fixture
+def my_test_gitignore_config_file(
+    config_file_factory: Callable[[type[ConfigFile]], type[ConfigFile]],
+) -> type[GitIgnoreConfigFile]:
+    """Create a test gitignore config file class with tmp_path."""
 
-    PATH = Path(".gitignore")
+    class MyTestGitIgnoreConfigFile(
+        config_file_factory(GitIgnoreConfigFile)  # type: ignore [misc]
+    ):
+        """Test gitignore config file with tmp_path override."""
 
-    def __init__(self, tmp_path: Path) -> None:
-        """Initialize with temporary path."""
-        self.PATH = tmp_path / self.PATH
-        super().__init__()
+    return MyTestGitIgnoreConfigFile
 
 
 class TestGitIgnoreConfigFile:
     """Test class for GitIgnoreConfigFile."""
 
-    def test_get_path(self, tmp_path: Path) -> None:
-        """Test method for get_path."""
-        config_file = MyGitIgnoreConfigFile(tmp_path)
-        path = config_file.get_path()
+    def test_get_filename(
+        self, my_test_gitignore_config_file: type[GitIgnoreConfigFile]
+    ) -> None:
+        """Test method for get_filename."""
+        filename = my_test_gitignore_config_file.get_filename()
         assert_with_msg(
-            path.name == ".gitignore",
-            f"Expected path name to be '.gitignore', got {path.name}",
+            filename == "",
+            f"Expected empty string, got {filename}",
         )
 
-    def test_load(self, tmp_path: Path) -> None:
+    def test_get_parent_path(
+        self, my_test_gitignore_config_file: type[GitIgnoreConfigFile]
+    ) -> None:
+        """Test method for get_parent_path."""
+        parent_path = my_test_gitignore_config_file.get_parent_path()
+        assert_with_msg(
+            parent_path == Path(),
+            f"Expected Path(), got {parent_path}",
+        )
+
+    def test_get_file_extension(
+        self, my_test_gitignore_config_file: type[GitIgnoreConfigFile]
+    ) -> None:
+        """Test method for get_file_extension."""
+        extension = my_test_gitignore_config_file.get_file_extension()
+        assert_with_msg(
+            extension == "gitignore",
+            f"Expected 'gitignore', got {extension}",
+        )
+
+    def test_load(
+        self, my_test_gitignore_config_file: type[GitIgnoreConfigFile]
+    ) -> None:
         """Test method for load."""
-        config_file = MyGitIgnoreConfigFile(tmp_path)
-        loaded = config_file.load()
+        # Initialize the config file first
+        my_test_gitignore_config_file()
+        loaded = my_test_gitignore_config_file.load()
         assert_with_msg(
-            "ignore" in loaded,
-            f"Expected 'ignore' key in loaded config, got {loaded.keys()}",
-        )
-        assert_with_msg(
-            isinstance(loaded["ignore"], list),
-            f"Expected 'ignore' value to be list, got {type(loaded['ignore'])}",
+            len(loaded) > 0,
+            "Expected loaded config to be non-empty",
         )
 
-    def test_load_static(self, tmp_path: Path) -> None:
-        """Test method for load_static."""
-        MyGitIgnoreConfigFile(tmp_path)
-        loaded = GitIgnoreConfigFile.load_static()
-        assert_with_msg(
-            "ignore" in loaded,
-            f"Expected 'ignore' key in loaded config, got {loaded.keys()}",
-        )
-        assert_with_msg(
-            isinstance(loaded["ignore"], list),
-            f"Expected 'ignore' value to be list, got {type(loaded['ignore'])}",
-        )
-
-    def test_dump(self, tmp_path: Path) -> None:
+    def test_dump(
+        self, my_test_gitignore_config_file: type[GitIgnoreConfigFile]
+    ) -> None:
         """Test method for dump."""
-        config_file = MyGitIgnoreConfigFile(tmp_path)
-        test_patterns = ["*.pyc", "__pycache__/", ".env"]
-        config_file.dump({"ignore": test_patterns})
+        test_config = ["__pycache__/", ".idea/", ".pytest_cache/"]
+        my_test_gitignore_config_file.dump(test_config)
+        loaded = my_test_gitignore_config_file.load()
         assert_with_msg(
-            config_file.path.exists(),
-            f"Expected .gitignore file to exist at {config_file.path}",
+            loaded == test_config,
+            f"Expected {test_config}, got {loaded}",
         )
-        content = config_file.path.read_text()
+        # Test error handling for non-list
+        with pytest.raises(TypeError, match="Cannot dump"):
+            my_test_gitignore_config_file.dump({"key": "value"})
+
+    def test_get_configs(
+        self,
+        my_test_gitignore_config_file: type[GitIgnoreConfigFile],
+        mocker: MockFixture,
+    ) -> None:
+        """Test method for get_configs."""
+        # Mock the load method to return a minimal list
+        mocker.patch.object(
+            my_test_gitignore_config_file,
+            "load",
+            return_value=["__pycache__/"],
+        )
+        configs = my_test_gitignore_config_file.get_configs()
         assert_with_msg(
-            "*.pyc" in content,
-            f"Expected '*.pyc' in .gitignore content, got {content}",
+            len(configs) > 0,
+            "Expected configs to be non-empty",
+        )
+        # Verify it contains expected patterns
+        assert_with_msg(
+            any("__pycache__" in item for item in configs),
+            "Expected __pycache__ pattern in configs",
         )
 
-    def test_get_configs(self, tmp_path: Path) -> None:
-        """Test method for get_configs."""
-        config_file = MyGitIgnoreConfigFile(tmp_path)
-        configs = config_file.get_configs()
+    def test_get_github_python_gitignore(
+        self, my_test_gitignore_config_file: type[GitIgnoreConfigFile]
+    ) -> None:
+        """Test method for get_github_python_gitignore."""
+        patterns = my_test_gitignore_config_file.get_github_python_gitignore()
         assert_with_msg(
-            "ignore" in configs,
-            f"Expected 'ignore' key in configs, got {configs.keys()}",
-        )
-        assert_with_msg(
-            isinstance(configs["ignore"], list),
-            f"Expected 'ignore' value to be list, got {type(configs['ignore'])}",
-        )
-        assert_with_msg(
-            len(configs["ignore"]) > 0,
-            f"Expected non-empty ignore list, got {configs['ignore']}",
+            len(patterns) > 0,
+            "Expected patterns to be non-empty",
         )

@@ -1,134 +1,262 @@
-"""Tests for winipedia_utils.projects.poetry.config module."""
+"""module."""
 
+from collections.abc import Callable
 from pathlib import Path
 
+import pytest
+
 from winipedia_utils.projects.poetry.config import (
-    PyProjectTomlConfig,
+    PyprojectConfigFile,
     PyTypedConfigFile,
+    TypedConfigFile,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
 
 
-class MyPyProjectTomlConfig(PyProjectTomlConfig):
-    """PyProject TOML config file for testing."""
+@pytest.fixture
+def my_test_pyproject_config_file(
+    config_file_factory: Callable[
+        [type[PyprojectConfigFile]], type[PyprojectConfigFile]
+    ],
+) -> type[PyprojectConfigFile]:
+    """Create a test pyproject config file class with tmp_path."""
 
-    PATH = Path("pyproject.toml")
+    class MyTestPyprojectConfigFile(config_file_factory(PyprojectConfigFile)):  # type: ignore [misc]
+        """Test pyproject config file with tmp_path override."""
 
-    def __init__(self, tmp_path: Path) -> None:
-        """Initialize with temporary path."""
-        self.PATH = tmp_path / self.PATH
-        super().__init__()
+    return MyTestPyprojectConfigFile
 
 
-class TestPyProjectTomlConfig:
-    """Test class for PyProjectTomlConfig."""
+class TestPyprojectConfigFile:
+    """Test class for PyprojectConfigFile."""
 
-    def test_get_path(self, tmp_path: Path) -> None:
-        """Test method for get_path."""
-        config_file = MyPyProjectTomlConfig(tmp_path)
-        path = config_file.get_path()
-        assert_with_msg(
-            path.name == "pyproject.toml",
-            f"Expected path name to be 'pyproject.toml', got {path.name}",
-        )
+    def test_get_parent_path(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for get_parent_path."""
+        expected = Path()
+        actual = my_test_pyproject_config_file.get_parent_path()
+        assert_with_msg(actual == expected, f"Expected {expected}, got {actual}")
 
-    def test_get_configs(self, tmp_path: Path) -> None:
+    def test_get_configs(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
         """Test method for get_configs."""
-        config_file = MyPyProjectTomlConfig(tmp_path)
-        configs = config_file.get_configs()
+        # pyproject get configs internally uses load which makes it a special case
+        # where the file must exist before calling get_configs
+        my_test_pyproject_config_file()  # to create file
+        configs = my_test_pyproject_config_file.get_configs()
         assert_with_msg(
             "project" in configs,
-            f"Expected 'project' key in configs, got {configs.keys()}",
+            "Expected 'project' key in configs",
         )
         assert_with_msg(
             "build-system" in configs,
-            f"Expected 'build-system' key in configs, got {configs.keys()}",
+            "Expected 'build-system' key in configs",
         )
         assert_with_msg(
             "tool" in configs,
-            f"Expected 'tool' key in configs, got {configs.keys()}",
+            "Expected 'tool' key in configs",
         )
 
-    def test_get_package_name(self, tmp_path: Path) -> None:
+    def test_get_package_name(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
         """Test method for get_package_name."""
-        config_file = MyPyProjectTomlConfig(tmp_path)
-        package_name = config_file.get_package_name()
+        my_test_pyproject_config_file()
+        package_name = my_test_pyproject_config_file.get_package_name()
         assert_with_msg(
             len(package_name) > 0,
-            f"Expected package_name to be non-empty, got {package_name}",
+            "Expected package name to be non-empty",
         )
 
-    def test_get_dev_dependencies(self, tmp_path: Path) -> None:
+    def test_get_all_dependencies(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for get_all_dependencies."""
+        my_test_pyproject_config_file()
+        # get_all_dependencies should return a set (union of deps and dev_deps)
+        all_deps = my_test_pyproject_config_file.get_all_dependencies()
+        assert_with_msg(
+            len(all_deps) >= 0,
+            "Expected get_all_dependencies to return a set",
+        )
+
+    def test_get_dependencies(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for get_dependencies."""
+        my_test_pyproject_config_file()
+        # get_dependencies may raise if dependencies key doesn't exist
+        # This is expected behavior for the test config
+        deps = my_test_pyproject_config_file.get_dependencies()
+        assert_with_msg(
+            len(deps) >= 0,
+            "Expected get_dependencies to return a set",
+        )
+
+    def test_get_dev_dependencies(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
         """Test method for get_dev_dependencies."""
-        config_file = MyPyProjectTomlConfig(tmp_path)
-        dev_dependencies = config_file.get_dev_dependencies()
+        my_test_pyproject_config_file()
+        dev_deps = my_test_pyproject_config_file.get_dev_dependencies()
         assert_with_msg(
-            len(dev_dependencies) >= 0,
-            f"Expected dev_dependencies to be a set, got {type(dev_dependencies)}",
+            len(dev_deps) >= 0,
+            "Expected get_dev_dependencies to return a set",
         )
 
-    def test_get_expected_dev_dependencies(self, tmp_path: Path) -> None:
+    def test_get_expected_dev_dependencies(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
         """Test method for get_expected_dev_dependencies."""
-        config_file = MyPyProjectTomlConfig(tmp_path)
-        expected_dev_dependencies = config_file.get_expected_dev_dependencies()
+        # get_expected_dev_dependencies internally uses get_configs which makes it a
+        # special case where the file must exist before calling the method
+        my_test_pyproject_config_file()
+        expected_dev_deps = (
+            my_test_pyproject_config_file.get_expected_dev_dependencies()
+        )
         assert_with_msg(
-            len(expected_dev_dependencies) > 0,
-            f"Expected non-empty expected_dev_dependencies, "
-            f"got {expected_dev_dependencies}",
+            len(expected_dev_deps) == 0,
+            "Expected expected_dev_deps to be empty",
+        )
+
+    def test_get_authors(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for get_authors."""
+        my_test_pyproject_config_file()
+        config = my_test_pyproject_config_file.load()
+        # assert authors rn is empty list
+        assert_with_msg(
+            my_test_pyproject_config_file.get_authors() == [],
+            "Expected get_authors to return an empty list",
+        )
+        config["project"]["authors"] = [
+            {"name": "Test Author", "email": "test@example.com"}
+        ]
+        my_test_pyproject_config_file.dump(config)
+        authors = my_test_pyproject_config_file.get_authors()
+        assert_with_msg(
+            authors == [{"name": "Test Author", "email": "test@example.com"}],
+            "Expected get_authors to return a list with one author",
+        )
+
+    def test_get_main_author(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for get_main_author."""
+        my_test_pyproject_config_file()
+        config = my_test_pyproject_config_file.load()
+        # assert authors rn is empty list
+        with pytest.raises(IndexError, match=r"list index out of range"):
+            my_test_pyproject_config_file.get_main_author()
+        config["project"]["authors"] = [
+            {"name": "Test Author", "email": "test@example.com"}
+        ]
+        my_test_pyproject_config_file.dump(config)
+        main_author = my_test_pyproject_config_file.get_main_author()
+        assert_with_msg(
+            main_author == {"name": "Test Author", "email": "test@example.com"},
+            "Expected get_main_author to return the first author",
+        )
+
+    def test_get_main_author_name(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for get_main_author_name."""
+        my_test_pyproject_config_file()
+        config = my_test_pyproject_config_file.load()
+        # assert authors rn is empty list
+        with pytest.raises(IndexError, match=r"list index out of range"):
+            my_test_pyproject_config_file.get_main_author_name()
+        config["project"]["authors"] = [
+            {"name": "Test Author", "email": "test@example.com"}
+        ]
+        my_test_pyproject_config_file.dump(config)
+        main_author_name = my_test_pyproject_config_file.get_main_author_name()
+        assert_with_msg(
+            main_author_name == "Test Author",
+            "Expected get_main_author_name to return the first author name",
         )
 
 
-class MyPyTypedConfigFile(PyTypedConfigFile):
-    """PyTyped config file for testing."""
+@pytest.fixture
+def my_test_typed_config_file(
+    config_file_factory: Callable[[type[TypedConfigFile]], type[TypedConfigFile]],
+) -> type[TypedConfigFile]:
+    """Create a test typed config file class with tmp_path."""
 
-    def __init__(self, tmp_path: Path) -> None:
-        """Initialize with temporary path."""
-        self.tmp_path = tmp_path
-        super().__init__()
+    class MyTestTypedConfigFile(config_file_factory(TypedConfigFile)):  # type: ignore [misc]
+        """Test typed config file with tmp_path override."""
 
-    def get_path(self) -> Path:
-        """Get the path to the config file."""
-        toml_config = MyPyProjectTomlConfig(self.tmp_path)
-        package_name = toml_config.get_package_name()
-        return self.tmp_path / package_name / "py.typed"
+    return MyTestTypedConfigFile
+
+
+class TestTypedConfigFile:
+    """Test class for TypedConfigFile."""
+
+    def test_get_file_extension(
+        self, my_test_typed_config_file: type[TypedConfigFile]
+    ) -> None:
+        """Test method for get_file_extension."""
+        expected = "typed"
+        actual = my_test_typed_config_file.get_file_extension()
+        assert_with_msg(actual == expected, f"Expected {expected}, got {actual}")
+
+    def test_load(self, my_test_typed_config_file: type[TypedConfigFile]) -> None:
+        """Test method for load."""
+        loaded = my_test_typed_config_file.load()
+        assert_with_msg(
+            loaded == {},
+            "Expected load to return empty dict",
+        )
+
+    def test_dump(self, my_test_typed_config_file: type[TypedConfigFile]) -> None:
+        """Test method for dump."""
+        # assert dumps empty dict successfully
+        my_test_typed_config_file.dump({})
+        assert_with_msg(
+            my_test_typed_config_file.load() == {},
+            "Expected dump to work with empty dict",
+        )
+        # assert raises ValueError if config is not empty
+        with pytest.raises(ValueError, match=r"Cannot dump to py\.typed file"):
+            my_test_typed_config_file.dump({"key": "value"})
+
+    def test_get_configs(
+        self, my_test_typed_config_file: type[TypedConfigFile]
+    ) -> None:
+        """Test method for get_configs."""
+        configs = my_test_typed_config_file.get_configs()
+        assert_with_msg(
+            configs == {},
+            "Expected get_configs to return empty dict",
+        )
+
+
+@pytest.fixture
+def my_test_py_typed_config_file(
+    config_file_factory: Callable[[type[PyTypedConfigFile]], type[PyTypedConfigFile]],
+) -> type[PyTypedConfigFile]:
+    """Create a test py.typed config file class with tmp_path."""
+
+    class MyTestPyTypedConfigFile(config_file_factory(PyTypedConfigFile)):  # type: ignore [misc]
+        """Test py.typed config file with tmp_path override."""
+
+    return MyTestPyTypedConfigFile
 
 
 class TestPyTypedConfigFile:
     """Test class for PyTypedConfigFile."""
 
-    def test_get_path(self, tmp_path: Path) -> None:
-        """Test method for get_path."""
-        config_file = MyPyTypedConfigFile(tmp_path)
-        path = config_file.get_path()
+    def test_get_parent_path(
+        self, my_test_py_typed_config_file: type[PyTypedConfigFile]
+    ) -> None:
+        """Test method for get_parent_path."""
+        parent_path = my_test_py_typed_config_file.get_parent_path()
+        # The parent path should be the package name
         assert_with_msg(
-            path.name == "py.typed",
-            f"Expected path name to be 'py.typed', got {path.name}",
-        )
-
-    def test_load(self, tmp_path: Path) -> None:
-        """Test method for load."""
-        config_file = MyPyTypedConfigFile(tmp_path)
-        loaded = config_file.load()
-        assert_with_msg(
-            loaded == {},
-            f"Expected empty dict from load, got {loaded}",
-        )
-
-    def test_dump(self, tmp_path: Path) -> None:
-        """Test method for dump."""
-        config_file = MyPyTypedConfigFile(tmp_path)
-        # Test dumping empty config (should not raise)
-        config_file.dump({})
-        assert_with_msg(
-            config_file.path.exists(),
-            f"Expected py.typed file to exist at {config_file.path}",
-        )
-
-    def test_get_configs(self, tmp_path: Path) -> None:
-        """Test method for get_configs."""
-        config_file = MyPyTypedConfigFile(tmp_path)
-        configs = config_file.get_configs()
-        assert_with_msg(
-            configs == {},
-            f"Expected empty dict from get_configs, got {configs}",
+            len(parent_path.as_posix()) > 0,
+            "Expected parent_path to be non-empty",
         )

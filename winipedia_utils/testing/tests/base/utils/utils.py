@@ -9,18 +9,28 @@ Returns:
 
 """
 
+import os
 from collections.abc import Callable
 from types import ModuleType
 from typing import Any
 
+from winipedia_utils.logging.logger import get_logger
 from winipedia_utils.modules.function import is_abstractmethod
-from winipedia_utils.modules.module import get_objs_from_obj, make_obj_importpath
+from winipedia_utils.modules.module import (
+    get_objs_from_obj,
+    import_obj_from_importpath,
+    make_obj_importpath,
+    to_module_name,
+)
 from winipedia_utils.testing.assertions import assert_with_msg
+from winipedia_utils.testing.config import LocalSecretsConfigFile
 from winipedia_utils.testing.convention import (
     get_obj_from_test_obj,
     make_test_obj_importpath_from_obj,
     make_untested_summary_error_msg,
 )
+
+logger = get_logger(__name__)
 
 
 def assert_no_untested_objs(
@@ -42,7 +52,15 @@ def assert_no_untested_objs(
     test_objs = get_objs_from_obj(test_obj)
     test_objs_paths = {make_obj_importpath(o) for o in test_objs}
 
-    obj = get_obj_from_test_obj(test_obj)
+    try:
+        obj = get_obj_from_test_obj(test_obj)
+    except ImportError:
+        if isinstance(test_obj, ModuleType):
+            # we skip if module not found bc that means it has custom tests
+            # and is not part of the mirrored structure
+            logger.warning("No source module found for %s, skipping", test_obj)
+            return
+        raise
     objs = get_objs_from_obj(obj)
     supposed_test_objs_paths = {make_test_obj_importpath_from_obj(o) for o in objs}
 
@@ -65,3 +83,23 @@ def assert_isabstrct_method(method: Any) -> None:
         is_abstractmethod(method),
         f"Expected {method} to be abstract method",
     )
+
+
+def get_github_token() -> str:
+    """Get the GitHub token."""
+    # try os env first
+    token = os.getenv("GITHUB_TOKEN")
+    if token:
+        return token
+
+    local_secrets_module_path = to_module_name(LocalSecretsConfigFile.get_path())
+    local_secrets_module = import_obj_from_importpath(local_secrets_module_path)
+    token = getattr(local_secrets_module, "GITHUB_TOKEN", None)
+    if not isinstance(token, str):
+        msg = f"Expected GITHUB_TOKEN to be str, got {type(token)}"
+        raise TypeError(msg)
+    if token:
+        return token
+
+    msg = "No GitHub token found"
+    raise ValueError(msg)

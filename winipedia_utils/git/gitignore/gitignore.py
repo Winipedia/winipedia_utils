@@ -40,7 +40,7 @@ def path_is_in_gitignore(relative_path: str | Path) -> bool:
 
     spec = pathspec.PathSpec.from_lines(
         "gitwildmatch",
-        GitIgnoreConfigFile.load_static()[GitIgnoreConfigFile.IGNORE_KEY],
+        GitIgnoreConfigFile.load(),
     )
 
     return spec.match_file(as_posix)

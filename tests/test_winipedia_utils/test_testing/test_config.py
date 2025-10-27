@@ -1,201 +1,283 @@
 """module."""
 
+from collections.abc import Callable
 from pathlib import Path
+
+import pytest
 
 from winipedia_utils.testing.assertions import assert_with_msg
 from winipedia_utils.testing.config import (
     ConftestConfigFile,
     ExperimentConfigFile,
+    LocalSecretsConfigFile,
     PythonConfigFile,
+    PythonTestsConfigFile,
     ZeroTestConfigFile,
 )
+from winipedia_utils.testing.convention import TESTS_PACKAGE_NAME
 
 
-class MyPythonConfigFile(PythonConfigFile):
-    """Python config file for testing."""
+@pytest.fixture
+def my_test_python_config_file(
+    config_file_factory: Callable[[type[PythonConfigFile]], type[PythonConfigFile]],
+) -> type[PythonConfigFile]:
+    """Create a test python config file class with tmp_path."""
 
-    PATH = Path("my_temp_file.py")
+    class MyTestPythonConfigFile(config_file_factory(PythonConfigFile)):  # type: ignore [misc]
+        """Test python config file with tmp_path override."""
 
-    def get_path(self) -> Path:
-        """Get the path to the config file."""
-        return self.PATH
+        @classmethod
+        def get_parent_path(cls) -> Path:
+            """Get the parent path."""
+            return Path()
 
-    def get_content(self) -> str:
-        """Get the content."""
-        return '"""Test content."""\n'
+        @classmethod
+        def get_content_str(cls) -> str:
+            """Get the content string."""
+            return '"""Test content."""\n'
 
-    def __init__(self, tmp_path: Path) -> None:
-        """Initialize with temporary path."""
-        self.PATH = tmp_path / self.PATH
-        super().__init__()
+    return MyTestPythonConfigFile
 
 
 class TestPythonConfigFile:
     """Test class for PythonConfigFile."""
 
-    def test_get_configs(self, tmp_path: Path) -> None:
-        """Test method for get_configs."""
-        config_file = MyPythonConfigFile(tmp_path)
-        expected = config_file.get_content()
-        actual = config_file.get_configs()
-        assert_with_msg(
-            actual["content"] == expected,
-            f"Expected {expected}, got {actual['content']}",
-        )
-
-    def test_get_content(self, tmp_path: Path) -> None:
-        """Test method for get_content."""
-        config_file = MyPythonConfigFile(tmp_path)
-        content = config_file.get_content()
-        assert_with_msg(
-            content == '"""Test content."""\n',
-            f'Expected \'"""Test content."""\\n\', got {content}',
-        )
-
-    def test_load(self, tmp_path: Path) -> None:
+    def test_load(self, my_test_python_config_file: type[PythonConfigFile]) -> None:
         """Test method for load."""
-        config_file = MyPythonConfigFile(tmp_path)
-        loaded = config_file.load()
+        my_test_python_config_file()
+        loaded = my_test_python_config_file.load()
         assert_with_msg(
-            "content" in loaded,
-            f"Expected 'content' key in loaded config, got {loaded}",
-        )
-        assert_with_msg(
-            loaded["content"] == '"""Test content."""\n',
-            f'Expected \'"""Test content."""\\n\', got {loaded["content"]}',
+            PythonConfigFile.CONTENT_KEY in loaded,
+            f"Expected '{PythonConfigFile.CONTENT_KEY}' key in loaded config",
         )
 
-    def test_dump(self, tmp_path: Path) -> None:
+    def test_dump(self, my_test_python_config_file: type[PythonConfigFile]) -> None:
         """Test method for dump."""
-        config_file = MyPythonConfigFile(tmp_path)
-        new_content = '"""New content."""\n'
-        config_file.dump({"content": new_content})
+        my_test_python_config_file()
+        # Test successful dump
+        content = '"""New content."""\n'
+        my_test_python_config_file.dump({PythonConfigFile.CONTENT_KEY: content})
+        loaded = my_test_python_config_file.load()
         assert_with_msg(
-            config_file.path.read_text() == new_content,
-            f"Expected {new_content}, got {config_file.path.read_text()}",
+            loaded[PythonConfigFile.CONTENT_KEY] == content,
+            "Expected dumped content to match loaded content",
+        )
+        # Test error when dumping non-dict
+        with pytest.raises(TypeError, match=r"Cannot dump .* to python file"):
+            my_test_python_config_file.dump([])
+
+    def test_get_file_extension(
+        self, my_test_python_config_file: type[PythonConfigFile]
+    ) -> None:
+        """Test method for get_file_extension."""
+        expected = "py"
+        actual = my_test_python_config_file.get_file_extension()
+        assert_with_msg(actual == expected, f"Expected {expected}, got {actual}")
+
+    def test_get_configs(
+        self, my_test_python_config_file: type[PythonConfigFile]
+    ) -> None:
+        """Test method for get_configs."""
+        configs = my_test_python_config_file.get_configs()
+        assert_with_msg(
+            PythonConfigFile.CONTENT_KEY in configs,
+            f"Expected '{PythonConfigFile.CONTENT_KEY}' key in configs",
+        )
+
+    def test_get_file_content(
+        self, my_test_python_config_file: type[PythonConfigFile]
+    ) -> None:
+        """Test method for get_file_content."""
+        my_test_python_config_file()
+        content = my_test_python_config_file.get_file_content()
+        assert_with_msg(
+            len(content) > 0,
+            "Expected file content to be non-empty",
+        )
+
+    def test_get_content_str(
+        self, my_test_python_config_file: type[PythonConfigFile]
+    ) -> None:
+        """Test method for get_content_str."""
+        content_str = my_test_python_config_file.get_content_str()
+        assert_with_msg(
+            len(content_str) > 0,
+            "Expected content string to be non-empty",
+        )
+
+    def test_is_correct(
+        self, my_test_python_config_file: type[PythonConfigFile]
+    ) -> None:
+        """Test method for is_correct."""
+        my_test_python_config_file()
+        is_correct = my_test_python_config_file.is_correct()
+        assert_with_msg(
+            is_correct,
+            "Expected config to be correct after initialization",
         )
 
 
-class MyConftestConfigFile(ConftestConfigFile):
-    """Conftest config file for testing."""
+@pytest.fixture
+def my_test_python_tests_config_file(
+    config_file_factory: Callable[
+        [type[PythonTestsConfigFile]], type[PythonTestsConfigFile]
+    ],
+) -> type[PythonTestsConfigFile]:
+    """Create a test python tests config file class with tmp_path."""
 
-    PATH = Path("conftest.py")
+    class MyTestPythonTestsConfigFile(config_file_factory(PythonTestsConfigFile)):  # type: ignore [misc]
+        """Test python tests config file with tmp_path override."""
 
-    def __init__(self, tmp_path: Path) -> None:
-        """Initialize with temporary path."""
-        self.PATH = tmp_path / self.PATH
-        super().__init__()
+        @classmethod
+        def get_content_str(cls) -> str:
+            """Get the content string."""
+            return '"""Test content."""\n'
+
+    return MyTestPythonTestsConfigFile
+
+
+class TestPythonTestsConfigFile:
+    """Test class for PythonTestsConfigFile."""
+
+    def test_get_parent_path(
+        self, my_test_python_tests_config_file: type[PythonTestsConfigFile]
+    ) -> None:
+        """Test method for get_parent_path."""
+        expected = Path(TESTS_PACKAGE_NAME)
+        actual = my_test_python_tests_config_file.get_parent_path()
+        assert_with_msg(actual == expected, f"Expected {expected}, got {actual}")
+
+
+@pytest.fixture
+def my_test_conftest_config_file(
+    config_file_factory: Callable[[type[ConftestConfigFile]], type[ConftestConfigFile]],
+) -> type[ConftestConfigFile]:
+    """Create a test conftest config file class with tmp_path."""
+
+    class MyTestConftestConfigFile(config_file_factory(ConftestConfigFile)):  # type: ignore [misc]
+        """Test conftest config file with tmp_path override."""
+
+    return MyTestConftestConfigFile
 
 
 class TestConftestConfigFile:
     """Test class for ConftestConfigFile."""
 
-    def test_get_content(self, tmp_path: Path) -> None:
-        """Test method for get_content."""
-        config_file = MyConftestConfigFile(tmp_path)
-        content = config_file.get_content()
+    def test_get_content_str(
+        self, my_test_conftest_config_file: type[ConftestConfigFile]
+    ) -> None:
+        """Test method for get_content_str."""
+        content_str = my_test_conftest_config_file.get_content_str()
         assert_with_msg(
-            "pytest_plugins" in content,
-            f"Expected 'pytest_plugins' in content, got {content}",
-        )
-
-    def test_get_path(self, tmp_path: Path) -> None:
-        """Test method for get_path."""
-        config_file = MyConftestConfigFile(tmp_path)
-        path = config_file.get_path()
-        assert_with_msg(
-            path.name == "conftest.py",
-            f"Expected path name to be 'conftest.py', got {path.name}",
-        )
-
-    def test_get_configs(self, tmp_path: Path) -> None:
-        """Test method for get_configs."""
-        config_file = MyConftestConfigFile(tmp_path)
-        configs = config_file.get_configs()
-        assert_with_msg(
-            "content" in configs,
-            f"Expected 'content' key in configs, got {configs}",
-        )
-        assert_with_msg(
-            "pytest_plugins" in configs["content"],
-            f"Expected 'pytest_plugins' in content, got {configs['content']}",
+            "pytest_plugins" in content_str,
+            "Expected 'pytest_plugins' in conftest content",
         )
 
 
-class MyZeroTestConfigFile(ZeroTestConfigFile):
-    """Zero test config file for testing."""
+@pytest.fixture
+def my_test_zero_test_config_file(
+    config_file_factory: Callable[[type[ZeroTestConfigFile]], type[ZeroTestConfigFile]],
+) -> type[ZeroTestConfigFile]:
+    """Create a test zero test config file class with tmp_path."""
 
-    PATH = Path("test_0.py")
+    class MyTestZeroTestConfigFile(config_file_factory(ZeroTestConfigFile)):  # type: ignore [misc]
+        """Test zero test config file with tmp_path override."""
 
-    def __init__(self, tmp_path: Path) -> None:
-        """Initialize with temporary path."""
-        self.PATH = tmp_path / self.PATH
-        super().__init__()
+    return MyTestZeroTestConfigFile
 
 
 class TestZeroTestConfigFile:
-    """Test class for Test0ConfigFile."""
+    """Test class for ZeroTestConfigFile."""
 
-    def test_get_content(self, tmp_path: Path) -> None:
-        """Test method for get_content."""
-        config_file = MyZeroTestConfigFile(tmp_path)
-        content = config_file.get_content()
+    def test_get_filename(
+        self, my_test_zero_test_config_file: type[ZeroTestConfigFile]
+    ) -> None:
+        """Test method for get_filename."""
+        filename = my_test_zero_test_config_file.get_filename()
+        # ZeroTestConfigFile reverses the filename
         assert_with_msg(
-            "test_0" in content,
-            f"Expected 'test_0' in content, got {content}",
+            filename.startswith("test_"),
+            f"Expected filename to start with 'test_', got {filename}",
         )
 
-    def test_get_path(self, tmp_path: Path) -> None:
-        """Test method for get_path."""
-        config_file = MyZeroTestConfigFile(tmp_path)
-        path = config_file.get_path()
+    def test_get_content_str(
+        self, my_test_zero_test_config_file: type[ZeroTestConfigFile]
+    ) -> None:
+        """Test method for get_content_str."""
+        content_str = my_test_zero_test_config_file.get_content_str()
         assert_with_msg(
-            path.name == "test_0.py",
-            f"Expected path name to be 'test_0.py', got {path.name}",
-        )
-
-    def test_get_configs(self, tmp_path: Path) -> None:
-        """Test method for get_configs."""
-        config_file = MyZeroTestConfigFile(tmp_path)
-        configs = config_file.get_configs()
-        assert_with_msg(
-            "content" in configs,
-            f"Expected 'content' key in configs, got {configs}",
-        )
-        assert_with_msg(
-            "test_0" in configs["content"],
-            f"Expected 'test_0' in content, got {configs['content']}",
+            "test_zero" in content_str,
+            "Expected 'test_zero' in content",
         )
 
 
-class MyExperimentConfigFile(ExperimentConfigFile):
-    """Experiment config file for testing."""
+@pytest.fixture
+def my_test_experiment_config_file(
+    config_file_factory: Callable[
+        [type[ExperimentConfigFile]], type[ExperimentConfigFile]
+    ],
+) -> type[ExperimentConfigFile]:
+    """Create a test experiment config file class with tmp_path."""
 
-    PATH = Path("experiment.py")
+    class MyTestExperimentConfigFile(config_file_factory(ExperimentConfigFile)):  # type: ignore [misc]
+        """Test experiment config file with tmp_path override."""
 
-    def __init__(self, tmp_path: Path) -> None:
-        """Initialize with temporary path."""
-        self.PATH = tmp_path / self.PATH
-        super().__init__()
+    return MyTestExperimentConfigFile
 
 
 class TestExperimentConfigFile:
     """Test class for ExperimentConfigFile."""
 
-    def test_get_path(self, tmp_path: Path) -> None:
-        """Test method for get_path."""
-        config_file = MyExperimentConfigFile(tmp_path)
-        path = config_file.get_path()
+    def test_get_parent_path(
+        self, my_test_experiment_config_file: type[ExperimentConfigFile]
+    ) -> None:
+        """Test method for get_parent_path."""
+        expected = Path()
+        actual = my_test_experiment_config_file.get_parent_path()
+        assert_with_msg(actual == expected, f"Expected {expected}, got {actual}")
+
+    def test_get_content_str(
+        self, my_test_experiment_config_file: type[ExperimentConfigFile]
+    ) -> None:
+        """Test method for get_content_str."""
+        content_str = my_test_experiment_config_file.get_content_str()
         assert_with_msg(
-            path.name == "experiment.py",
-            f"Expected path name to be 'experiment.py', got {path.name}",
+            "experimentation" in content_str,
+            "Expected 'experimentation' in content",
         )
 
-    def test_get_content(self, tmp_path: Path) -> None:
-        """Test method for get_content."""
-        config_file = MyExperimentConfigFile(tmp_path)
-        content = config_file.get_content()
+
+@pytest.fixture
+def my_test_local_secrets_config_file(
+    config_file_factory: Callable[
+        [type[LocalSecretsConfigFile]], type[LocalSecretsConfigFile]
+    ],
+) -> type[LocalSecretsConfigFile]:
+    """Create a test local secrets config file class with tmp_path."""
+
+    class MyTestLocalSecretsConfigFile(config_file_factory(LocalSecretsConfigFile)):  # type: ignore [misc]
+        """Test local secrets config file with tmp_path override."""
+
+    return MyTestLocalSecretsConfigFile
+
+
+class TestLocalSecretsConfigFile:
+    """Test class for LocalSecretsConfigFile."""
+
+    def test_get_parent_path(
+        self, my_test_local_secrets_config_file: type[LocalSecretsConfigFile]
+    ) -> None:
+        """Test method for get_parent_path."""
+        expected = Path()
+        actual = my_test_local_secrets_config_file.get_parent_path()
+        assert_with_msg(actual == expected, f"Expected {expected}, got {actual}")
+
+    def test_get_content_str(
+        self, my_test_local_secrets_config_file: type[LocalSecretsConfigFile]
+    ) -> None:
+        """Test method for get_content_str."""
+        content_str = my_test_local_secrets_config_file.get_content_str()
         assert_with_msg(
-            "experimentation" in content,
-            f"Expected 'experimentation' in content, got {content}",
+            "secrets" in content_str,
+            "Expected 'secrets' in content",
         )

@@ -1,7 +1,7 @@
 # Project section
 [project]
 name = "winipedia-utils"
-version = "0.3.43"
+version = "0.4.5"
 description = "A package with many utility functions"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -30,6 +30,7 @@ pyyaml = "*"
 keyring = "*"
 cryptography = "*"
 polars = "*"
+pygithub = "*"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "*"

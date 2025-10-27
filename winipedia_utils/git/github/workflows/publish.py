@@ -5,8 +5,8 @@ This workflow is used to publish the package to PyPI with poetry.
 
 from typing import Any
 
-from winipedia_utils.git.workflows.base.base import Workflow
-from winipedia_utils.git.workflows.release import ReleaseWorkflow
+from winipedia_utils.git.github.workflows.base.base import Workflow
+from winipedia_utils.git.github.workflows.release import ReleaseWorkflow
 
 
 class PublishWorkflow(Workflow):
@@ -16,7 +16,8 @@ class PublishWorkflow(Workflow):
     It publishes the package to PyPI with poetry.
     """
 
-    def get_workflow_triggers(self) -> dict[str, Any]:
+    @classmethod
+    def get_workflow_triggers(cls) -> dict[str, Any]:
         """Get the workflow triggers."""
         return {
             "workflow_run": {
@@ -25,22 +26,24 @@ class PublishWorkflow(Workflow):
             },
         }
 
-    def get_permissions(self) -> dict[str, Any]:
+    @classmethod
+    def get_permissions(cls) -> dict[str, Any]:
         """Get the workflow permissions."""
         return {
             "contents": "read",
         }
 
-    def get_jobs(self) -> dict[str, Any]:
+    @classmethod
+    def get_jobs(cls) -> dict[str, Any]:
         """Get the workflow jobs."""
-        return self.get_standard_job(
+        return cls.get_standard_job(
             steps=[
                 *(
-                    self.get_poetry_setup_steps(
+                    cls.get_poetry_setup_steps(
                         configure_pipy_token=True,
                     )
                 ),
-                self.get_publish_to_pypi_step(),
+                cls.get_publish_to_pypi_step(),
             ],
             if_condition="${{ github.event.workflow_run.conclusion == 'success' }}",
         )
