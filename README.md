@@ -43,6 +43,7 @@ A comprehensive Python utility package that enforces best practices, automates p
 ```bash
 # 1: Create a new repository on GitHub
 # The default branch must be called main
+# add a PAT or Fine-Grained Access Token to your repo secrets called REPO_TOKEN that has write access to the repository (needed for branch protection in health_check.yaml - see winipedia_utils.git.github.repo.protect)
 
 # 2: Clone the repository
 git clone https://github.com/owner/repo.git
@@ -76,8 +77,9 @@ The setup creates the following configuration files:
 - `.pre-commit-config.yaml` - Pre-commit hook configuration
 - `.gitignore` - Git ignore rules (assumes you added one on GitHub before.)
 - `pyproject.toml` - Project configuration with Poetry settings
-- `.github/workflows/release.yaml` - Release workflow (Creates a release on GitHub when oushing to main)
-- `.github/workflows/publish.yaml` - Publishing workflow (Publishes to PyPI when a release is created by the release workflow)
+- `.github/workflows/health_check.yaml` - Health check workflow (Runs on every push and pull request)
+- `.github/workflows/release.yaml` - Release workflow (Creates a release on GitHub when the same actions as in health check pass and commits are pushed to main)
+- `.github/workflows/publish.yaml` - Publishing workflow (Publishes to PyPI when a release is created by the release workflow, if you use this workflow, you need to add a PYPI_TOKEN (named PYPI_TOKEN) to your GitHub secrets that has write access to the package on PyPI.)
 - `py.typed` - PEP 561 marker for type hints
 - `experiment.py` - For experimentation (ignored by git)
 - `test0.py` - Test file with one empyt test (so that initial tests pass)

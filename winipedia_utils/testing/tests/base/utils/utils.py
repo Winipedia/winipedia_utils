@@ -88,18 +88,21 @@ def assert_isabstrct_method(method: Any) -> None:
 def get_github_token() -> str:
     """Get the GitHub token."""
     # try os env first
-    token = os.getenv("GITHUB_TOKEN")
+    token = os.getenv("REPO_TOKEN")
     if token:
         return token
 
     local_secrets_module_path = to_module_name(LocalSecretsConfigFile.get_path())
     local_secrets_module = import_obj_from_importpath(local_secrets_module_path)
-    token = getattr(local_secrets_module, "GITHUB_TOKEN", None)
+    token = getattr(local_secrets_module, "REPO_TOKEN", None)
     if not isinstance(token, str):
-        msg = f"Expected GITHUB_TOKEN to be str, got {type(token)}"
+        msg = f"Expected REPO_TOKEN to be str, got {type(token)}"
         raise TypeError(msg)
     if token:
         return token
 
-    msg = "No GitHub token found"
+    msg = (
+        f"No token named REPO_TOKEN found "
+        f"in github secrets or {LocalSecretsConfigFile.get_path()}"
+    )
     raise ValueError(msg)
