@@ -49,6 +49,7 @@ class HealthCheckWorkflow(Workflow):
                     ),
                     cls.get_protect_repository_step(),
                     cls.get_pre_commit_step(),
+                    cls.get_commit_step(),
                     cls.get_extract_version_step(),
                 ],
             ),

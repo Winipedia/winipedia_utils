@@ -31,12 +31,15 @@ jobs:
       run: poetry run pre-commit run --all-files --verbose
       env:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
+    - name: Commit added changes
+      run: 'poetry run git commit --no-verify -m ''[skip ci] CI/CD: Committing possible
+        added changes (e.g.: pyproject.toml and poetry.lock)'' && poetry run git push'
     - name: Extract Version from pyproject.toml
       id: version
       run: 'version=$(poetry version -s) && echo "Project version: $version" && echo
         "version=v$version" >> $GITHUB_OUTPUT'
     - name: Create and Push Tag
-      run: git tag ${{ steps.version.outputs.version }} && git push origin ${{ steps.version.outputs.version
+      run: git tag ${{ steps.version.outputs.version }} && git push && git push origin ${{ steps.version.outputs.version
         }}
     - name: Build Changelog
       id: build_changelog

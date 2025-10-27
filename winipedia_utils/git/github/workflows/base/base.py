@@ -163,7 +163,7 @@ class Workflow(YamlConfigFile):
         return [
             {
                 "name": "Create and Push Tag",
-                "run": f"git tag {cls.get_version()} && git push origin {cls.get_version()}",  # noqa: E501
+                "run": f"git tag {cls.get_version()} && git push && git push origin {cls.get_version()}",  # noqa: E501
             },
             {
                 "name": "Build Changelog",
@@ -216,8 +216,8 @@ class Workflow(YamlConfigFile):
     def get_commit_step(cls) -> dict[str, Any]:
         """Get the commit step."""
         return {
-            "name": "Commit Changes",
-            "run": "poetry run git commit --no-verify -m 'CI/CD: Committing possible changes to pyproject.toml and poetry.lock' && poetry run git push",  # noqa: E501
+            "name": "Commit added changes",
+            "run": "poetry run git commit --no-verify -m '[skip ci] CI/CD: Committing possible added changes (e.g.: pyproject.toml and poetry.lock)' && poetry run git push",  # noqa: E501
         }
 
     @classmethod
