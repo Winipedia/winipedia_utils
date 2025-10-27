@@ -4,7 +4,9 @@ from abc import abstractmethod
 from pathlib import Path
 from typing import Any
 
+import winipedia_utils
 from winipedia_utils.modules.module import make_obj_importpath
+from winipedia_utils.modules.package import get_src_package
 from winipedia_utils.text.config import YamlConfigFile
 from winipedia_utils.text.string import split_on_uppercase
 
@@ -202,10 +204,13 @@ class Workflow(YamlConfigFile):
         and bc it fails if files are changed,
         setup script shouldnt change files
         """
-        return {
+        step: dict[str, Any] = {
             "name": "Run Hooks",
             "run": "poetry run pre-commit run --all-files --verbose",
         }
+        if get_src_package() == winipedia_utils:
+            step["env"] = {"REPO_TOKEN": cls.get_repo_token()}
+        return step
 
     @classmethod
     def get_commit_step(cls) -> dict[str, Any]:
