@@ -174,8 +174,8 @@ class Workflow(YamlConfigFile):
         """Get the release steps."""
         return [
             {
-                "name": "Create and Push Tag",
-                "run": f"git tag {cls.get_version()} && git push && git push origin {cls.get_version()}",  # noqa: E501
+                "name": "Tag and Push",
+                "run": f"git push && git tag {cls.get_version()} && git push origin {cls.get_version()}",  # noqa: E501
             },
             {
                 "name": "Build Changelog",

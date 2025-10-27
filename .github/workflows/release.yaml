@@ -44,8 +44,8 @@ jobs:
       id: version
       run: 'version=$(poetry version -s) && echo "Project version: $version" && echo
         "version=v$version" >> $GITHUB_OUTPUT'
-    - name: Create and Push Tag
-      run: git tag ${{ steps.version.outputs.version }} && git push && git push origin
+    - name: Tag and Push
+      run: git push && git tag ${{ steps.version.outputs.version }} && git push origin
         ${{ steps.version.outputs.version }}
     - name: Build Changelog
       id: build_changelog
