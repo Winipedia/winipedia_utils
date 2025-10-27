@@ -33,9 +33,9 @@ class ReleaseWorkflow(HealthCheckWorkflow):
     @classmethod
     def get_permissions(cls) -> dict[str, Any]:
         """Get the workflow permissions."""
-        return {
-            "contents": "write",
-        }
+        permissions = super().get_permissions()
+        permissions["contents"] = "write"
+        return permissions
 
     @classmethod
     def get_jobs(cls) -> dict[str, Any]:

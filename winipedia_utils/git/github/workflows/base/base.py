@@ -85,11 +85,17 @@ class Workflow(YamlConfigFile):
         return f"{cls.get_workflow_name()}"
 
     @classmethod
-    def get_checkout_step(cls, fetch_depth: int | None = None) -> dict[str, Any]:
+    def get_checkout_step(
+        cls,
+        fetch_depth: int | None = None,
+        *,
+        token: bool = False,
+    ) -> dict[str, Any]:
         """Get the checkout step.
 
         Args:
         fetch_depth: The fetch depth to use. If None, no fetch depth is specified.
+        token: Whether to use the repository token.
 
         Returns:
         The checkout step.
@@ -99,7 +105,10 @@ class Workflow(YamlConfigFile):
             "uses": "actions/checkout@main",
         }
         if fetch_depth is not None:
-            step["with"] = {"fetch-depth": fetch_depth}
+            step.setdefault("with", {})["fetch-depth"] = fetch_depth
+
+        if token:
+            step.setdefault("with", {})["token"] = cls.get_repo_token()
         return step
 
     @classmethod
@@ -110,6 +119,7 @@ class Workflow(YamlConfigFile):
         fetch_depth: int | None = None,
         configure_pipy_token: bool = False,
         force_main_head: bool = False,
+        token: bool = False,
     ) -> list[dict[str, Any]]:
         """Get the poetry steps.
 
@@ -120,11 +130,12 @@ class Workflow(YamlConfigFile):
         force_main_head: Whether to exit if the running branch or current commit is not
             equal to the most recent commit on main. This is useful for workflows that
             should only run on main.
+        token: Whether to use the repository token.
 
         Returns:
         The poetry steps.
         """
-        steps = [cls.get_checkout_step(fetch_depth)]
+        steps = [cls.get_checkout_step(fetch_depth, token=token)]
         if force_main_head:
             # exit with code 1 if the running branch is not main
             steps.append(

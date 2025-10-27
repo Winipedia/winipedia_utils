@@ -43,7 +43,7 @@ A comprehensive Python utility package that enforces best practices, automates p
 ```bash
 # 1: Create a new repository on GitHub
 # The default branch must be called main
-# add a PAT or Fine-Grained Access Token to your repo secrets called REPO_TOKEN that has write access to the repository (needed for branch protection in health_check.yaml - see winipedia_utils.git.github.repo.protect)
+# add a PAT or Fine-Grained Access Token to your repo secrets called REPO_TOKEN that has write access to the repository (Adminstration and Contents)(needed for branch protection in health_check.yaml - see winipedia_utils.git.github.repo.protect and for commiting as an action in release.yaml)
 
 # 2: Clone the repository
 git clone https://github.com/owner/repo.git
