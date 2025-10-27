@@ -15,6 +15,9 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@main
+    - name: Setup Git
+      run: git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        && git config --global user.name "github-actions[bot]"
     - name: Setup Python
       uses: actions/setup-python@main
       with:
@@ -32,15 +35,15 @@ jobs:
       env:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
     - name: Commit added changes
-      run: 'poetry run git commit --no-verify -m ''[skip ci] CI/CD: Committing possible
-        added changes (e.g.: pyproject.toml and poetry.lock)'' && poetry run git push'
+      run: 'git commit --no-verify -m ''[skip ci] CI/CD: Committing possible added
+        changes (e.g.: pyproject.toml and poetry.lock)'''
     - name: Extract Version from pyproject.toml
       id: version
       run: 'version=$(poetry version -s) && echo "Project version: $version" && echo
         "version=v$version" >> $GITHUB_OUTPUT'
     - name: Create and Push Tag
-      run: git tag ${{ steps.version.outputs.version }} && git push && git push origin ${{ steps.version.outputs.version
-        }}
+      run: git tag ${{ steps.version.outputs.version }} && git push && git push origin
+        ${{ steps.version.outputs.version }}
     - name: Build Changelog
       id: build_changelog
       uses: mikepenz/release-changelog-builder-action@develop

@@ -175,6 +175,14 @@ class TestWorkflow:
             "Expected 'id' in extract version step",
         )
 
+    def test_get_setup_git_step(self) -> None:
+        """Test method for get_setup_git_step."""
+        step = Workflow.get_setup_git_step()
+        assert_with_msg(
+            "name" in step,
+            "Expected 'name' in setup git step",
+        )
+
     def test_get_commit_step(self) -> None:
         """Test method for get_commit_step."""
         step = Workflow.get_commit_step()

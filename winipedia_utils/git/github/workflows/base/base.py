@@ -133,6 +133,7 @@ class Workflow(YamlConfigFile):
                     "run": 'git fetch origin main --depth=1; main_sha=$(git rev-parse origin/main); if [ "$GITHUB_SHA" != "$main_sha" ]; then echo "Tag commit is not the latest commit on main."; exit 1; fi',  # noqa: E501
                 }
             )
+        steps.append(cls.get_setup_git_step())
         steps.append(
             {
                 "name": "Setup Python",
@@ -213,11 +214,19 @@ class Workflow(YamlConfigFile):
         return step
 
     @classmethod
+    def get_setup_git_step(cls) -> dict[str, Any]:
+        """Get the setup git step."""
+        return {
+            "name": "Setup Git",
+            "run": 'git config --global user.email "github-actions[bot]@users.noreply.github.com" && git config --global user.name "github-actions[bot]"',  # noqa: E501
+        }
+
+    @classmethod
     def get_commit_step(cls) -> dict[str, Any]:
         """Get the commit step."""
         return {
             "name": "Commit added changes",
-            "run": "poetry run git commit --no-verify -m '[skip ci] CI/CD: Committing possible added changes (e.g.: pyproject.toml and poetry.lock)' && poetry run git push",  # noqa: E501
+            "run": "git commit --no-verify -m '[skip ci] CI/CD: Committing possible added changes (e.g.: pyproject.toml and poetry.lock)'",  # noqa: E501
         }
 
     @classmethod
