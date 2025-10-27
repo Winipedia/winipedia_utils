@@ -8,7 +8,7 @@ from winipedia_utils.modules.function import is_abstractmethod
 from winipedia_utils.testing.assertions import assert_with_msg
 from winipedia_utils.testing.tests.base.utils.utils import (
     assert_no_untested_objs,
-    get_github_token,
+    get_github_repo_token,
 )
 
 
@@ -56,9 +56,9 @@ def test_assert_isabstrct_method() -> None:
     )
 
 
-def test_get_github_token() -> None:
+def test_get_github_repo_token() -> None:
     """Test func for get_github_token."""
-    token = get_github_token()
+    token = get_github_repo_token()
     assert_with_msg(
         isinstance(token, str), f"Expected token to be str, got {type(token)}"
     )

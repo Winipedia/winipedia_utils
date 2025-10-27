@@ -85,7 +85,7 @@ def assert_isabstrct_method(method: Any) -> None:
     )
 
 
-def get_github_token() -> str:
+def get_github_repo_token() -> str:
     """Get the GitHub token."""
     # try os env first
     token = os.getenv("REPO_TOKEN")

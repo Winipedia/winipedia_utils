@@ -224,7 +224,7 @@ class Workflow(YamlConfigFile):
 
         return {
             "name": "Protect Repository",
-            "run": f"poetry run python -m {make_obj_importpath(protect)} --token {cls.get_github_token()}",  # noqa: E501
+            "run": f"poetry run python -m {make_obj_importpath(protect)}",
         }
 
     @classmethod

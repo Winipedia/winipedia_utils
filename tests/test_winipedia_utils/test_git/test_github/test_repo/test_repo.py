@@ -14,10 +14,10 @@ from winipedia_utils.git.github.repo.repo import (
 )
 from winipedia_utils.projects.poetry.config import PyprojectConfigFile
 from winipedia_utils.testing.assertions import assert_with_msg
-from winipedia_utils.testing.tests.base.utils.utils import get_github_token
+from winipedia_utils.testing.tests.base.utils.utils import get_github_repo_token
 
 OWNER = PyprojectConfigFile.get_main_author_name()
-TOKEN = get_github_token()
+TOKEN = get_github_repo_token()
 
 
 def test_get_rules_payload() -> None:
@@ -104,5 +104,5 @@ def test_ruleset_exists() -> None:
 def test_create_or_update_ruleset() -> None:
     """Test func for create_or_update_ruleset."""
     create_or_update_ruleset(
-        **get_default_ruleset_params(token=TOKEN),
+        **get_default_ruleset_params(),
     )

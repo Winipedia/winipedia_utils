@@ -1,6 +1,5 @@
 """Script to protect the repo and branches of a repository."""
 
-import argparse
 from typing import Any
 
 from winipedia_utils.git.github.repo.repo import (
@@ -13,19 +12,20 @@ from winipedia_utils.git.github.repo.repo import (
 from winipedia_utils.git.github.workflows.health_check import HealthCheckWorkflow
 from winipedia_utils.modules.package import get_src_package
 from winipedia_utils.projects.poetry.config import PyprojectConfigFile
+from winipedia_utils.testing.tests.base.utils.utils import get_github_repo_token
 
 
-def protect_repository(token: str) -> None:
+def protect_repository() -> None:
     """Protect the repository."""
-    set_secure_repo_settings(token)
-    create_or_update_default_branch_ruleset(token)
+    set_secure_repo_settings()
+    create_or_update_default_branch_ruleset()
 
 
-def set_secure_repo_settings(token: str) -> None:
+def set_secure_repo_settings() -> None:
     """Set standard settings for the repository."""
     src_pkg_name = get_src_package().__name__
     owner = PyprojectConfigFile.get_main_author_name()
-
+    token = get_github_repo_token()
     repo = get_repo(token, owner, src_pkg_name)
 
     toml_description = PyprojectConfigFile.load()["project"]["description"]
@@ -42,16 +42,17 @@ def set_secure_repo_settings(token: str) -> None:
     )
 
 
-def create_or_update_default_branch_ruleset(token: str) -> None:
+def create_or_update_default_branch_ruleset() -> None:
     """Add a branch protection rule to the repository."""
     create_or_update_ruleset(
-        **get_default_ruleset_params(token),
+        **get_default_ruleset_params(),
     )
 
 
-def get_default_ruleset_params(token: str) -> dict[str, Any]:
+def get_default_ruleset_params() -> dict[str, Any]:
     """Get the default ruleset parameters."""
     src_pkg_name = get_src_package().__name__
+    token = get_github_repo_token()
 
     rules = get_rules_payload(
         deletion={},
@@ -100,8 +101,4 @@ def get_default_ruleset_params(token: str) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Protect the repo and branches")
-    parser.add_argument("--token", required=True, help="GitHub token")
-
-    args = parser.parse_args()
-    protect_repository(args.token)
+    protect_repository()
