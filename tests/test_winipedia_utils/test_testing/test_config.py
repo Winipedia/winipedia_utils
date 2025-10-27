@@ -9,7 +9,6 @@ from winipedia_utils.testing.assertions import assert_with_msg
 from winipedia_utils.testing.config import (
     ConftestConfigFile,
     ExperimentConfigFile,
-    LocalSecretsConfigFile,
     PythonConfigFile,
     PythonTestsConfigFile,
     ZeroTestConfigFile,
@@ -244,40 +243,4 @@ class TestExperimentConfigFile:
         assert_with_msg(
             "experimentation" in content_str,
             "Expected 'experimentation' in content",
-        )
-
-
-@pytest.fixture
-def my_test_local_secrets_config_file(
-    config_file_factory: Callable[
-        [type[LocalSecretsConfigFile]], type[LocalSecretsConfigFile]
-    ],
-) -> type[LocalSecretsConfigFile]:
-    """Create a test local secrets config file class with tmp_path."""
-
-    class MyTestLocalSecretsConfigFile(config_file_factory(LocalSecretsConfigFile)):  # type: ignore [misc]
-        """Test local secrets config file with tmp_path override."""
-
-    return MyTestLocalSecretsConfigFile
-
-
-class TestLocalSecretsConfigFile:
-    """Test class for LocalSecretsConfigFile."""
-
-    def test_get_parent_path(
-        self, my_test_local_secrets_config_file: type[LocalSecretsConfigFile]
-    ) -> None:
-        """Test method for get_parent_path."""
-        expected = Path()
-        actual = my_test_local_secrets_config_file.get_parent_path()
-        assert_with_msg(actual == expected, f"Expected {expected}, got {actual}")
-
-    def test_get_content_str(
-        self, my_test_local_secrets_config_file: type[LocalSecretsConfigFile]
-    ) -> None:
-        """Test method for get_content_str."""
-        content_str = my_test_local_secrets_config_file.get_content_str()
-        assert_with_msg(
-            "secrets" in content_str,
-            "Expected 'secrets' in content",
         )

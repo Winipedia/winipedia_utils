@@ -18,17 +18,15 @@ from winipedia_utils.logging.logger import get_logger
 from winipedia_utils.modules.function import is_abstractmethod
 from winipedia_utils.modules.module import (
     get_objs_from_obj,
-    import_obj_from_importpath,
     make_obj_importpath,
-    to_module_name,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
-from winipedia_utils.testing.config import LocalSecretsConfigFile
 from winipedia_utils.testing.convention import (
     get_obj_from_test_obj,
     make_test_obj_importpath_from_obj,
     make_untested_summary_error_msg,
 )
+from winipedia_utils.text.config import DotEnvConfigFile
 
 logger = get_logger(__name__)
 
@@ -92,17 +90,15 @@ def get_github_repo_token() -> str:
     if token:
         return token
 
-    local_secrets_module_path = to_module_name(LocalSecretsConfigFile.get_path())
-    local_secrets_module = import_obj_from_importpath(local_secrets_module_path)
-    token = getattr(local_secrets_module, "REPO_TOKEN", None)
-    if not isinstance(token, str):
-        msg = f"Expected REPO_TOKEN to be str, got {type(token)}"
-        raise TypeError(msg)
+    # try .env next
+    dotenv_path = DotEnvConfigFile.get_path()
+    if not dotenv_path.exists():
+        msg = f"Expected {dotenv_path} to exist"
+        raise ValueError(msg)
+    dotenv = DotEnvConfigFile.load()
+    token = dotenv.get("REPO_TOKEN")
     if token:
         return token
 
-    msg = (
-        f"No token named REPO_TOKEN found "
-        f"in github secrets or {LocalSecretsConfigFile.get_path()}"
-    )
+    msg = f"Expected REPO_TOKEN in {dotenv_path}"
     raise ValueError(msg)

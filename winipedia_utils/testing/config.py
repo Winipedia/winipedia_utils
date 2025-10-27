@@ -125,25 +125,3 @@ class ExperimentConfigFile(PythonConfigFile):
         """Get the config."""
         return '''"""This file is for experimentation and is ignored by git."""
 '''
-
-
-class LocalSecretsConfigFile(PythonConfigFile):
-    """Config file for secrets.py.
-
-    Config file for secrets. Is added to .gitignore automatically.
-    Should be in .gitignore.
-    """
-
-    @classmethod
-    def get_parent_path(cls) -> Path:
-        """Get the path to the config file."""
-        return Path()
-
-    @classmethod
-    def get_content_str(cls) -> str:
-        """Get the config."""
-        return '''"""This file is for secrets you might use and is ignored by git.
-
-Can be used by tests or other developing code.
-"""
-'''

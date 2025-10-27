@@ -222,5 +222,3 @@ __marimo__/
 .git/
 # for executing experimental code
 experiment.py
-# for secrets used locally
-local_secrets.py

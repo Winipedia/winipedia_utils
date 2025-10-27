@@ -5,8 +5,8 @@ from typing import Any
 
 import requests
 
-from winipedia_utils.testing.config import ExperimentConfigFile, LocalSecretsConfigFile
-from winipedia_utils.text.config import ConfigFile
+from winipedia_utils.testing.config import ExperimentConfigFile
+from winipedia_utils.text.config import ConfigFile, DotEnvConfigFile
 
 
 class GitIgnoreConfigFile(ConfigFile):
@@ -54,9 +54,12 @@ class GitIgnoreConfigFile(ConfigFile):
             ".git/",
             "# for executing experimental code",
             ExperimentConfigFile.get_path().as_posix(),
-            "# for secrets used locally",
-            LocalSecretsConfigFile.get_path().as_posix(),
         ]
+
+        dotenv_path = DotEnvConfigFile.get_path().as_posix()
+        if dotenv_path not in needed:
+            needed.extend(["# for secrets used locally", dotenv_path])
+
         existing = cls.load()
         needed = [p for p in needed if p not in set(existing)]
         return existing + needed
