@@ -99,34 +99,48 @@ class MyCleaningDF(CleaningDF):
         return {cls.FLOAT_COL: 2, cls.FLOAT_COL_2: 2}
 
 
+def get_dirty_data() -> dict[str, list[Any]]:
+    """Get dirty data for testing."""
+    return {
+        "str_col_old": ["a", "b", "c"],
+        "int_col_old": [0, 1, 2],
+        "float_col_old": [0.0, 1.1234, 2.5678],
+        "float_col_2_old": [0.0, 1.1234, 2.5678],
+        "bool_col_old": [True, False, True],
+    }
+
+
+def get_cleaning_df() -> CleaningDF:
+    """Get clean data for testing."""
+    return MyCleaningDF(get_dirty_data())
+
+
 class TestCleaningDF:
     """Test class for CleaningDF."""
 
-    def get_dirty_data(self) -> dict[str, list[Any]]:
-        """Get dirty data for testing."""
-        return {
-            "str_col_old": ["a", "b", "c"],
-            "int_col_old": [0, 1, 2],
-            "float_col_old": [0.0, 1.1234, 2.5678],
-            "float_col_2_old": [0.0, 1.1234, 2.5678],
-            "bool_col_old": [True, False, True],
-        }
-
-    def get_cleaning_df(self) -> CleaningDF:
-        """Get clean data for testing."""
-        return MyCleaningDF(self.get_dirty_data())
-
     def test___init__(self) -> None:
         """Test method for __init__."""
-        c_df = self.get_cleaning_df()
+        c_df = get_cleaning_df()
         expected = (
-            len(self.get_dirty_data()[next(iter(self.get_dirty_data().keys()))]),
-            len(self.get_dirty_data()),
+            len(get_dirty_data()[next(iter(get_dirty_data().keys()))]),
+            len(get_dirty_data()),
         )
         assert_with_msg(
             c_df.df.shape == expected,
             f"Expected df shape {expected}, got {c_df.df.shape}",
         )
+        # test init works with empty data
+        data: dict[str, list[Any]] = {k: [] for k in get_dirty_data()}
+        c_df = MyCleaningDF(data)
+        assert_with_msg(
+            c_df.df.shape == (0, len(MyCleaningDF.get_col_names())),
+            f"Expected df shape (0, 0), got {c_df.df.shape}",
+        )
+
+        # assert raises when data is missing a column
+        data.popitem()
+        with pytest.raises(KeyError):
+            MyCleaningDF(data)
 
     def test_get_rename_map(self) -> None:
         """Test method for rename_map."""
@@ -235,10 +249,10 @@ class TestCleaningDF:
 
     def test_clean(self) -> None:
         """Test method for clean."""
-        c_df = self.get_cleaning_df()
+        c_df = get_cleaning_df()
         expected = (
-            len(self.get_dirty_data()[next(iter(self.get_dirty_data().keys()))]),
-            len(self.get_dirty_data()),
+            len(get_dirty_data()[next(iter(get_dirty_data().keys()))]),
+            len(get_dirty_data()),
         )
         assert_with_msg(
             c_df.df.shape == expected,
@@ -247,7 +261,7 @@ class TestCleaningDF:
 
     def test_rename_cols(self) -> None:
         """Test method for rename_cols."""
-        c_df = self.get_cleaning_df()
+        c_df = get_cleaning_df()
         assert_with_msg(
             all(c in c_df.df.columns for c in MyCleaningDF.get_col_dtype_map()),
             "Expected all column names to be renamed",
@@ -278,23 +292,16 @@ class TestCleaningDF:
 
     def test_drop_cols(self) -> None:
         """Test method for drop_cols."""
-        dirty_data = self.get_dirty_data()
+        dirty_data = get_dirty_data()
         dirty_data["new_col"] = [1, 2, 3]
         c_df = MyCleaningDF(dirty_data)
         assert_with_msg(
             "new_col" not in c_df.df.columns, "Expected new_col to be dropped"
         )
 
-        # add a col to the df attr and the call drop cols
-        c_df.df = c_df.df.with_columns(pl.lit(1).alias("new_col"))
-        c_df.drop_cols()
-        assert_with_msg(
-            "new_col" not in c_df.df.columns, "Expected new_col to be dropped"
-        )
-
     def test_fill_nulls(self) -> None:
         """Test method for fill_nulls."""
-        dirty_data = self.get_dirty_data()
+        dirty_data = get_dirty_data()
         # add a null row to the dirty data
         for col in dirty_data:
             dirty_data[col].append(None)
@@ -326,7 +333,7 @@ class TestCleaningDF:
     def test_standard_convert_cols(self) -> None:
         """Test method for standard_convert_cols."""
         # add whitespace to the string col
-        dirty_data = self.get_dirty_data()
+        dirty_data = get_dirty_data()
         dirty_data[MyCleaningDF.STR_COL + "_old"][0] = (
             "  " + dirty_data[MyCleaningDF.STR_COL + "_old"][0] + "  "
         )
@@ -340,9 +347,9 @@ class TestCleaningDF:
 
     def test_custom_convert_cols(self) -> None:
         """Test method for custom_convert_cols."""
-        c_df = self.get_cleaning_df()
+        c_df = get_cleaning_df()
         # assert the int col is increased by 1
-        before = self.get_dirty_data()[MyCleaningDF.INT_COL + "_old"]
+        before = get_dirty_data()[MyCleaningDF.INT_COL + "_old"]
         after = c_df.df.select(pl.col(MyCleaningDF.INT_COL)).to_series()
         # check overall sum bc of sorting
         assert_with_msg(
@@ -415,7 +422,7 @@ class TestCleaningDF:
 
     def test_drop_null_subsets(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test method for drop_null_subsets."""
-        dirty_data = self.get_dirty_data()
+        dirty_data = get_dirty_data()
         subsets = MyCleaningDF.get_drop_null_subsets()
         fill_null_map = MyCleaningDF.get_fill_null_map()
         for col in MyCleaningDF.get_col_names():
@@ -432,7 +439,7 @@ class TestCleaningDF:
 
             c_df = MyCleaningDF(dirty_data)
             # assert the last rows are dropped and shape is the same as before
-        og_dirty_data = self.get_dirty_data()
+        og_dirty_data = get_dirty_data()
         assert_with_msg(
             c_df.df.shape
             == (
@@ -447,7 +454,7 @@ class TestCleaningDF:
         # test if func gets called once
 
         spy = mocker.spy(MyCleaningDF, MyCleaningDF.handle_duplicates.__name__)
-        c_df = self.get_cleaning_df()
+        c_df = get_cleaning_df()
         spy.assert_called_once_with(c_df)
 
         # add a duplicate row
@@ -459,7 +466,7 @@ class TestCleaningDF:
         assert_with_msg(
             c_df.df.shape
             == (
-                len(self.get_dirty_data()[next(iter(self.get_dirty_data()))]),
+                len(get_dirty_data()[next(iter(get_dirty_data()))]),
                 len(MyCleaningDF.get_col_names()),
             ),
             "Expected df shape to be the same as before",
@@ -482,7 +489,7 @@ class TestCleaningDF:
         """Test method for sort_cols."""
         # assert called once
         spy = mocker.spy(MyCleaningDF, MyCleaningDF.sort_cols.__name__)
-        c_df = self.get_cleaning_df()
+        c_df = get_cleaning_df()
         spy.assert_called_once_with(c_df)
 
         # int col asc
@@ -507,7 +514,7 @@ class TestCleaningDF:
     def test_check_correct_dtypes(self, mocker: MockerFixture) -> None:
         """Test method for check_correct_dtypes."""
         spy = mocker.spy(MyCleaningDF, MyCleaningDF.check_correct_dtypes.__name__)
-        c_df = self.get_cleaning_df()
+        c_df = get_cleaning_df()
         spy.assert_called_once_with(c_df)
 
         # change dtype of int col to float
@@ -518,7 +525,7 @@ class TestCleaningDF:
     def test_check_no_null_cols(self, mocker: MockerFixture) -> None:
         """Test method for check_no_null_cols."""
         spy = mocker.spy(MyCleaningDF, MyCleaningDF.check_no_null_cols.__name__)
-        c_df = self.get_cleaning_df()
+        c_df = get_cleaning_df()
         spy.assert_called_once_with(c_df)
 
         # add a null row
@@ -530,7 +537,7 @@ class TestCleaningDF:
     def test_check_no_nan(self, mocker: MockerFixture) -> None:
         """Test method for check_no_nan_cols."""
         spy = mocker.spy(MyCleaningDF, MyCleaningDF.check_no_nan.__name__)
-        c_df = self.get_cleaning_df()
+        c_df = get_cleaning_df()
         spy.assert_called_once_with(c_df)
 
         # add a nan row where float col get nan and the rest the fill null value

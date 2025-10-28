@@ -82,7 +82,7 @@ The setup creates the following configuration files:
 - `.github/workflows/publish.yaml` - Publishing workflow (Publishes to PyPI when a release is created by the release workflow, if you use this workflow, you need to add a PYPI_TOKEN (named PYPI_TOKEN) to your GitHub secrets that has write access to the package on PyPI.)
 - `py.typed` - PEP 561 marker for type hints
 - `experiment.py` - For experimentation (ignored by git)
-- `test0.py` - Test file with one empyt test (so that initial tests pass)
+- `test_zero.py` - Test file with one empyt test (so that initial tests pass)
 - `conftest.py` - Pytest configuration file
 
 ### Pre-commit Hook Workflow
@@ -133,6 +133,45 @@ Configuration files are managed automatically by the setup system:
 - **Empty files** - If you want to disable a config file, make it empty. This signals that the file is unwanted and won't be modified
 - **Custom additions** - You can add custom configurations as long as the standard configurations remain intact
 - **Modified standards** - If you modify the standard configurations, they will be restored on the next setup run
+
+## Branch Protection
+
+As soon as you push to `main` on GitHub (provided the `REPO_TOKEN` secret is set up correctly), the `health_check.yaml` workflow will run and execute `winipedia_utils.git.github.repo.protect`, which uses PyGithub to protect the repository.
+
+### Repository Settings
+
+The following repository settings are configured:
+
+- **name** - Repository name from `pyproject.toml` or folder name (should match repo name)
+- **description** - Repository description from `pyproject.toml`
+- **default_branch** - `main`
+- **delete_branch_on_merge** - `true`
+- **allow_update_branch** - `true`
+- **allow_merge_commit** - `false`
+- **allow_rebase_merge** - `true`
+- **allow_squash_merge** - `true`
+
+### Branch Protection Rules
+
+A ruleset named `main protection` is created for the `main` branch with the following rules:
+
+- **Deletion** - Prevents branch deletion
+- **Non-fast-forward** - Prevents non-fast-forward pushes (forces linear history by rejecting force pushes)
+- **Creation** - Prevents branch creation directly on the protected branch
+- **Update** - Prevents direct updates to protected branch (all changes must go through pull requests)
+- **Required Linear History** - Enforces linear commit history (no merge commits allowed)
+- **Required Signatures** - Requires all commits to be signed with GPG or SSH keys
+- **Pull Request Requirements:**
+  - Requires 1 approving review (at least one person must approve before merge)
+  - Dismisses stale reviews on push (if you push a new commit, all reviews are dismissed and must be re-approved)
+  - Requires code owner review (designated code owners must approve changes to their files)
+  - Requires last push approval (the most recent push must be approved, not an earlier one)
+  - Requires review thread resolution (all comments in reviews must be resolved before merge)
+  - Allowed merge methods: `squash` and `rebase` (no merge commits, keeps history clean)
+- **Required Status Checks:**
+  - Strict mode enabled (all status checks must pass on the latest commit, not older ones (sets the health check as required status check))
+  - Health check workflow must pass (the CI/CD pipeline must complete successfully)
+- **Bypass Actors** - Repository admins can bypass all rules (for emergency situations)
 
 ## Utilities
 

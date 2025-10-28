@@ -12,118 +12,201 @@ from typing import Any
 import polars as pl
 from polars.datatypes.classes import FloatType
 
-from winipedia_utils.data.structures.dicts import reverse_dict
 from winipedia_utils.oop.mixins.mixin import ABCLoggingMixin
 
 
 class CleaningDF(ABCLoggingMixin):
-    """Inherits from polars.DataFrame and ABCLoggingMixin.
+    """A base class for cleaning and standardizing dataframes using Polars.
 
-    This will be a base class for importing all kinds of Data to e.g. a database.
-    It will be used to import data from different sources an clean it
-    Bring the data into the correct format and name the columns correctly.
-    And the df takes over and does the rest, like cleaning the data, filling NAs, etc.
+    This class provides a comprehensive pipeline
+    for importing, cleaning, and standardizing
+    data from various sources before loading into databases or other systems.
+    It enforces data quality standards
+    through a series of configurable cleaning operations.
 
-    It is good practice to define col names as str constants in the child class.
-    E.g.
-        COL_NAME_1 = "col_name_1" so they can be reused and are easy to change.
+    The cleaning pipeline executes in the following order:
+    1. Rename columns according to a standardized naming scheme
+    2. Drop columns not in the schema
+    3. Fill null values with specified defaults
+    4. Convert columns to correct data types and apply custom transformations
+    5. Drop rows where specified column subsets are entirely null
+    6. Handle duplicates by aggregating values and removing duplicates
+    7. Sort the dataframe by specified columns
+    8. Validate data quality
+        (correct dtypes, no nulls in required columns, no NaN values)
 
-    This class defaults to nan_to_null=True when creating the dataframe for simplicity.
+    Child classes must implement abstract methods to define the cleaning configuration:
+    - get_rename_map(): Define column name mappings
+    - get_col_dtype_map(): Define expected data types for each column
+    - get_drop_null_subsets(): Define which column subsets trigger row deletion
+    - get_fill_null_map(): Define null value fill strategies
+    - get_sort_cols(): Define sort order
+    - get_unique_subsets(): Define duplicate detection criteria
+    - get_no_null_cols(): Define columns that cannot contain nulls
+    - get_col_converter_map(): Define custom column transformations
+    - get_add_on_duplicate_cols(): Define columns to aggregate when duplicates are found
+    - get_col_precision_map(): Define rounding precision for float columns
 
+    Best Practices:
+    - Define column names as string constants in child classes
+        for reusability and maintainability
+    - Use this class to build data cleaning pipelines that can be composed and extended
+    - The class automatically converts NaN to null for consistency
+
+    Example:
+        COL_NAME_1 = "col_name_1"
+        COL_NAME_2 = "col_name_2"
     """
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the CleaningDF."""
-        self.df = pl.DataFrame(*args, nan_to_null=True, **kwargs)
-        self.clean()
 
     @classmethod
     @abstractmethod
     def get_rename_map(cls) -> dict[str, str]:
-        """Rename the columns.
+        """Define column name mappings for standardization.
 
-        This method must be implemented in the child class.
-        This will be done before any other cleaning operations.
-        Format: {new_name: old_name, ...}
-        ClenaingDF convention is to map the real col names to smth in all maps
+        This abstract method must be implemented in child classes to specify how
+        raw input column names should be renamed to standardized names. Renaming
+        is the first operation in the cleaning pipeline, executed before all other
+        cleaning operations.
+
+        The mapping format follows the CleaningDF convention of mapping standardized
+        names to raw input names, allowing the reverse mapping to be applied to the
+        dataframe.
 
         Returns:
-            dict[str, str]: Dictionary mapping old column names to new column names
-            Format: {new_name: old_name, ...}
+            dict[str, str]: Dictionary mapping standardized column names to raw input
+                column names. Format: {standardized_name: raw_name, ...}
+
+        Example:
+            return {
+                "user_id": "UserId",
+                "email": "Email_Address",
+                "created_at": "CreatedDate"
+            }
         """
 
     @classmethod
     @abstractmethod
     def get_col_dtype_map(cls) -> dict[str, type[pl.DataType]]:
-        """Map the column names to the correct data type.
+        """Define the expected data type for each column in the cleaned dataframe.
 
-        This method must be implemented in the child class.
+        This abstract method must be implemented in child classes to specify the
+        target data types for all columns. The dataframe will be validated against
+        this schema after cleaning, and a TypeError will be raised if any column
+        has an incorrect type.
 
         Returns:
-            dict[str, type[pl.DataType]]: Dictionary mapping column names to their types
+            dict[str, type[pl.DataType]]: Dictionary mapping standardized column names
+                to their expected Polars data types.
+
+        Example:
+            return {
+                "user_id": pl.Int64,
+                "email": pl.Utf8,
+                "created_at": pl.Date,
+                "score": pl.Float64
+            }
         """
 
     @classmethod
     @abstractmethod
     def get_drop_null_subsets(cls) -> tuple[tuple[str, ...], ...]:
-        """Drops rows where the subset of columns are all null.
+        """Define column subsets for dropping rows with all-null values.
 
-        Drops a row if all columns in the subset are null.
-        You can define several subsets to check.
-        Each returned tuple is one subset.
+        This abstract method specifies which column subsets should trigger row deletion.
+        A row is dropped if ALL columns in a subset are null. Multiple subsets can be
+        defined to apply different null-dropping rules. If no subsets are defined,
+        rows where all columns are null will be dropped.
 
         Returns:
-            tuple[tuple[str, ...], ...]: Tuple of tuples of column names
+            tuple[tuple[str, ...], ...]: Tuple of column name tuples, where each inner
+                tuple represents one subset. A row is dropped if all columns in any
+                subset are null.
+
+        Example:
+            return (
+                ("email", "phone"),  # Drop if both email and phone are null
+                ("address_line1",),  # Drop if address_line1 is null
+            )
         """
 
     @classmethod
     @abstractmethod
     def get_fill_null_map(cls) -> dict[str, Any]:
-        """Fill null values with the specified value.
+        """Define null value fill strategies for each column.
 
-        This method must be implemented in the child class.
+        This abstract method specifies default values to fill null entries in each
+        column. This is applied early in the cleaning pipeline after column renaming.
 
         Returns:
-            dict[str, Any]: Dictionary mapping column names to their fill value
+            dict[str, Any]: Dictionary mapping column names to their fill values.
+                The fill value can be any type appropriate for the column.
+
+        Example:
+            return {
+                "email": "",
+                "phone": "",
+                "score": 0,
+                "status": "unknown"
+            }
         """
 
     @classmethod
     @abstractmethod
     def get_sort_cols(cls) -> tuple[tuple[str, bool], ...]:
-        """Sort the dataframe by the specified columns.
+        """Define the sort order for the cleaned dataframe.
 
-        This method must be implemented in the child class.
+        This abstract method specifies which columns to sort by and in what order
+        (ascending or descending). Sorting is applied near the end of the cleaning
+        pipeline, after all data transformations are complete.
 
         Returns:
-            tuple[tuple[str, bool], ...]: Tuple of tuples of column names and
-                how to sort, True for descending, False for ascending in polars
+            tuple[tuple[str, bool], ...]: Tuple of (column_name, is_descending) tuples.
+                Each tuple specifies a column and sort direction. Columns are sorted
+                in the order they appear. True = descending, False = ascending.
+
+        Example:
+            return (
+                ("created_at", True),   # Sort by created_at descending
+                ("user_id", False),     # Then by user_id ascending
+            )
         """
 
     @classmethod
     @abstractmethod
     def get_unique_subsets(cls) -> tuple[tuple[str, ...], ...]:
-        """Drop duplicates based on the specified subsets.
+        """Define column subsets for duplicate detection and removal.
 
-        This method must be implemented in the child class.
-        E.g.
-            (
-                (("col1", "col2"), # subset 1
-                ("col3", "col4"), # subset 2
-            )
+        This abstract method specifies which column combinations define uniqueness.
+        Rows are considered duplicates if they have identical values in all columns
+        of a subset. When duplicates are found, values in columns specified by
+        get_add_on_duplicate_cols() are summed, and the first row is kept.
 
         Returns:
-            tuple[tuple[tuple[str, bool], ...], ...]: Tuple of tuples of column names
+            tuple[tuple[str, ...], ...]: Tuple of column name tuples, where each inner
+                tuple represents one uniqueness constraint. Duplicates are detected
+                and handled for each subset independently.
+
+        Example:
+            return (
+                ("user_id", "date"),      # Subset 1: unique by user_id and date
+                ("transaction_id",),      # Subset 2: unique by transaction_id
+            )
         """
 
     @classmethod
     @abstractmethod
     def get_no_null_cols(cls) -> tuple[str, ...]:
-        """Disallow null values in the specified columns.
+        """Define columns that must not contain null values.
 
-        This method must be implemented in the child class.
+        This abstract method specifies which columns are required to have non-null
+        values. A ValueError is raised during the final validation step if any of
+        these columns contain null values.
 
         Returns:
-            tuple[str, ...]: Tuple of column names
+            tuple[str, ...]: Tuple of column names that must not be null.
+
+        Example:
+            return ("user_id", "email", "created_at")
         """
 
     @classmethod
@@ -131,49 +214,110 @@ class CleaningDF(ABCLoggingMixin):
     def get_col_converter_map(
         cls,
     ) -> dict[str, Callable[[pl.Series], pl.Series]]:
-        """Convert the column to the specified type.
+        """Define custom conversion functions for columns.
 
-        This method must be implemented in the child class.
-        It takes a polars series and returns a polars series.
-        Can be used to e.g. parse dates, or do a specific operation on a column.
+        This abstract method specifies custom transformations to apply to columns
+        after standard conversions (string stripping, float rounding). Each function
+        receives a Polars Series and returns a transformed Series. Use
+        skip_col_converter as a placeholder for columns that don't need custom
+        conversion.
 
         Returns:
             dict[str, Callable[[pl.Series], pl.Series]]: Dictionary mapping column names
-                to their conversion function
+                to their conversion functions. Each function takes a Series and returns
+                a transformed Series.
+
+        Example:
+            return {
+                "email": lambda s: s.str.to_lowercase(),
+                "phone": self.parse_phone_number,
+                "created_at": self.skip_col_converter,  # No custom conversion
+            }
         """
 
     @classmethod
     @abstractmethod
     def get_add_on_duplicate_cols(cls) -> tuple[str, ...]:
-        """Adds the values of cols together when dupliactes of two rows are found.
+        """Define columns to aggregate when duplicate rows are found.
 
-        This method must be implemented in the child class.
-        duplicates are determined by the get_unique_subsets method.
+        This abstract method specifies which columns should have their values summed
+        when duplicate rows are detected (based on get_unique_subsets). The summed
+        values are kept in the first row, and duplicate rows are removed.
 
         Returns:
-            tuple[str, ...]: Tuple of column names
+            tuple[str, ...]: Tuple of column names whose values should be summed
+                when duplicates are found.
+
+        Example:
+            return ("quantity", "revenue", "impressions")
         """
 
     @classmethod
     @abstractmethod
     def get_col_precision_map(cls) -> dict[str, int]:
-        """Round the column to the specified precision.
+        """Define rounding precision for float columns.
 
-        This method must be implemented in the child class.
+        This abstract method specifies the number of decimal places to round float
+        columns to. Rounding is applied during the standard conversion phase and uses
+        Kahan summation to compensate for floating-point rounding errors.
 
         Returns:
-            dict[str, int]: Dictionary mapping column names to their precision
+            dict[str, int]: Dictionary mapping float column names to their precision
+                (number of decimal places).
+
+        Example:
+            return {
+                "price": 2,
+                "percentage": 4,
+                "score": 1,
+            }
         """
+
+    def __init__(self, data: dict[str, list[Any]], **kwargs: Any) -> None:
+        """Initialize the CleaningDF and execute the cleaning pipeline.
+
+        Creates a Polars DataFrame with NaN values automatically converted to null,
+        then immediately executes the full cleaning pipeline.
+        nan_to_null is set to True to always
+        schema is set to the dtype map to always have the correct dtypes
+
+        Args:
+            data: Dictionary mapping column names to lists of values
+            **kwargs: Additional keyword arguments passed to pl.DataFrame constructor
+        """
+        self.rename_cols(data)
+        self.drop_cols(data)
+        kwargs["nan_to_null"] = True
+        kwargs["schema"] = self.get_col_dtype_map()
+        self.df = pl.DataFrame(data=data, **kwargs)
+        self.clean()
 
     @classmethod
     def get_col_names(cls) -> tuple[str, ...]:
-        """Get the column names of the dataframe."""
+        """Get the standardized column names from the dtype map.
+
+        Returns the column names in the order they appear in get_col_dtype_map().
+
+        Returns:
+            tuple[str, ...]: Tuple of standardized column names.
+        """
         return tuple(cls.get_col_dtype_map().keys())
 
     def clean(self) -> None:
-        """Clean the dataframe."""
-        self.rename_cols()
-        self.drop_cols()
+        """Execute the complete data cleaning pipeline.
+
+        Applies all cleaning operations in the following order:
+        1. Rename columns to standardized names
+        2. Drop columns not in the schema
+        3. Fill null values with defaults
+        4. Convert columns to correct types and apply transformations
+        5. Drop rows with all-null column subsets
+        6. Handle duplicates by aggregating and removing
+        7. Sort the dataframe
+        8. Validate data quality
+
+        This method is automatically called during __init__.
+        """
         self.fill_nulls()
         self.convert_cols()
         self.drop_null_subsets()
@@ -187,7 +331,18 @@ class CleaningDF(ABCLoggingMixin):
         map_func: Callable[..., dict[str, Any]],
         col_names: tuple[str, ...] | None = None,
     ) -> None:
-        """Raise a KeyError if the columns in the map are not in the dataframe."""
+        """Validate that all required columns are present in a configuration map.
+
+        Checks that the columns returned by map_func contain all columns in col_names.
+        Raises KeyError if any required columns are missing from the map.
+
+        Args:
+            map_func: A callable that returns a dict with column names as keys
+            col_names: Tuple of column names to check. If None, uses get_col_names()
+
+        Raises:
+            KeyError: If any required columns are missing from the map
+        """
         if col_names is None:
             col_names = cls.get_col_names()
         missing_cols = set(col_names) - set(map_func().keys())
@@ -195,17 +350,32 @@ class CleaningDF(ABCLoggingMixin):
             msg = f"Missing columns in {map_func.__name__}: {missing_cols}"
             raise KeyError(msg)
 
-    def rename_cols(self) -> None:
-        """Rename the columns according to the rename map."""
-        self.raise_on_missing_cols(self.get_rename_map)
-        self.df = self.df.rename(reverse_dict(self.get_rename_map()))
+    def rename_cols(self, data: dict[str, list[Any]]) -> None:
+        """Rename columns from raw names to standardized names.
 
-    def drop_cols(self) -> None:
-        """Drop columns that are not in the col_dtype_map."""
-        self.df = self.df.select(self.get_col_names())
+        Applies the reverse of get_rename_map() to rename columns from their raw
+        input names to standardized names. Validates that all required columns are
+        present in the rename map.
+        """
+        self.raise_on_missing_cols(self.get_rename_map)
+        for std_name, raw_name in self.get_rename_map().items():
+            data[std_name] = data.pop(raw_name)
+
+    def drop_cols(self, data: dict[str, list[Any]]) -> None:
+        """Drop columns not in the schema.
+
+        Selects only the columns defined in get_col_names(), removing any extra
+        columns that may have been in the input data.
+        """
+        for col in set(data.keys()) - set(self.get_col_names()):
+            del data[col]
 
     def fill_nulls(self) -> None:
-        """Fill null values with the specified values from the fill null map."""
+        """Fill null values with defaults from the fill null map.
+
+        Replaces null values in each column with the corresponding fill value
+        from get_fill_null_map(). Validates that all columns are present in the map.
+        """
         self.raise_on_missing_cols(self.get_fill_null_map)
         self.df = self.df.with_columns(
             [
@@ -215,15 +385,22 @@ class CleaningDF(ABCLoggingMixin):
         )
 
     def convert_cols(self) -> None:
-        """Apply the conversion functions to the columns."""
+        """Apply standard and custom column conversions.
+
+        Orchestrates both standard conversions (string stripping, float rounding)
+        and custom conversions defined in get_col_converter_map(). Validates that
+        all columns are present in the converter map.
+        """
         self.raise_on_missing_cols(self.get_col_converter_map)
         self.standard_convert_cols()
         self.custom_convert_cols()
 
     def standard_convert_cols(self) -> None:
-        """Assumes some Data standards and converts cols accordingly.
+        """Apply standard conversions based on data type.
 
-        E.g. strips strings, rounds floats
+        Automatically applies standard transformations:
+        - Utf8 columns: strip leading/trailing whitespace
+        - Float64 columns: round to specified precision using Kahan summation
         """
         for col_name, dtype in self.get_col_dtype_map().items():
             if dtype == pl.Utf8:
@@ -237,7 +414,11 @@ class CleaningDF(ABCLoggingMixin):
             )
 
     def custom_convert_cols(self) -> None:
-        """Apply the conversion functions to the columns."""
+        """Apply custom conversion functions to columns.
+
+        Applies custom transformations from get_col_converter_map() to each column,
+        skipping columns marked with skip_col_converter.
+        """
         self.df = self.df.with_columns(
             [
                 pl.col(col_name).map_batches(
@@ -250,12 +431,26 @@ class CleaningDF(ABCLoggingMixin):
 
     @classmethod
     def strip_col(cls, col: pl.Series) -> pl.Series:
-        """Strip the column of leading and trailing whitespace."""
+        """Remove leading and trailing whitespace from string column.
+
+        Args:
+            col: Polars Series of string type
+
+        Returns:
+            pl.Series: Series with whitespace stripped
+        """
         return col.str.strip_chars()
 
     @classmethod
     def lower_col(cls, col: pl.Series) -> pl.Series:
-        """Convert the column to lowercase."""
+        """Convert string column to lowercase.
+
+        Args:
+            col: Polars Series of string type
+
+        Returns:
+            pl.Series: Series with all characters converted to lowercase
+        """
         return col.str.to_lowercase()
 
     @classmethod
@@ -266,9 +461,19 @@ class CleaningDF(ABCLoggingMixin):
         *,
         compensate: bool = True,
     ) -> pl.Series:
-        """Round the column to the specified precision.
+        """Round float column to specified precision.
 
-        The precision is defined in the get_col_precision_map method.
+        Uses Kahan summation algorithm to compensate for floating-point rounding
+        errors when compensate=True, ensuring that the sum of rounded values
+        matches the rounded sum of original values.
+
+        Args:
+            col: Polars Series of float type
+            precision: Number of decimal places. If None, uses get_col_precision_map()
+            compensate: If True, use Kahan summation to reduce rounding errors
+
+        Returns:
+            pl.Series: Series with values rounded to specified precision
         """
         if precision is None:
             precision = cls.get_col_precision_map()[str(col.name)]
@@ -288,9 +493,14 @@ class CleaningDF(ABCLoggingMixin):
 
     @classmethod
     def skip_col_converter(cls, _col: pl.Series) -> pl.Series:
-        """Conversion is not needed for this column and will be skipped.
+        """Placeholder to skip custom conversion for a column.
 
-        Function should not be invoked if col_name is in get_col_converter_map.
+        Use this method in get_col_converter_map() to indicate that a column
+        should not have custom conversion applied. This method should never be
+        actually called - it's only used as a marker.
+
+        Raises:
+            NotImplementedError: Always raised if this method is called
         """
         msg = (
             "skip_col_converter is just a flag to skip conversion for a column "
@@ -299,9 +509,10 @@ class CleaningDF(ABCLoggingMixin):
         raise NotImplementedError(msg)
 
     def drop_null_subsets(self) -> None:
-        """Drop rows where the subset of columns are all null.
+        """Drop rows where all columns in a subset are null.
 
-        If no subsets are defined, drop all rows where all columns are null.
+        Applies null-dropping rules defined in get_drop_null_subsets(). If no
+        subsets are defined, drops rows where all columns are null.
         """
         subsets = self.get_drop_null_subsets()
         if not subsets:
@@ -311,12 +522,14 @@ class CleaningDF(ABCLoggingMixin):
             self.df = self.df.drop_nulls(subset=subset)
 
     def handle_duplicates(self) -> None:
-        """Drop duplicates based on the specified subsets.
+        """Remove duplicate rows and aggregate specified columns.
 
-        If add_on_duplicate_cols are defined, add the values of the cols together.
-        This func adds up the vals of the duplicates and keeps the first row.
-        E.g. if you have a df with two rows with the same subset
-        and value 1 and 2 in col1 the result will be 3 in col1 for the first row.
+        For each uniqueness subset defined in get_unique_subsets():
+        1. Sum values in columns specified by get_add_on_duplicate_cols()
+        2. Keep only the first row of each duplicate group
+
+        Example: If two rows have the same (user_id, date) and values 1 and 2
+        in the 'quantity' column, the result will have one row with quantity=3.
         """
         for subset in self.get_unique_subsets():
             for col in self.get_add_on_duplicate_cols():
@@ -324,24 +537,40 @@ class CleaningDF(ABCLoggingMixin):
             self.df = self.df.unique(subset=subset, keep="first")
 
     def sort_cols(self) -> None:
-        """Sort the dataframe by the specified columns."""
+        """Sort the dataframe by columns and directions from get_sort_cols().
+
+        Applies multi-column sorting with per-column sort direction
+        (ascending/descending).
+        """
         cols, desc = zip(*self.get_sort_cols(), strict=True)
         if not cols:
             return
         self.df = self.df.sort(cols, descending=desc)
 
     def check(self) -> None:
-        """Check the data and some conditions.
+        """Validate data quality after cleaning.
 
-        This method is called at the end of the clean method.
-        checks e.g. non null values in no_null_cols
+        Runs all validation checks:
+        - Correct data types for all columns
+        - No null values in required columns
+        - No NaN values in float columns
+
+        Called automatically at the end of the clean() pipeline.
+
+        Raises:
+            TypeError: If any column has incorrect data type
+            ValueError: If required columns contain nulls or float columns contain NaN
         """
         self.check_correct_dtypes()
         self.check_no_null_cols()
         self.check_no_nan()
 
     def check_correct_dtypes(self) -> None:
-        """Check that all columns have the correct dtype."""
+        """Validate that all columns have their expected data types.
+
+        Raises:
+            TypeError: If any column's actual type doesn't match expected type
+        """
         schema = self.df.schema
         col_dtype_map = self.get_col_dtype_map()
         for col, dtype in col_dtype_map.items():
@@ -351,7 +580,11 @@ class CleaningDF(ABCLoggingMixin):
                 raise TypeError(msg)
 
     def check_no_null_cols(self) -> None:
-        """Check that there are no null values in the no null columns."""
+        """Validate that required columns contain no null values.
+
+        Raises:
+            ValueError: If any column in get_no_null_cols() contains null values
+        """
         no_null_cols = self.get_no_null_cols()
         # Use a single select to check all columns at once
         null_flags = self.df.select(
@@ -364,7 +597,11 @@ class CleaningDF(ABCLoggingMixin):
                 raise ValueError(msg)
 
     def check_no_nan(self) -> None:
-        """Check that there are no nan values in the df."""
+        """Validate that float columns contain no NaN values.
+
+        Raises:
+            ValueError: If any float column contains NaN values
+        """
         float_cols = [
             col
             for col, dtype in self.get_col_dtype_map().items()
