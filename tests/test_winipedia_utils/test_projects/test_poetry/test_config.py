@@ -180,6 +180,49 @@ class TestPyprojectConfigFile:
             "Expected get_main_author_name to return the first author name",
         )
 
+    def test_get_latest_possible_python_version(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for get_latest_possible_python_version."""
+        my_test_pyproject_config_file()
+        config = my_test_pyproject_config_file.load()
+        config["project"]["requires-python"] = ">=3.8, <3.12"
+        my_test_pyproject_config_file.dump(config)
+        latest_version = (
+            my_test_pyproject_config_file.get_latest_possible_python_version()
+        )
+        assert_with_msg(
+            latest_version == "3.11",
+            "Expected get_latest_possible_python_version to return 3.11",
+        )
+        config["project"]["requires-python"] = ">=3.8, <=3.12"
+        my_test_pyproject_config_file.dump(config)
+        latest_version = (
+            my_test_pyproject_config_file.get_latest_possible_python_version()
+        )
+        assert_with_msg(
+            latest_version == "3.12",
+            "Expected get_latest_possible_python_version to return 3.12",
+        )
+        config["project"]["requires-python"] = ">=3.8, <3.11, ==3.10.*"
+        my_test_pyproject_config_file.dump(config)
+        latest_version = (
+            my_test_pyproject_config_file.get_latest_possible_python_version()
+        )
+        assert_with_msg(
+            latest_version == "3.10",
+            "Expected get_latest_possible_python_version to return 3.10",
+        )
+        config["project"]["requires-python"] = ">=3.8"
+        my_test_pyproject_config_file.dump(config)
+        latest_version = (
+            my_test_pyproject_config_file.get_latest_possible_python_version()
+        )
+        assert_with_msg(
+            latest_version == "3.x",
+            "Expected get_latest_possible_python_version to return 3.x",
+        )
+
 
 @pytest.fixture
 def my_test_typed_config_file(
