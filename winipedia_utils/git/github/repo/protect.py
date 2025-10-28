@@ -74,7 +74,7 @@ def get_default_ruleset_params() -> dict[str, Any]:
             "do_not_enforce_on_create": False,
             "required_status_checks": [
                 {
-                    "context": HealthCheckWorkflow.get_workflow_name(),
+                    "context": HealthCheckWorkflow.get_filename(),
                 }
             ],
         },
