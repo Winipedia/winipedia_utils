@@ -7,6 +7,7 @@ from typing import Any
 import winipedia_utils
 from winipedia_utils.modules.module import make_obj_importpath
 from winipedia_utils.modules.package import get_src_package
+from winipedia_utils.projects.poetry.config import PyprojectConfigFile
 from winipedia_utils.text.config import YamlConfigFile
 from winipedia_utils.text.string import split_on_uppercase
 
@@ -149,7 +150,9 @@ class Workflow(YamlConfigFile):
             {
                 "name": "Setup Python",
                 "uses": "actions/setup-python@main",
-                "with": {"python-version": "3.x"},
+                "with": {
+                    "python-version": PyprojectConfigFile.get_latest_possible_python_version()  # noqa: E501
+                },
             }
         )
         steps.append(

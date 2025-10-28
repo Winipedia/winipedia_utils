@@ -3,6 +3,9 @@
 from pathlib import Path
 from typing import Any, cast
 
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
+
 from winipedia_utils.modules.package import get_src_package, make_name_from_package
 from winipedia_utils.testing.convention import TESTS_PACKAGE_NAME
 from winipedia_utils.text.config import ConfigFile, TomlConfigFile
@@ -129,6 +132,24 @@ class PyprojectConfigFile(TomlConfigFile):
     def get_main_author_name(cls) -> str:
         """Get the main author name."""
         return cls.get_main_author()["name"]
+
+    @classmethod
+    def get_latest_possible_python_version(cls) -> str:
+        """Get the latest possible python version."""
+        constraint = cls.load()["project"]["requires-python"]
+        spec = constraint.strip().strip('"').strip("'")
+        sset = SpecifierSet(spec)
+        # find upper bound specifiers
+        uppers = [Version(sp.version) for sp in sset if sp.operator in ("<", "<=")]
+        if uppers:
+            top = max(uppers)
+            # if strict "<", we might treat it as “one less” in minor
+            if any(sp.operator == "<" and Version(sp.version) == top for sp in sset):
+                # subtract one minor
+                return f"{top.major}.{top.minor - 1}"
+            return f"{top.major}.{top.minor}"
+        # no upper bound → “3.x”
+        return "3.x"
 
 
 class TypedConfigFile(ConfigFile):
