@@ -126,6 +126,10 @@ my_project/
 
 For each function, class, and method, skeleton tests are created with `NotImplementedError` placeholders for you to implement.
 
+If you have autosuse fixtures just write and add them to the `tests/base/fixtures` directory. They will be automatically discovered, plugged into conftest and used in all tests according to defined scope.
+The filenames in the fixtures folder are just for organisation purposes for your convenience. You still have to 
+apply the pytest.fixture decorator to the fixture function and define the scope. So a session scoped function defined on function.py will still run as a session scoped fixture.
+
 ## Configuration Files
 
 Configuration files are managed automatically by the setup system:
@@ -134,6 +138,7 @@ Configuration files are managed automatically by the setup system:
 - **Empty files** - If you want to disable a config file, make it empty. This signals that the file is unwanted and won't be modified
 - **Custom additions** - You can add custom configurations as long as the standard configurations remain intact
 - **Modified standards** - If you modify the standard configurations, they will be restored on the next setup run
+- **Subclasses** - You can create custom config files by subclassing the standard ones. They will be automatically created and managed when you commit or run pytest. winipedia_utils automatically discovers and calls them. This way you can adjust or add some settings. It is however important the parent class stays a subset of the child class according to the description in the function `nested_structure_is_subset` in `winipedia_utils.iterating.iterate`.
 
 ## Branch Protection
 

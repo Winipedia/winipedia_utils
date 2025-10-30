@@ -49,7 +49,7 @@ def nested_structure_is_subset(
     Each value of a key must be equal to the value of the same key in the superset.
     If the value is dictionary, the function is called recursively.
     If the value is list, each item must be in the list of the same key in the superset.
-    The order in lists matters.
+    The order in lists does not matter.
 
     Returns:
         True if subset is a nested subset of superset, False otherwise
