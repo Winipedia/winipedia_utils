@@ -4,7 +4,7 @@ import functools
 
 import pytest
 
-from winipedia_utils.git.github.github import running_in_github_action
+from winipedia_utils.git.github.github import running_in_github_actions
 
 skip_fixture_test: pytest.MarkDecorator = functools.partial(
     pytest.mark.skip,
@@ -14,6 +14,6 @@ skip_fixture_test: pytest.MarkDecorator = functools.partial(
 
 skip_in_github_actions: pytest.MarkDecorator = functools.partial(
     pytest.mark.skipif,
-    running_in_github_action(),
+    running_in_github_actions(),
     reason="Test cannot run in GitHub action.",
 )()

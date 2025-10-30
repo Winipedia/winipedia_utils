@@ -26,6 +26,6 @@ def get_github_repo_token() -> str:
     raise ValueError(msg)
 
 
-def running_in_github_action() -> bool:
+def running_in_github_actions() -> bool:
     """Check if we are running in a GitHub action."""
     return os.getenv("GITHUB_ACTIONS", "false") == "true"
