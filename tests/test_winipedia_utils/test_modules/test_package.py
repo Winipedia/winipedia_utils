@@ -3,6 +3,7 @@
 tests.test_winipedia_utils.test_modules.test_package
 """
 
+import importlib.metadata
 from pathlib import Path
 from types import ModuleType
 from typing import Any
@@ -640,6 +641,27 @@ def test_make_name_from_package() -> None:
 class TestDependencyGraph:
     """Test class for DependencyGraph."""
 
+    def test_parse_distname_from_metadata(self) -> None:
+        """Test method for parse_distname_from_metadata."""
+        name = "winipedia-utils"
+        dist = importlib.metadata.distribution(name)
+        result = DependencyGraph.parse_distname_from_metadata(dist)
+        expected = "winipedia_utils"
+        assert_with_msg(
+            result == expected,
+            f"Expected '{expected}', got '{result}'",
+        )
+
+    def test_normalize_package_name(self) -> None:
+        """Test method for normalize_package_name."""
+        name = "winipedia-utils"
+        result = DependencyGraph.normalize_package_name(name)
+        expected = "winipedia_utils"
+        assert_with_msg(
+            result == expected,
+            f"Expected '{expected}', got '{result}'",
+        )
+
     def test___init__(self) -> None:
         """Test method for __init__."""
         # Test it initializes without error
@@ -673,7 +695,7 @@ class TestDependencyGraph:
 
         # Verify nodes were added
         assert_with_msg(
-            "test-package" in graph.nodes(),
+            "test_package" in graph.nodes(),
             "Expected 'test-package' to be in graph nodes",
         )
         assert_with_msg(
@@ -683,11 +705,11 @@ class TestDependencyGraph:
 
         # Verify edges were added
         assert_with_msg(
-            graph.has_edge("test-package", "dependency1"),
+            graph.has_edge("test_package", "dependency1"),
             "Expected edge from 'test-package' to 'dependency1'",
         )
         assert_with_msg(
-            graph.has_edge("test-package", "dependency2"),
+            graph.has_edge("test_package", "dependency2"),
             "Expected edge from 'test-package' to 'dependency2'",
         )
 

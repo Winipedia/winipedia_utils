@@ -447,7 +447,7 @@ class DependencyGraph(nx.DiGraph):  # type: ignore [type-arg]
     def build(self) -> None:
         """Build the graph from installed Python distributions."""
         for dist in importlib.metadata.distributions():
-            name = dist.metadata["Name"].lower()
+            name = self.parse_distname_from_metadata(dist)
             self.add_node(name)
 
             requires = dist.requires or []
@@ -457,13 +457,23 @@ class DependencyGraph(nx.DiGraph):  # type: ignore [type-arg]
                     self.add_edge(name, dep)  # package → dependency
 
     @staticmethod
+    def parse_distname_from_metadata(dist: importlib.metadata.Distribution) -> str:
+        """Extract the distribution name from its metadata."""
+        # replace - with _ to handle packages like winipedia-utils
+        name: str = dist.metadata["Name"]
+        return DependencyGraph.normalize_package_name(name)
+
+    @staticmethod
+    def normalize_package_name(name: str) -> str:
+        """Normalize a package name."""
+        return name.lower().replace("-", "_").strip()
+
+    @staticmethod
     def parse_pkg_name_from_req(req: str) -> str | None:
         """Extract the bare dependency name from a requirement string."""
-        if not req:
-            return None
         # split on the first non alphanumeric character like >, <, =, etc.
         dep = re.split(r"[^a-zA-Z0-9]", req.strip())[0].strip()
-        return dep.lower().strip() if dep else None
+        return DependencyGraph.normalize_package_name(dep) if dep else None
 
     def get_all_depending_on(
         self, package: ModuleType, *, include_self: bool = False
@@ -477,6 +487,7 @@ class DependencyGraph(nx.DiGraph):  # type: ignore [type-arg]
         Returns:
             A set of imported module objects representing dependents.
         """
+        # replace - with _ to handle packages like winipedia-utils
         target = package.__name__.lower()
         if target not in self:
             msg = f"Package '{target}' not found in dependency graph"

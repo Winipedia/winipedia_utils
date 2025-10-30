@@ -52,7 +52,8 @@ git clone https://github.com/owner/repo.git
 poetry init # or poetry new
 # 4: Poetry will ask you some stuff when you run poetry init.
 # First author name must be equal to the GitHub repository owner (username).
-# The repository name must be equal to the package/project name.
+# The repository name must be equal to the package/project name. 
+# (- instead of _ is fine, but only as the project name in pyproject.toml, folder names should all be _)
 
 # 5: Add winipedia-utils to your project
 poetry add winipedia-utils
