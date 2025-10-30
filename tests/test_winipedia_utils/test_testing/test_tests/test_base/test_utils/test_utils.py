@@ -8,7 +8,6 @@ from winipedia_utils.modules.function import is_abstractmethod
 from winipedia_utils.testing.assertions import assert_with_msg
 from winipedia_utils.testing.tests.base.utils.utils import (
     assert_no_untested_objs,
-    get_github_repo_token,
 )
 
 
@@ -53,12 +52,4 @@ def test_assert_isabstrct_method() -> None:
     is_abstract = is_abstractmethod(AbstractClass.concrete_method)
     assert_with_msg(
         not is_abstract, "Expected concrete method to not be identified as abstract"
-    )
-
-
-def test_get_github_repo_token() -> None:
-    """Test func for get_github_token."""
-    token = get_github_repo_token()
-    assert_with_msg(
-        isinstance(token, str), f"Expected token to be str, got {type(token)}"
     )

@@ -3,6 +3,7 @@
 from github.Repository import Repository
 
 import winipedia_utils
+from winipedia_utils.git.github.github import get_github_repo_token
 from winipedia_utils.git.github.repo.protect import get_default_ruleset_params
 from winipedia_utils.git.github.repo.repo import (
     DEFAULT_RULESET_NAME,
@@ -14,7 +15,6 @@ from winipedia_utils.git.github.repo.repo import (
 )
 from winipedia_utils.projects.poetry.config import PyprojectConfigFile
 from winipedia_utils.testing.assertions import assert_with_msg
-from winipedia_utils.testing.tests.base.utils.utils import get_github_repo_token
 
 OWNER = PyprojectConfigFile.get_main_author_name()
 TOKEN = get_github_repo_token()

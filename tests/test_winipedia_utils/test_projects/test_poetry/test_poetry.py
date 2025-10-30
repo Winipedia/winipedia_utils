@@ -5,6 +5,7 @@ from types import ModuleType
 from pytest_mock import MockFixture
 
 from winipedia_utils.projects.poetry.poetry import (
+    VersionConstraint,
     get_poetry_run_module_script,
     get_python_module_script,
     get_run_python_module_args,
@@ -74,3 +75,83 @@ def test_get_poetry_run_module_script(mocker: MockFixture) -> None:
         result == "poetry run python -m app_module",
         f"Expected 'poetry run python -m app_module', got '{result}'",
     )
+
+
+class TestVersionConstraint:
+    """Test class for VersionConstraint."""
+
+    def test___init__(self) -> None:
+        """Test method for __init__."""
+        constraint = ">=3.8, <3.12"
+        version_constraint = VersionConstraint(constraint)
+        assert_with_msg(
+            version_constraint.constraint == constraint,
+            f"Expected {constraint}, got {version_constraint.constraint}",
+        )
+
+    def test_get_lower_inclusive(self) -> None:
+        """Test method for get_lower_inclusive."""
+        constraint = ">=3.8, <3.12"
+        version_constraint = VersionConstraint(constraint)
+        lower = version_constraint.get_lower_inclusive()
+        expected = "3.8"
+        assert_with_msg(
+            str(lower) == expected,
+            f"Expected {expected}, got {lower}",
+        )
+
+        constraint = ">3.8, <3.12"
+        version_constraint = VersionConstraint(constraint)
+        lower = version_constraint.get_lower_inclusive()
+        expected = "3.8.1"
+        assert_with_msg(
+            str(lower) == expected,
+            f"Expected {expected}, got {lower}",
+        )
+
+        constraint = "<3.12"
+        version_constraint = VersionConstraint(constraint)
+        lower = version_constraint.get_lower_inclusive()
+        assert_with_msg(
+            lower is None,
+            f"Expected None, got {lower}",
+        )
+        lower = version_constraint.get_lower_inclusive("3.8")
+        expected = "3.8"
+        assert_with_msg(
+            str(lower) == expected,
+            f"Expected {expected}, got {lower}",
+        )
+
+    def test_get_upper_exclusive(self) -> None:
+        """Test method for get_upper_exclusive."""
+        constraint = ">=3.8, <3.12"
+        version_constraint = VersionConstraint(constraint)
+        upper = version_constraint.get_upper_exclusive()
+        expected = "3.12"
+        assert_with_msg(
+            str(upper) == expected,
+            f"Expected {expected}, got {upper}",
+        )
+        constraint = ">=3.8, <=3.12"
+        version_constraint = VersionConstraint(constraint)
+        upper = version_constraint.get_upper_exclusive()
+        expected = "3.12.1"
+        assert_with_msg(
+            str(upper) == expected,
+            f"Expected {expected}, got {upper}",
+        )
+
+        constraint = ">=3.8"
+        version_constraint = VersionConstraint(constraint)
+        upper = version_constraint.get_upper_exclusive()
+        assert_with_msg(
+            upper is None,
+            f"Expected None, got {upper}",
+        )
+        upper = version_constraint.get_upper_exclusive("3.12")
+        expected = "3.12"
+        assert_with_msg(
+            str(upper) == expected,
+            f"Expected {expected}, got {upper}",
+        )

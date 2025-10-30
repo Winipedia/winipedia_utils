@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from winipedia_utils.git.github.github import get_github_repo_token
 from winipedia_utils.git.github.repo.repo import (
     DEFAULT_BRANCH,
     DEFAULT_RULESET_NAME,
@@ -12,7 +13,6 @@ from winipedia_utils.git.github.repo.repo import (
 from winipedia_utils.git.github.workflows.health_check import HealthCheckWorkflow
 from winipedia_utils.modules.package import get_src_package
 from winipedia_utils.projects.poetry.config import PyprojectConfigFile
-from winipedia_utils.testing.tests.base.utils.utils import get_github_repo_token
 
 
 def protect_repository() -> None:

@@ -3,10 +3,8 @@
 from pathlib import Path
 from typing import Any, cast
 
-from packaging.specifiers import SpecifierSet
-from packaging.version import Version
-
 from winipedia_utils.modules.package import get_src_package, make_name_from_package
+from winipedia_utils.projects.poetry.poetry import VersionConstraint
 from winipedia_utils.testing.convention import TESTS_PACKAGE_NAME
 from winipedia_utils.text.config import ConfigFile, TomlConfigFile
 
@@ -137,19 +135,30 @@ class PyprojectConfigFile(TomlConfigFile):
     def get_latest_possible_python_version(cls) -> str:
         """Get the latest possible python version."""
         constraint = cls.load()["project"]["requires-python"]
-        spec = constraint.strip().strip('"').strip("'")
-        sset = SpecifierSet(spec)
-        # find upper bound specifiers
-        uppers = [Version(sp.version) for sp in sset if sp.operator in ("<", "<=")]
-        if uppers:
-            top = max(uppers)
-            # if strict "<", we might treat it as “one less” in minor
-            if any(sp.operator == "<" and Version(sp.version) == top for sp in sset):
-                # subtract one minor
-                return f"{top.major}.{top.minor - 1}"
-            return f"{top.major}.{top.minor}"
-        # no upper bound → “3.x”
-        return "3.x"
+        version_constraint = VersionConstraint(constraint)
+        upper = version_constraint.get_upper_exclusive()
+        if upper is None:
+            return "3.x"
+
+        # convert to inclusive
+        if upper.micro != 0:
+            micro = upper.micro - 1
+            return f"{upper.major}.{upper.minor}" + (f".{micro}" if micro != 0 else "")
+        if upper.minor != 0:
+            minor = upper.minor - 1
+            return f"{upper.major}" + (f".{minor}" if minor != 0 else "")
+        return f"{upper.major - 1}.x"
+
+    @classmethod
+    def get_first_supported_python_version(cls) -> str:
+        """Get the first supported python version."""
+        constraint = cls.load()["project"]["requires-python"]
+        version_constraint = VersionConstraint(constraint)
+        lower = version_constraint.get_lower_inclusive()
+        if lower is None:
+            msg = "Need a lower bound for python version"
+            raise ValueError(msg)
+        return str(lower)
 
 
 class TypedConfigFile(ConfigFile):
@@ -185,3 +194,44 @@ class PyTypedConfigFile(ConfigFile):
     def get_parent_path(cls) -> Path:
         """Get the path to the config file."""
         return Path(PyprojectConfigFile.get_package_name())
+
+
+class DotPythonVersionConfigFile(ConfigFile):
+    """Config file for .python-version."""
+
+    VERSION_KEY = "version"
+
+    @classmethod
+    def get_filename(cls) -> str:
+        """Get the filename of the config file."""
+        return ""  # so it builds the path .python-version
+
+    @classmethod
+    def get_file_extension(cls) -> str:
+        """Get the file extension of the config file."""
+        return "python-version"
+
+    @classmethod
+    def get_parent_path(cls) -> Path:
+        """Get the path to the config file."""
+        return Path()
+
+    @classmethod
+    def get_configs(cls) -> dict[str, Any]:
+        """Get the config."""
+        return {
+            cls.VERSION_KEY: PyprojectConfigFile.get_first_supported_python_version()
+        }
+
+    @classmethod
+    def load(cls) -> dict[str, Any]:
+        """Load the config file."""
+        return {cls.VERSION_KEY: cls.get_path().read_text()}
+
+    @classmethod
+    def dump(cls, config: dict[str, Any] | list[Any]) -> None:
+        """Dump the config file."""
+        if not isinstance(config, dict):
+            msg = f"Cannot dump {config} to .python-version file."
+            raise TypeError(msg)
+        cls.get_path().write_text(config[cls.VERSION_KEY])
