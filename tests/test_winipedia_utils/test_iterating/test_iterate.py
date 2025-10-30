@@ -100,3 +100,19 @@ def test_nested_structure_is_subset() -> None:
         false_values == expected_false_values,
         f"Expected false values to be {expected_false_values}, got {false_values}",
     )
+
+    subset = {
+        "a": 1,
+        "b": [2, 3, {"d": 5}, {"c": 4}],
+    }
+    superset = {
+        "a": 1,
+        "b": [3, 2, {"c": 4}, {"d": 5}],
+    }
+    is_nested_subset = nested_structure_is_subset(
+        subset, superset, on_false_dict_action, on_false_list_action
+    )
+    assert_with_msg(
+        is_nested_subset,
+        "Expected subset to be subset of superset",
+    )

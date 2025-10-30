@@ -68,6 +68,11 @@ def nested_structure_is_subset(
 
         def get_actual(key_or_index: Any) -> Any:
             """Get actual value from superset."""
+            subset_val = subset[key_or_index]
+            for superset_val in superset:
+                if nested_structure_is_subset(subset_val, superset_val):
+                    return superset_val
+
             return superset[key_or_index] if key_or_index < len(superset) else None
     else:
         return subset == superset
