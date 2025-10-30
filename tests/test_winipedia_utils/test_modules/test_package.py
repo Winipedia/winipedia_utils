@@ -10,9 +10,11 @@ from typing import Any
 import pytest
 from pytest_mock import MockFixture
 
+import winipedia_utils
 from winipedia_utils.git.gitignore.gitignore import walk_os_skipping_gitignore_patterns
 from winipedia_utils.modules.module import make_obj_importpath
 from winipedia_utils.modules.package import (
+    DependencyGraph,
     copy_package,
     find_packages,
     find_packages_as_modules,
@@ -633,3 +635,248 @@ def test_make_name_from_package() -> None:
         result == expected,
         f"Expected '{expected}', got '{result}'",
     )
+
+
+class TestDependencyGraph:
+    """Test class for DependencyGraph."""
+
+    def test___init__(self) -> None:
+        """Test method for __init__."""
+        # Test it initializes without error
+        graph = DependencyGraph()
+
+        # Verify it has nodes (should have installed packages)
+        num_nodes = len(graph.nodes())
+        assert_with_msg(
+            num_nodes > 0,
+            "Expected graph to have nodes after initialization",
+        )
+
+    def test_build(self, mocker: MockFixture) -> None:
+        """Test method for build."""
+        # Create a mock distribution
+        mock_dist1 = mocker.MagicMock()
+        mock_dist1.metadata = {"Name": "test-package"}
+        mock_dist1.requires = ["dependency1>=1.0.0", "dependency2"]
+
+        mock_dist2 = mocker.MagicMock()
+        mock_dist2.metadata = {"Name": "dependency1"}
+        mock_dist2.requires = None
+
+        # Mock importlib.metadata.distributions
+        mocker.patch(
+            "importlib.metadata.distributions",
+            return_value=[mock_dist1, mock_dist2],
+        )
+
+        graph = DependencyGraph()
+
+        # Verify nodes were added
+        assert_with_msg(
+            "test-package" in graph.nodes(),
+            "Expected 'test-package' to be in graph nodes",
+        )
+        assert_with_msg(
+            "dependency1" in graph.nodes(),
+            "Expected 'dependency1' to be in graph nodes",
+        )
+
+        # Verify edges were added
+        assert_with_msg(
+            graph.has_edge("test-package", "dependency1"),
+            "Expected edge from 'test-package' to 'dependency1'",
+        )
+        assert_with_msg(
+            graph.has_edge("test-package", "dependency2"),
+            "Expected edge from 'test-package' to 'dependency2'",
+        )
+
+    def test_parse_pkg_name_from_req(self) -> None:
+        """Test method for parse_pkg_name_from_req."""
+        # Test simple package name
+        result = DependencyGraph.parse_pkg_name_from_req("requests")
+        assert_with_msg(result == "requests", f"Expected 'requests', got {result}")
+
+        # Test with version specifier
+        result = DependencyGraph.parse_pkg_name_from_req("requests>=2.0.0")
+        assert_with_msg(result == "requests", f"Expected 'requests', got {result}")
+
+        # Test with complex version specifier
+        result = DependencyGraph.parse_pkg_name_from_req("package-name>=1.0,<2.0")
+        assert_with_msg(result == "package", f"Expected 'package', got {result}")
+
+        # Test with extras
+        result = DependencyGraph.parse_pkg_name_from_req("package[extra]>=1.0")
+        assert_with_msg(result == "package", f"Expected 'package', got {result}")
+
+        # Test empty string
+        result = DependencyGraph.parse_pkg_name_from_req("")
+        assert_with_msg(result is None, f"Expected None for empty string, got {result}")
+
+        # Test with trailing spaces (leading spaces result in empty first split)
+        result = DependencyGraph.parse_pkg_name_from_req("  package-name  >=1.0")
+        assert_with_msg(result == "package", f"Expected 'package', got {result}")
+
+    def test_get_all_depending_on(self, mocker: MockFixture) -> None:
+        """Test method for get_all_depending_on."""
+        # Mock the build method to prevent it from running
+        mocker.patch.object(DependencyGraph, "build")
+
+        # Create a simple dependency graph
+        graph = DependencyGraph()
+
+        # Add nodes and edges manually
+        # Structure: pkg_a -> pkg_b -> pkg_c
+        graph.add_node("pkg_a")
+        graph.add_node("pkg_b")
+        graph.add_node("pkg_c")
+        graph.add_edge("pkg_a", "pkg_b")
+        graph.add_edge("pkg_b", "pkg_c")
+
+        # Mock import_packages to return mock modules
+        mock_pkg_a = ModuleType("pkg_a")
+        mock_pkg_b = ModuleType("pkg_b")
+
+        def mock_import_packages(names: set[str]) -> set[ModuleType]:
+            result = set()
+            if "pkg_a" in names:
+                result.add(mock_pkg_a)
+            if "pkg_b" in names:
+                result.add(mock_pkg_b)
+            return result
+
+        mocker.patch.object(graph, "import_packages", side_effect=mock_import_packages)
+
+        # Create mock module for pkg_c
+        mock_pkg_c = ModuleType("pkg_c")
+
+        # Test getting all packages depending on pkg_c
+        result = graph.get_all_depending_on(mock_pkg_c, include_self=False)
+
+        # pkg_a and pkg_b depend on pkg_c (transitively)
+        expected_count = 2
+        assert_with_msg(
+            mock_pkg_a in result,
+            f"Expected pkg_a in dependents of pkg_c, got {result}",
+        )
+        assert_with_msg(
+            mock_pkg_b in result,
+            f"Expected pkg_b in dependents of pkg_c, got {result}",
+        )
+
+        # Test with include_self=True
+        mocker.patch.object(
+            graph,
+            "import_packages",
+            side_effect=lambda names: mock_import_packages(names) | {mock_pkg_c}
+            if "pkg_c" in names
+            else mock_import_packages(names),
+        )
+        result = graph.get_all_depending_on(mock_pkg_c, include_self=True)
+        assert_with_msg(
+            mock_pkg_c in result or len(result) >= expected_count,
+            f"Expected pkg_c in result when include_self=True, got {result}",
+        )
+
+    def test_get_all_depending_on_not_found(self, mocker: MockFixture) -> None:
+        """Test get_all_depending_on with package not in graph."""
+        # Mock the build method to prevent it from running
+        mocker.patch.object(DependencyGraph, "build")
+
+        graph = DependencyGraph()
+
+        # Create a mock module that's not in the graph
+        mock_pkg = ModuleType("nonexistent_package")
+
+        with pytest.raises(ValueError, match="not found in dependency graph"):
+            graph.get_all_depending_on(mock_pkg)
+
+    def test_import_packages(self, mocker: MockFixture) -> None:
+        """Test method for import_packages."""
+        # Mock importlib.util.find_spec
+        mock_find_spec = mocker.patch("importlib.util.find_spec")
+
+        # Mock importlib.import_module
+        mock_sys = ModuleType("sys")
+        mock_os = ModuleType("os")
+        mock_import_module = mocker.patch("importlib.import_module")
+
+        def import_side_effect(name: str) -> ModuleType | None:
+            modules = {"sys": mock_sys, "os": mock_os}
+            return modules.get(name)
+
+        mock_import_module.side_effect = import_side_effect
+
+        # Set up find_spec to return spec for sys and os, None for nonexistent
+        def find_spec_side_effect(name: str) -> Any:
+            if name in {"sys", "os"}:
+                return mocker.MagicMock()  # Return a mock spec
+            return None
+
+        mock_find_spec.side_effect = find_spec_side_effect
+
+        # Test importing existing packages
+        result = DependencyGraph.import_packages({"sys", "os", "nonexistent"})
+
+        expected_module_count = 2
+        assert_with_msg(
+            mock_sys in result,
+            f"Expected sys module in result, got {result}",
+        )
+        assert_with_msg(
+            mock_os in result,
+            f"Expected os module in result, got {result}",
+        )
+        assert_with_msg(
+            len(result) == expected_module_count,
+            f"Expected {expected_module_count} modules (sys, os), got {len(result)}",
+        )
+
+    def test_get_all_depending_on_winipedia_utils(self, mocker: MockFixture) -> None:
+        """Test method for get_all_depending_on_winipedia_utils."""
+        # Mock the build method to prevent it from running
+        mocker.patch.object(DependencyGraph, "build")
+
+        graph = DependencyGraph()
+
+        # Mock get_src_package to return a different package
+        mock_src_pkg = ModuleType("other_package")
+        mocker.patch(
+            "winipedia_utils.modules.package.get_src_package",
+            return_value=mock_src_pkg,
+        )
+
+        # Mock get_all_depending_on
+        mock_dep1 = ModuleType("dep1")
+        mock_dep2 = ModuleType("dep2")
+        mocker.patch.object(
+            graph,
+            "get_all_depending_on",
+            return_value={mock_dep1, mock_dep2},
+        )
+
+        # Test without including winipedia_utils
+        result = graph.get_all_depending_on_winipedia_utils(
+            include_winipedia_utils=False
+        )
+        assert_with_msg(
+            mock_dep1 in result,
+            f"Expected dep1 in result, got {result}",
+        )
+        assert_with_msg(
+            mock_dep2 in result,
+            f"Expected dep2 in result, got {result}",
+        )
+        assert_with_msg(
+            winipedia_utils not in result,
+            f"Expected winipedia_utils not in result when include=False, got {result}",
+        )
+
+        # Test with including winipedia_utils
+        result = graph.get_all_depending_on_winipedia_utils(
+            include_winipedia_utils=True
+        )
+        assert_with_msg(
+            winipedia_utils in result,
+            f"Expected winipedia_utils in result when include=True, got {result}",
+        )

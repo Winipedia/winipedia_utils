@@ -17,6 +17,7 @@ from winipedia_utils.modules.module import (
     get_def_line,
     get_default_init_module_content,
     get_default_module_content,
+    get_executing_module,
     get_isolated_obj_name,
     get_module_content_as_str,
     get_module_of_obj,
@@ -617,4 +618,21 @@ def test_get_unwrapped_obj() -> None:
     assert_with_msg(
         unwrapped.__name__ == "test_property",
         f"Expected 'test_property', got {unwrapped.__name__}",
+    )
+
+
+def test_get_executing_module() -> None:
+    """Test func for get_executing_module."""
+    executing_module = get_executing_module()
+    executing_file = executing_module.__file__
+    if executing_file is None:
+        msg = "Expected file to be not None"
+        raise ValueError(msg)
+    assert_with_msg(
+        executing_file.endswith("pytest"),
+        f"Expected file to end with 'pytest', got {executing_file}",
+    )
+    assert_with_msg(
+        executing_module.__name__ == "__main__",
+        f"Expected module name to be '__main__', got {executing_module.__name__}",
     )

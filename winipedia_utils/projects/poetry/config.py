@@ -5,6 +5,7 @@ from typing import Any, cast
 
 from winipedia_utils.modules.package import get_src_package, make_name_from_package
 from winipedia_utils.projects.poetry.poetry import VersionConstraint
+from winipedia_utils.testing.config import ExperimentConfigFile
 from winipedia_utils.testing.convention import TESTS_PACKAGE_NAME
 from winipedia_utils.text.config import ConfigFile, TomlConfigFile
 
@@ -62,7 +63,9 @@ class PyprojectConfigFile(TomlConfigFile):
                     "files": ".",
                 },
                 "pytest": {"ini_options": {"testpaths": [TESTS_PACKAGE_NAME]}},
-                "bandit": {},
+                "bandit": {
+                    "exclude_dirs": [ExperimentConfigFile.get_path().as_posix()],
+                },
             },
         }
 

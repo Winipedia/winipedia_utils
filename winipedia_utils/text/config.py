@@ -9,10 +9,9 @@ import tomlkit
 import yaml
 from dotenv import dotenv_values
 
-import winipedia_utils
 from winipedia_utils.iterating.iterate import nested_structure_is_subset
 from winipedia_utils.modules.class_ import init_all_nonabstract_subclasses
-from winipedia_utils.modules.package import get_src_package
+from winipedia_utils.modules.package import DependencyGraph, get_src_package
 from winipedia_utils.projects.poetry.poetry import (
     get_python_module_script,
 )
@@ -149,8 +148,14 @@ class ConfigFile(ABC):
     @classmethod
     def init_config_files(cls) -> None:
         """Initialize all subclasses."""
-        init_all_nonabstract_subclasses(cls, load_package_before=winipedia_utils)
-        init_all_nonabstract_subclasses(cls, load_package_before=get_src_package())
+        pkgs_depending_on_winipedia_utils = (
+            DependencyGraph().get_all_depending_on_winipedia_utils(
+                include_winipedia_utils=True
+            )
+        )
+        pkgs_depending_on_winipedia_utils.add(get_src_package())
+        for pkg in pkgs_depending_on_winipedia_utils:
+            init_all_nonabstract_subclasses(cls, load_package_before=pkg)
 
     @staticmethod
     def get_python_setup_script() -> str:

@@ -127,7 +127,7 @@ def check_static_types() -> list[str | Path]:
 
     This function returns the input for subprocess.run() to check the static types.
     """
-    return ["mypy"]
+    return ["mypy", "--exclude-gitignore"]
 
 
 def check_security() -> list[str | Path]:

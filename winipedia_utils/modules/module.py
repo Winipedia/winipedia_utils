@@ -379,3 +379,25 @@ def get_unwrapped_obj(obj: Any) -> Any:
     if isinstance(obj, property):
         obj = obj.fget  # get the getter function of the property
     return inspect.unwrap(obj)
+
+
+def get_executing_module() -> ModuleType:
+    """Get the module where execution has started.
+
+    The executing module is the module that contains the __main__ attribute as __name__
+    E.g. if you run `python -m winipedia_utils.setup` from the command line,
+    then the executing module is winipedia_utils.modules.setup
+
+    Returns:
+        The module where execution has started
+
+    Raises:
+        ValueError: If no __main__ module is found or if the executing module
+                    cannot be determined
+
+    """
+    main = sys.modules.get("__main__")
+    if main is None:
+        msg = "No __main__ module found"
+        raise ValueError(msg)
+    return main

@@ -8,7 +8,7 @@ from pytest_mock import MockFixture
 
 from winipedia_utils.git.gitignore.config import GitIgnoreConfigFile
 from winipedia_utils.testing.assertions import assert_with_msg
-from winipedia_utils.text.config import ConfigFile
+from winipedia_utils.text.config import ConfigFile, DotEnvConfigFile
 
 
 @pytest.fixture
@@ -68,6 +68,11 @@ class TestGitIgnoreConfigFile:
         assert_with_msg(
             len(loaded) > 0,
             "Expected loaded config to be non-empty",
+        )
+        # assert .env is in loaded config
+        assert_with_msg(
+            any(DotEnvConfigFile.get_path().as_posix() in item for item in loaded),
+            "Expected .env pattern in loaded config",
         )
 
     def test_dump(

@@ -1,7 +1,7 @@
 # Project section
 [project]
 name = "winipedia-utils"
-version = "0.4.43"
+version = "0.4.45"
 description = "A package with many utility functions"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -32,6 +32,7 @@ cryptography = "*"
 polars = "*"
 pygithub = "*"
 dotenv = "*"
+networkx = "*"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "*"
@@ -44,6 +45,7 @@ types-tqdm = "*"
 types-defusedxml = "*"
 types-pyyaml = "*"
 pytest-mock = "*"
+types-networkx = "*"
 
 [tool.ruff]
 exclude = [ ".*", "**/migrations/*.py",]
@@ -64,3 +66,4 @@ files = "."
 testpaths = [ "tests",]
 
 [tool.bandit]
+exclude_dirs = ["experiment.py"]

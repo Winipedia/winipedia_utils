@@ -181,7 +181,7 @@ def test_check_static_types() -> None:
     result = check_static_types()
 
     # Expected result
-    expected = ["mypy"]
+    expected = ["mypy", "--exclude-gitignore"]
 
     # Verify the result
     assert_with_msg(

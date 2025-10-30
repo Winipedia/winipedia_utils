@@ -9,17 +9,23 @@ The utilities support both static package analysis and dynamic package manipulat
 making them suitable for code generation, testing frameworks, and package management.
 """
 
+import importlib.metadata
+import importlib.util
 import os
 import pkgutil
+import re
 import sys
 from collections.abc import Generator, Iterable
 from importlib import import_module
 from pathlib import Path
 from types import ModuleType
+from typing import Any
 
+import networkx as nx
 from setuptools import find_namespace_packages as _find_namespace_packages
 from setuptools import find_packages as _find_packages
 
+import winipedia_utils
 from winipedia_utils.logging.logger import get_logger
 
 logger = get_logger(__name__)
@@ -428,3 +434,78 @@ def make_name_from_package(
     if capitalize:
         parts = [part.capitalize() for part in parts]
     return join_on.join(parts)
+
+
+class DependencyGraph(nx.DiGraph):  # type: ignore [type-arg]
+    """A directed graph representing Python package dependencies."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the dependency graph and build it immediately."""
+        super().__init__(*args, **kwargs)
+        self.build()
+
+    def build(self) -> None:
+        """Build the graph from installed Python distributions."""
+        for dist in importlib.metadata.distributions():
+            name = dist.metadata["Name"].lower()
+            self.add_node(name)
+
+            requires = dist.requires or []
+            for req in requires:
+                dep = self.parse_pkg_name_from_req(req)
+                if dep:
+                    self.add_edge(name, dep)  # package → dependency
+
+    @staticmethod
+    def parse_pkg_name_from_req(req: str) -> str | None:
+        """Extract the bare dependency name from a requirement string."""
+        if not req:
+            return None
+        # split on the first non alphanumeric character like >, <, =, etc.
+        dep = re.split(r"[^a-zA-Z0-9]", req.strip())[0].strip()
+        return dep.lower().strip() if dep else None
+
+    def get_all_depending_on(
+        self, package: ModuleType, *, include_self: bool = False
+    ) -> set[ModuleType]:
+        """Return all packages that directly or indirectly depend on the given package.
+
+        Args:
+            package: The module whose dependents should be found.
+            include_self: Whether to include the package itself in the result.
+
+        Returns:
+            A set of imported module objects representing dependents.
+        """
+        target = package.__name__.lower()
+        if target not in self:
+            msg = f"Package '{target}' not found in dependency graph"
+            raise ValueError(msg)
+
+        dependents = nx.ancestors(self, target)
+        if include_self:
+            dependents.add(target)
+
+        return self.import_packages(dependents)
+
+    @staticmethod
+    def import_packages(names: set[str]) -> set[ModuleType]:
+        """Attempt to import all module names that can be resolved."""
+        modules: set[ModuleType] = set()
+        for name in names:
+            spec = importlib.util.find_spec(name)
+            if spec is not None:
+                modules.add(importlib.import_module(name))
+        return modules
+
+    def get_all_depending_on_winipedia_utils(
+        self, *, include_winipedia_utils: bool = False
+    ) -> set[ModuleType]:
+        """Return all packages that directly or indirectly depend on winipedia_utils."""
+        if get_src_package() == winipedia_utils:
+            deps: set[ModuleType] = set()
+        else:
+            deps = self.get_all_depending_on(winipedia_utils, include_self=False)
+        if include_winipedia_utils:
+            deps.add(winipedia_utils)
+        return deps
