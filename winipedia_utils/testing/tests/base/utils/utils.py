@@ -9,7 +9,6 @@ Returns:
 
 """
 
-import os
 from collections.abc import Callable
 from types import ModuleType
 from typing import Any
@@ -26,7 +25,6 @@ from winipedia_utils.testing.convention import (
     make_test_obj_importpath_from_obj,
     make_untested_summary_error_msg,
 )
-from winipedia_utils.text.config import DotEnvConfigFile
 
 logger = get_logger(__name__)
 
@@ -81,24 +79,3 @@ def assert_isabstrct_method(method: Any) -> None:
         is_abstractmethod(method),
         f"Expected {method} to be abstract method",
     )
-
-
-def get_github_repo_token() -> str:
-    """Get the GitHub token."""
-    # try os env first
-    token = os.getenv("REPO_TOKEN")
-    if token:
-        return token
-
-    # try .env next
-    dotenv_path = DotEnvConfigFile.get_path()
-    if not dotenv_path.exists():
-        msg = f"Expected {dotenv_path} to exist"
-        raise ValueError(msg)
-    dotenv = DotEnvConfigFile.load()
-    token = dotenv.get("REPO_TOKEN")
-    if token:
-        return token
-
-    msg = f"Expected REPO_TOKEN in {dotenv_path}"
-    raise ValueError(msg)
