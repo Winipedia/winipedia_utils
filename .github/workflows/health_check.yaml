@@ -10,9 +10,6 @@ name: Health Check Workflow
   workflow_dispatch: {}
 permissions: {}
 run-name: Health Check Workflow
-defaults:
-  run:
-    shell: bash
 jobs:
   health_check:
     strategy:
