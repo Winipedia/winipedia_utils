@@ -12,6 +12,8 @@ from importlib import import_module
 from types import ModuleType
 from typing import Any
 
+from winipedia_utils.modules.inspection import get_def_line, get_obj_members
+
 
 def is_func_or_method(obj: Any) -> bool:
     """Return True if *obj* is a function or method.
@@ -57,7 +59,9 @@ def is_func(obj: Any) -> bool:
     return is_func_or_method(unwrapped)
 
 
-def get_all_functions_from_module(module: ModuleType | str) -> list[Callable[..., Any]]:
+def get_all_functions_from_module(
+    module: ModuleType | str, *, include_annotate: bool = False
+) -> list[Callable[..., Any]]:
     """Get all functions defined in a module.
 
     Retrieves all function objects that are defined directly in the specified module,
@@ -66,13 +70,14 @@ def get_all_functions_from_module(module: ModuleType | str) -> list[Callable[...
 
     Args:
         module: The module to extract functions from
+        include_annotate: If False, exclude __annotate__ method
+        introduced in Python 3.14, defaults to False
 
     Returns:
         A list of callable functions defined in the module
 
     """
     from winipedia_utils.modules.module import (  # noqa: PLC0415  # avoid circular import
-        get_def_line,
         get_module_of_obj,
     )
 
@@ -80,7 +85,8 @@ def get_all_functions_from_module(module: ModuleType | str) -> list[Callable[...
         module = import_module(module)
     funcs = [
         func
-        for _name, func in inspect.getmembers(module, is_func)
+        for _name, func in get_obj_members(module, include_annotate=include_annotate)
+        if is_func(func)
         if get_module_of_obj(func).__name__ == module.__name__
     ]
     # sort by definition order

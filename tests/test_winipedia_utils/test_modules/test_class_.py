@@ -133,6 +133,12 @@ def test_get_all_methods_from_cls() -> None:
     # Test case 1: Get all methods excluding inherited methods
     methods = get_all_methods_from_cls(TestClass, exclude_parent_methods=True)
 
+    # assert __annotate__ is not considered a method (3.14 introduces this injection)
+    assert_with_msg(
+        "__annotate__" not in [m.__name__ for m in methods if hasattr(m, "__name__")],
+        "Expected __annotate__ not to be considered a method",
+    )
+
     # expected methods in order of definition
     expected_methods = [
         TestClass.instance_method,

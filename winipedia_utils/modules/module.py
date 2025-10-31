@@ -17,7 +17,7 @@ from collections.abc import Callable, Sequence
 from importlib import import_module
 from pathlib import Path
 from types import ModuleType
-from typing import Any, cast
+from typing import Any
 
 from winipedia_utils.logging.logger import get_logger
 from winipedia_utils.modules.class_ import (
@@ -25,6 +25,7 @@ from winipedia_utils.modules.class_ import (
     get_all_methods_from_cls,
 )
 from winipedia_utils.modules.function import get_all_functions_from_module
+from winipedia_utils.modules.inspection import get_qualname_of_obj, get_unwrapped_obj
 from winipedia_utils.modules.package import (
     get_modules_and_packages_from_package,
     make_dir_with_init_file,
@@ -329,24 +330,6 @@ def get_default_module_content() -> str:
     return '''"""module."""'''
 
 
-def inside_frozen_bundle() -> bool:
-    """Return True if the code is running inside a frozen bundle."""
-    return getattr(sys, "frozen", False)
-
-
-def get_def_line(obj: Any) -> int:
-    """Return the line number where a method-like object is defined."""
-    if isinstance(obj, property):
-        obj = obj.fget
-    unwrapped = inspect.unwrap(obj)
-    if hasattr(unwrapped, "__code__"):
-        return int(unwrapped.__code__.co_firstlineno)
-    # getsourcelines does not work if in a pyinstaller bundle or something
-    if inside_frozen_bundle():
-        return 0
-    return inspect.getsourcelines(unwrapped)[1]
-
-
 def get_module_of_obj(obj: Any, default: ModuleType | None = None) -> ModuleType:
     """Return the module name where a method-like object is defined.
 
@@ -366,19 +349,6 @@ def get_module_of_obj(obj: Any, default: ModuleType | None = None) -> ModuleType
             return default
         raise ValueError(msg)
     return module
-
-
-def get_qualname_of_obj(obj: Callable[..., Any] | type) -> str:
-    """Return the name of a method-like object."""
-    unwrapped = get_unwrapped_obj(obj)
-    return cast("str", unwrapped.__qualname__)
-
-
-def get_unwrapped_obj(obj: Any) -> Any:
-    """Return the unwrapped version of a method-like object."""
-    if isinstance(obj, property):
-        obj = obj.fget  # get the getter function of the property
-    return inspect.unwrap(obj)
 
 
 def get_executing_module() -> ModuleType:
