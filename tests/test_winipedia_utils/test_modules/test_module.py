@@ -4,6 +4,7 @@ tests.test_winipedia_utils.test_modules.test_module
 """
 
 import os
+import platform
 import sys
 from importlib import import_module
 from pathlib import Path
@@ -511,7 +512,9 @@ def test_get_executing_module() -> None:
         msg = "Expected file to be not None"
         raise ValueError(msg)
     # end with pytest on macos and linux and on windows with pytest.exe/__main__.py
-    ends_with = "pytest.exe/__main__.py" if "win" in sys.platform.lower() else "pytest"
+    ends_with = (
+        "pytest.exe/__main__.py" if platform.system().lower() == "windows" else "pytest"
+    )
     assert_with_msg(
         executing_file.endswith(ends_with),
         f"Expected file to end with {ends_with}, got {executing_file}",
