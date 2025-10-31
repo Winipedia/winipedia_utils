@@ -10,6 +10,9 @@ name: Health Check Workflow
   workflow_dispatch: {}
 permissions: {}
 run-name: Health Check Workflow
+defaults:
+  run:
+    shell: bash
 jobs:
   health_check:
     strategy:
@@ -38,18 +41,20 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Setup Poetry
       uses: snok/install-poetry@main
+    - name: Ensure Poetry on PATH (Windows only)
+      run: echo 'C:/Users/runneradmin/.local/bin' >> $GITHUB_PATH
     - name: Install Dependencies
-      run: source $VENV && poetry install
+      run: poetry install
     - name: Setup CI keyring
-      run: source $VENV && 'poetry run pip install keyrings.alt && poetry run python -c "import keyring;
+      run: 'poetry run pip install keyrings.alt && poetry run python -c "import keyring;
         from keyrings.alt.file import PlaintextKeyring; keyring.set_keyring(PlaintextKeyring());
         keyring.set_password(''video_vault'',''ci_user'',''ci-secret-token''); print(''Keyring
         OK:'', keyring.get_password(''video_vault'',''ci_user''))" '
     - name: Protect Repository
-      run: source $VENV && poetry run python -m winipedia_utils.git.github.repo.protect
+      run: poetry run python -m winipedia_utils.git.github.repo.protect
       env:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
     - name: Run Hooks
-      run: source $VENV && poetry run pre-commit run --all-files --verbose
+      run: poetry run pre-commit run --all-files --verbose
       env:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
