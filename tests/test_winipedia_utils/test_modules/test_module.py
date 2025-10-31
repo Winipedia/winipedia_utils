@@ -513,7 +513,9 @@ def test_get_executing_module() -> None:
         raise ValueError(msg)
     # end with pytest on macos and linux and on windows with pytest.exe/__main__.py
     ends_with = (
-        "pytest.exe/__main__.py" if platform.system().lower() == "windows" else "pytest"
+        r"pytest.exe\__main__.py"
+        if platform.system().lower() == "windows"
+        else "pytest"
     )
     assert_with_msg(
         executing_file.endswith(ends_with),
