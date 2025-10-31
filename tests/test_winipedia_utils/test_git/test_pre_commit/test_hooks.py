@@ -136,7 +136,7 @@ def test_create_missing_tests() -> None:
     # Call the function
     result = create_missing_tests()
 
-    expected = ["python", "-m", "winipedia_utils.testing.create_tests"]
+    expected = ["poetry", "run", "python", "-m", "winipedia_utils.testing.create_tests"]
 
     # Verify the result
     assert_with_msg(

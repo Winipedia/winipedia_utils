@@ -7,15 +7,13 @@ strings are the arguments to the command. These funcs will be called by
 run_hooks.py, which will pass the returned list to subprocess.run().
 """
 
-from pathlib import Path
-
 from winipedia_utils.projects.poetry.poetry import (
     POETRY_ARG,
-    get_run_python_module_args,
+    get_poetry_run_module_args,
 )
 
 
-def patch_version() -> list[str | Path]:
+def patch_version() -> list[str]:
     """Patch the version in pyproject.toml.
 
     This function returns the input for subprocess.run() to patch the version
@@ -24,7 +22,7 @@ def patch_version() -> list[str | Path]:
     return [POETRY_ARG, "version", "patch"]
 
 
-def add_version_patch_to_git() -> list[str | Path]:
+def add_version_patch_to_git() -> list[str]:
     """Add the version patch to git.
 
     This function returns the input for subprocess.run() to add the version
@@ -33,7 +31,7 @@ def add_version_patch_to_git() -> list[str | Path]:
     return ["git", "add", "pyproject.toml"]
 
 
-def update_package_manager() -> list[str | Path]:
+def update_package_manager() -> list[str]:
     """Update the package manager.
 
     This function returns the input for subprocess.run() to update the package
@@ -42,7 +40,7 @@ def update_package_manager() -> list[str | Path]:
     return [POETRY_ARG, "self", "update"]
 
 
-def install_dependencies_with_dev() -> list[str | Path]:
+def install_dependencies_with_dev() -> list[str]:
     """Install all dependencies.
 
     This function returns the input for subprocess.run() to install all dependencies.
@@ -50,7 +48,7 @@ def install_dependencies_with_dev() -> list[str | Path]:
     return [POETRY_ARG, "install", "--with", "dev"]
 
 
-def update_dependencies_with_dev() -> list[str | Path]:
+def update_dependencies_with_dev() -> list[str]:
     """Update all dependencies.
 
     This function returns the input for subprocess.run() to update all dependencies.
@@ -58,7 +56,7 @@ def update_dependencies_with_dev() -> list[str | Path]:
     return [POETRY_ARG, "update", "--with", "dev"]
 
 
-def add_updates_to_git() -> list[str | Path]:
+def add_updates_to_git() -> list[str]:
     """Add the updated dependencies to git.
 
     This function returns the input for subprocess.run() to add the updated
@@ -67,7 +65,7 @@ def add_updates_to_git() -> list[str | Path]:
     return ["git", "add", "pyproject.toml"]
 
 
-def lock_dependencies() -> list[str | Path]:
+def lock_dependencies() -> list[str]:
     """Lock the dependencies.
 
     This function returns the input for subprocess.run() to lock the dependencies.
@@ -75,7 +73,7 @@ def lock_dependencies() -> list[str | Path]:
     return [POETRY_ARG, "lock"]
 
 
-def add_lock_file_to_git() -> list[str | Path]:
+def add_lock_file_to_git() -> list[str]:
     """Add the lock file to git.
 
     This function returns the input for subprocess.run() to add the lock file
@@ -84,7 +82,7 @@ def add_lock_file_to_git() -> list[str | Path]:
     return ["git", "add", "poetry.lock"]
 
 
-def check_package_manager_configs() -> list[str | Path]:
+def check_package_manager_configs() -> list[str]:
     """Check that poetry.lock and pyproject.toml is up to date.
 
     This function returns the input for subprocess.run() to check that poetry.lock
@@ -93,7 +91,7 @@ def check_package_manager_configs() -> list[str | Path]:
     return [POETRY_ARG, "check", "--strict"]
 
 
-def create_missing_tests() -> list[str | Path]:
+def create_missing_tests() -> list[str]:
     """Create all tests for the project.
 
     This function returns the input for subprocess.run() to create all tests.
@@ -102,10 +100,10 @@ def create_missing_tests() -> list[str | Path]:
         create_tests,
     )
 
-    return [*get_run_python_module_args(create_tests)]
+    return get_poetry_run_module_args(create_tests)
 
 
-def lint_code() -> list[str | Path]:
+def lint_code() -> list[str]:
     """Check the code.
 
     This function returns the input for subprocess.run() to lint the code.
@@ -114,7 +112,7 @@ def lint_code() -> list[str | Path]:
     return ["ruff", "check", "--fix"]
 
 
-def format_code() -> list[str | Path]:
+def format_code() -> list[str]:
     """Format the code.
 
     This function calls ruff format to format the code.
@@ -122,7 +120,7 @@ def format_code() -> list[str | Path]:
     return ["ruff", "format"]
 
 
-def check_static_types() -> list[str | Path]:
+def check_static_types() -> list[str]:
     """Check the types.
 
     This function returns the input for subprocess.run() to check the static types.
@@ -130,7 +128,7 @@ def check_static_types() -> list[str | Path]:
     return ["mypy", "--exclude-gitignore"]
 
 
-def check_security() -> list[str | Path]:
+def check_security() -> list[str]:
     """Check the security of the code.
 
     This function returns the input for subprocess.run() to check the security of
@@ -139,7 +137,7 @@ def check_security() -> list[str | Path]:
     return ["bandit", "-c", "pyproject.toml", "-r", "."]
 
 
-def run_tests() -> list[str | Path]:
+def run_tests() -> list[str]:
     """Run the tests.
 
     This function returns the input for subprocess.run() to run all tests.
