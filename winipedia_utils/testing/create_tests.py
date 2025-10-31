@@ -14,11 +14,11 @@ from winipedia_utils.modules.class_ import (
     get_all_methods_from_cls,
 )
 from winipedia_utils.modules.function import get_all_functions_from_module
+from winipedia_utils.modules.inspection import get_qualname_of_obj
 from winipedia_utils.modules.module import (
     create_module,
     get_isolated_obj_name,
     get_module_content_as_str,
-    get_qualname_of_obj,
     to_path,
 )
 from winipedia_utils.modules.package import (

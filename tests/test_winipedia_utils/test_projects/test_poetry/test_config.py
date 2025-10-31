@@ -4,6 +4,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
+from packaging.version import Version
 
 from winipedia_utils.projects.poetry.config import (
     DotPythonVersionConfigFile,
@@ -192,27 +193,30 @@ class TestPyprojectConfigFile:
         latest_version = (
             my_test_pyproject_config_file.get_latest_possible_python_version()
         )
+        expected = Version("3.11")
         assert_with_msg(
-            latest_version == "3.11",
-            "Expected get_latest_possible_python_version to return 3.11",
+            latest_version == expected,
+            f"Expected {expected}, got {latest_version}",
         )
         config["project"]["requires-python"] = ">=3.8, <=3.12"
         my_test_pyproject_config_file.dump(config)
         latest_version = (
             my_test_pyproject_config_file.get_latest_possible_python_version()
         )
+        expected = Version("3.12")
         assert_with_msg(
-            latest_version == "3.12",
-            "Expected get_latest_possible_python_version to return 3.12",
+            latest_version == expected,
+            f"Expected {expected}, got {latest_version}",
         )
         config["project"]["requires-python"] = ">=3.8, <3.11, ==3.10.*"
         my_test_pyproject_config_file.dump(config)
         latest_version = (
             my_test_pyproject_config_file.get_latest_possible_python_version()
         )
+        expected = Version("3.10")
         assert_with_msg(
-            latest_version == "3.10",
-            "Expected get_latest_possible_python_version to return 3.10",
+            latest_version == expected,
+            f"Expected {expected}, got {latest_version}",
         )
         config["project"]["requires-python"] = ">=3.8"
         my_test_pyproject_config_file.dump(config)
@@ -220,8 +224,60 @@ class TestPyprojectConfigFile:
             my_test_pyproject_config_file.get_latest_possible_python_version()
         )
         assert_with_msg(
-            latest_version == "3.x",
+            latest_version > Version("3.13"),
             "Expected get_latest_possible_python_version to return 3.x",
+        )
+
+    def test_fetch_latest_python_version(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for fetch_latest_python_version."""
+        my_test_pyproject_config_file()
+        latest_version = my_test_pyproject_config_file.fetch_latest_python_version()
+        assert_with_msg(
+            latest_version >= Version("3.13"),
+            "Expected fetch_latest_python_version to return a version >= 3.11",
+        )
+
+    def test_get_supported_python_versions(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for get_supported_python_versions."""
+        my_test_pyproject_config_file()
+        config = my_test_pyproject_config_file.load()
+        config["project"]["requires-python"] = ">=3.8, <3.12"
+        my_test_pyproject_config_file.dump(config)
+        supported_versions = (
+            my_test_pyproject_config_file.get_supported_python_versions()
+        )
+        actual = [str(v) for v in supported_versions]
+        expected = ["3.8", "3.9", "3.10", "3.11"]
+        assert_with_msg(
+            actual == expected,
+            f"Expected {expected}, got {actual}",
+        )
+
+        config["project"]["requires-python"] = ">=3.2, <=4.6"
+        my_test_pyproject_config_file.dump(config)
+        supported_versions = (
+            my_test_pyproject_config_file.get_supported_python_versions()
+        )
+        actual = [str(v) for v in supported_versions]
+        expected = [
+            "3.2",
+            "3.3",
+            "3.4",
+            "3.5",
+            "3.6",
+            "4.2",
+            "4.3",
+            "4.4",
+            "4.5",
+            "4.6",
+        ]
+        assert_with_msg(
+            actual == expected,
+            f"Expected {expected}, got {actual}",
         )
 
     def test_get_first_supported_python_version(
@@ -232,7 +288,7 @@ class TestPyprojectConfigFile:
         config = my_test_pyproject_config_file.load()
         config["project"]["requires-python"] = ">=3.8, <3.12"
         my_test_pyproject_config_file.dump(config)
-        first_version = (
+        first_version = str(
             my_test_pyproject_config_file.get_first_supported_python_version()
         )
         assert_with_msg(
@@ -241,7 +297,7 @@ class TestPyprojectConfigFile:
         )
         config["project"]["requires-python"] = "<=3.12, >3.8"
         my_test_pyproject_config_file.dump(config)
-        first_version = (
+        first_version = str(
             my_test_pyproject_config_file.get_first_supported_python_version()
         )
         assert_with_msg(

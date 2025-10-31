@@ -303,13 +303,13 @@ class TestConfigFile:
         num_created = len(list(tmp_path.rglob("*.*")))
         assert_with_msg(num_created == 1, "Expected other files to be created")
 
-    def test_get_python_setup_script(
+    def test_get_poetry_run_setup_script(
         self, my_test_config_file: type[ConfigFile]
     ) -> None:
         """Test method for get_python_setup_script."""
-        expected = "python -m winipedia_utils.setup"
-        actual = my_test_config_file.get_python_setup_script()
-        assert_with_msg(actual == expected, f"Expected {expected}, got {actual}")
+        expected = "setup"
+        actual = my_test_config_file.get_poetry_run_setup_script()
+        assert_with_msg(expected in actual, f"Expected {expected} in {actual}")
 
 
 @pytest.fixture

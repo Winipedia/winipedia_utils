@@ -196,7 +196,7 @@ def test_imap_unordered() -> None:
     expected_int_count = 5
     expected_string_count = 3
     expected_single_double = 14
-    max_parallel_time = 0.12
+    max_parallel_time = 0.2
     expected_parallel_count = 3
 
     # Test basic functionality

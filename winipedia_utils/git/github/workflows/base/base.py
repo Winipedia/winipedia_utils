@@ -74,36 +74,46 @@ class Workflow(YamlConfigFile):
             "on": cls.get_workflow_triggers(),
             "permissions": cls.get_permissions(),
             "run-name": cls.get_run_name(),
+            "defaults": {"run": {"shell": "bash"}},
             "jobs": cls.get_jobs(),
         }
 
     @classmethod
-    def get_standard_job(
+    def get_standard_job(  # noqa: PLR0913
         cls,
         name: str | None = None,
         runs_on: str = "ubuntu-latest",
+        strategy: dict[str, Any] | None = None,
         permissions: dict[str, Any] | None = None,
         if_condition: str | None = None,
         steps: list[dict[str, Any]] | None = None,
+        needs: list[str] | None = None,
     ) -> dict[str, Any]:
         """Get a standard job."""
+        job: dict[str, Any] = {}
         if name is None:
             name = cls.get_filename()
+        job[name] = {}
+        job_config = job[name]
+
+        if permissions is not None:
+            job_config["permissions"] = permissions
+
+        if strategy is not None:
+            job_config["strategy"] = strategy
+
+        job_config["runs-on"] = runs_on
+
+        if needs is not None:
+            job_config["needs"] = needs
+
+        if if_condition is not None:
+            job_config["if"] = if_condition
 
         if steps is None:
             steps = []
+        job_config["steps"] = steps
 
-        job: dict[str, Any] = {
-            name: {
-                "runs-on": runs_on,
-                "steps": steps,
-            }
-        }
-        if permissions is not None:
-            job[name]["permissions"] = permissions
-
-        if if_condition is not None:
-            job[name]["if"] = if_condition
         return job
 
     @classmethod
@@ -153,6 +163,7 @@ class Workflow(YamlConfigFile):
         force_main_head: bool = False,
         token: bool = False,
         with_keyring: bool = False,
+        strategy_matrix: bool = False,
     ) -> list[dict[str, Any]]:
         """Get the poetry steps.
 
@@ -165,6 +176,8 @@ class Workflow(YamlConfigFile):
             should only run on main.
         token: Whether to use the repository token.
         with_keyring: Whether to setup the keyring.
+        strategy_matrix: Whether to use the strategy matrix python-version.
+            This is useful for jobs that use a matrix.
 
         Returns:
         The poetry steps.
@@ -184,21 +197,31 @@ class Workflow(YamlConfigFile):
                 "name": "Setup Python",
                 "uses": "actions/setup-python@main",
                 "with": {
-                    "python-version": PyprojectConfigFile.get_latest_possible_python_version()  # noqa: E501
+                    # get latest if strategy matrix python-version is not set
+                    "python-version": "${{ matrix.python-version }}"
+                    if strategy_matrix
+                    else str(PyprojectConfigFile.get_latest_possible_python_version())
                 },
             }
         )
         steps.append(
             {
-                "name": "Install Poetry",
-                "run": "curl -sSL https://install.python-poetry.org | python3 -",
+                "name": "Setup Poetry",
+                "uses": "snok/install-poetry@main",
+            }
+        )
+
+        steps.append(
+            {
+                "name": "Ensure Poetry on PATH (Windows only)",
+                "run": "echo 'C:/Users/runneradmin/.local/bin' >> $GITHUB_PATH",
             }
         )
 
         if configure_pipy_token:
             steps.append(
                 {
-                    "name": "Configure Poetry",
+                    "name": "Configure Poetry with PyPI Token",
                     "run": "poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}",
                 }
             )
@@ -215,6 +238,8 @@ class Workflow(YamlConfigFile):
     def get_release_steps(cls) -> list[dict[str, Any]]:
         """Get the release steps."""
         return [
+            cls.get_commit_step(),
+            cls.get_extract_version_step(),
             {
                 "name": "Tag and Push",
                 "run": f"git push && git tag {cls.get_version()} && git push origin {cls.get_version()}",  # noqa: E501
@@ -260,6 +285,9 @@ class Workflow(YamlConfigFile):
         """
         step: dict[str, Any] = {
             "name": "Run Hooks",
+            # poetry run is necessary although the hook itself uses poetry run as well.
+            # not sure why, but on windows-latest the venv is not continued to the hooks
+            # and if you leave it here then pre-commit command is not found
             "run": "poetry run pre-commit run --all-files --verbose",
         }
         if get_src_package() == winipedia_utils:
@@ -287,7 +315,7 @@ class Workflow(YamlConfigFile):
         """Get the setup keyring step."""
         return {
             "name": "Setup CI keyring",
-            "run": """poetry run pip install keyrings.alt && poetry run python -c "import keyring; from keyrings.alt.file import PlaintextKeyring; keyring.set_keyring(PlaintextKeyring()); keyring.set_password('video_vault','ci_user','ci-secret-token'); print('Keyring OK:', keyring.get_password('video_vault','ci_user'))" """,  # noqa: E501
+            "run": 'poetry run pip install keyrings.alt && poetry run python -c "import keyring; from keyrings.alt.file import PlaintextKeyring; keyring.set_keyring(PlaintextKeyring());"',  # noqa: E501
         }
 
     @classmethod

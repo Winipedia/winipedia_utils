@@ -13,10 +13,14 @@ from types import ModuleType
 from typing import Any
 
 from winipedia_utils.modules.function import is_func
+from winipedia_utils.modules.inspection import get_def_line, get_obj_members
 
 
 def get_all_methods_from_cls(
-    class_: type, *, exclude_parent_methods: bool = False
+    class_: type,
+    *,
+    exclude_parent_methods: bool = False,
+    include_annotate: bool = False,
 ) -> list[Callable[..., Any]]:
     """Get all methods from a class.
 
@@ -27,17 +31,21 @@ def get_all_methods_from_cls(
         class_: The class to extract methods from
         exclude_parent_methods: If True, only include methods defined in this class,
         excluding those inherited from parent classes
+        include_annotate: If False, exclude __annotate__ method
+        introduced in Python 3.14, defaults to False
+
     Returns:
         A list of callable methods from the class
 
     """
     from winipedia_utils.modules.module import (  # noqa: PLC0415  # avoid circular import
-        get_def_line,
         get_module_of_obj,
     )
 
     methods = [
-        (method, name) for name, method in inspect.getmembers(class_) if is_func(method)
+        (method, name)
+        for name, method in get_obj_members(class_, include_annotate=include_annotate)
+        if is_func(method)
     ]
 
     if exclude_parent_methods:
@@ -67,7 +75,6 @@ def get_all_cls_from_module(module: ModuleType | str) -> list[type]:
 
     """
     from winipedia_utils.modules.module import (  # noqa: PLC0415  # avoid circular import
-        get_def_line,
         get_module_of_obj,
     )
 

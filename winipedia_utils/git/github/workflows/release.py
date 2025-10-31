@@ -40,6 +40,12 @@ class ReleaseWorkflow(HealthCheckWorkflow):
     @classmethod
     def get_jobs(cls) -> dict[str, Any]:
         """Get the workflow jobs."""
-        steps = super().get_jobs()
-        steps[cls.get_filename()]["steps"].extend(cls.get_release_steps())
-        return steps
+        jobs = HealthCheckWorkflow.get_jobs()
+        release_job = cls.get_standard_job(
+            needs=[HealthCheckWorkflow.get_filename()],
+            steps=[
+                *cls.get_release_steps(),
+            ],
+        )
+        jobs.update(release_job)
+        return jobs
