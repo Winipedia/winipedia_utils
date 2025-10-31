@@ -725,7 +725,9 @@ class TestDependencyGraph:
 
         # Test with complex version specifier
         result = DependencyGraph.parse_pkg_name_from_req("package-name>=1.0,<2.0")
-        assert_with_msg(result == "package", f"Expected 'package', got {result}")
+        assert_with_msg(
+            result == "package_name", f"Expected 'package_name', got {result}"
+        )
 
         # Test with extras
         result = DependencyGraph.parse_pkg_name_from_req("package[extra]>=1.0")
@@ -737,7 +739,9 @@ class TestDependencyGraph:
 
         # Test with trailing spaces (leading spaces result in empty first split)
         result = DependencyGraph.parse_pkg_name_from_req("  package-name  >=1.0")
-        assert_with_msg(result == "package", f"Expected 'package', got {result}")
+        assert_with_msg(
+            result == "package_name", f"Expected 'package_name', got {result}"
+        )
 
     def test_get_all_depending_on(self, mocker: MockFixture) -> None:
         """Test method for get_all_depending_on."""

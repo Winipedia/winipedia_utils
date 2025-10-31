@@ -472,7 +472,8 @@ class DependencyGraph(nx.DiGraph):  # type: ignore [type-arg]
     def parse_pkg_name_from_req(req: str) -> str | None:
         """Extract the bare dependency name from a requirement string."""
         # split on the first non alphanumeric character like >, <, =, etc.
-        dep = re.split(r"[^a-zA-Z0-9]", req.strip())[0].strip()
+        # keep - and _ for names like winipedia-utils or winipedia_utils
+        dep = re.split(r"[^a-zA-Z0-9_-]", req.strip())[0].strip()
         return DependencyGraph.normalize_package_name(dep) if dep else None
 
     def get_all_depending_on(
