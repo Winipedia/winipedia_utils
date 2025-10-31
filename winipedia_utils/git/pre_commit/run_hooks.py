@@ -29,9 +29,21 @@ def run_hooks() -> None:
 
         log_method = logger.info
         status_str = (f"{GREEN}PASSED" if passed else f"{RED}FAILED") + RESET
-        status_str += f"\n{result.stdout}"
         if not passed:
             log_method = logger.error
+            status_str += f"""
+---------------------------------------------------------------------------------------------
+Stdout:
+
+{result.stdout}
+
+---------------------------------------------------------------------------------------------
+Stderr:
+
+{result.stderr}
+
+---------------------------------------------------------------------------------------------
+"""
             exit_code = 1
         # make the dashes always the same lentgth by adjusting to len of hook name
         num_dashes = 50 - len(hook_func.__name__)
