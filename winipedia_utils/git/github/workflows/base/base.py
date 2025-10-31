@@ -208,7 +208,7 @@ class Workflow(YamlConfigFile):
             {
                 "name": "Setup Poetry",
                 "uses": "snok/install-poetry@main",
-                "with": {"version": "latest"},
+                "with": {"version": "latest", "with": {"virtualenvs-create": "true"}},
             }
         )
 
