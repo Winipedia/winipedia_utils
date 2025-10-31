@@ -82,6 +82,9 @@ jobs:
       uses: snok/install-poetry@main
     - name: Install Dependencies
       run: poetry install
+    - name: Setup CI keyring
+      run: poetry run pip install keyrings.alt && poetry run python -c "import keyring;
+        from keyrings.alt.file import PlaintextKeyring; keyring.set_keyring(PlaintextKeyring());"
     - name: Run Hooks
       run: poetry run pre-commit run --all-files --verbose
       env:
