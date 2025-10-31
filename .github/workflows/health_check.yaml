@@ -41,8 +41,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Setup Poetry
       uses: snok/install-poetry@main
-      with:
-        version: latest
+    - name: Ensure Poetry on PATH (Windows only)
+      run: echo 'C:/Users/runneradmin/.local/bin' >> $GITHUB_PATH
     - name: Install Dependencies
       run: poetry install
     - name: Setup CI keyring
