@@ -211,6 +211,13 @@ class Workflow(YamlConfigFile):
             }
         )
 
+        steps.append(
+            {
+                "name": "Ensure Poetry on PATH (Windows only)",
+                "run": "echo 'C:/Users/runneradmin/.local/bin' >> $GITHUB_PATH",
+            }
+        )
+
         if configure_pipy_token:
             steps.append(
                 {
