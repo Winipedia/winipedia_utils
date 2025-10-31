@@ -1,13 +1,75 @@
 """module."""
 
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
+
+import pytest
 
 from winipedia_utils.git.github.workflows.base.base import Workflow
 from winipedia_utils.testing.assertions import assert_with_msg
 
 
+@pytest.fixture
+def my_test_workflow(
+    config_file_factory: Callable[[type[Workflow]], type[Workflow]],
+) -> type[Workflow]:
+    """Create a test workflow class with tmp_path."""
+
+    class MyTestWorkflowClass(config_file_factory(Workflow)):  # type: ignore [misc]
+        """Test workflow class with tmp_path override."""
+
+        @classmethod
+        def get_workflow_triggers(cls) -> dict[str, Any]:
+            """Get the workflow triggers."""
+            return {"workflow_dispatch": {}}
+
+        @classmethod
+        def get_permissions(cls) -> dict[str, Any]:
+            """Get the workflow permissions."""
+            return {}
+
+        @classmethod
+        def get_jobs(cls) -> dict[str, Any]:
+            """Get the workflow jobs."""
+            return {
+                "test_job": {
+                    "runs-on": "ubuntu-latest",
+                    "steps": [{"name": "Test Step", "run": "echo test"}],
+                }
+            }
+
+    return MyTestWorkflowClass
+
+
 class TestWorkflow:
     """Test class for Workflow."""
+
+    def test_is_correct(self, my_test_workflow: type[Workflow]) -> None:
+        """Test method for is_correct."""
+        # Test that an empty file is considered correct (gets EMPTY_CONFIG)
+        test_workflow = my_test_workflow()
+        workflow_path = test_workflow.get_path()
+        workflow_path.write_text("")
+        assert_with_msg(
+            test_workflow.is_correct(),
+            "Expected workflow to be correct when empty",
+        )
+
+        # Test that after is_correct on empty file, it has EMPTY_CONFIG
+        loaded_config = test_workflow.load()
+        assert_with_msg(
+            loaded_config == Workflow.EMPTY_CONFIG,
+            "Expected empty workflow to have EMPTY_CONFIG after is_correct check",
+        )
+
+        # Test that a workflow with proper config is correct
+        proper_config = test_workflow.get_configs()
+        test_workflow.dump(proper_config)
+        assert_with_msg(
+            test_workflow.is_correct(),
+            "Expected workflow to be correct with proper config",
+        )
 
     def test_get_workflow_triggers(self) -> None:
         """Test method for get_workflow_triggers."""
@@ -157,6 +219,14 @@ class TestWorkflow:
         assert_with_msg(
             "pre-commit" in step.get("run", ""),
             "Expected 'pre-commit' in run command",
+        )
+
+    def test_get_setup_keyring_step(self) -> None:
+        """Test method for get_setup_keyring_step."""
+        step = Workflow.get_setup_keyring_step()
+        assert_with_msg(
+            "name" in step,
+            "Expected 'name' in setup keyring step",
         )
 
     def test_get_extract_version_step(self) -> None:

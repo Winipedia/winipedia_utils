@@ -2,7 +2,7 @@
 
 from abc import abstractmethod
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import winipedia_utils
 from winipedia_utils.modules.module import make_obj_importpath
@@ -14,6 +14,37 @@ from winipedia_utils.text.string import split_on_uppercase
 
 class Workflow(YamlConfigFile):
     """Base class for workflows."""
+
+    EMPTY_CONFIG: ClassVar[dict[str, Any]] = {
+        "on": {
+            "workflow_dispatch": {},
+        },
+        "jobs": {
+            "empty": {
+                "runs-on": "ubuntu-latest",
+                "steps": [
+                    {
+                        "name": "Empty Step",
+                        "run": "echo 'Empty Step'",
+                    }
+                ],
+            },
+        },
+    }
+
+    @classmethod
+    def is_correct(cls) -> bool:
+        """Check if the config is correct.
+
+        Needs some special handling since workflow files cannot be empty.
+        We need a workflow that will never trigger and even if doesnt do anything.
+        """
+        correct = super().is_correct()
+        if cls.get_path().read_text() == "":
+            # dump a dispatch in there for on and an empty job for jobs
+            cls.dump(cls.EMPTY_CONFIG)
+
+        return correct or cls.load() == cls.EMPTY_CONFIG
 
     @classmethod
     @abstractmethod
@@ -161,6 +192,7 @@ class Workflow(YamlConfigFile):
                 "run": "curl -sSL https://install.python-poetry.org | python3 -",
             }
         )
+        steps.append(cls.get_setup_keyring_step())
         if configure_pipy_token:
             steps.append(
                 {
@@ -241,6 +273,14 @@ class Workflow(YamlConfigFile):
         return {
             "name": "Commit added changes",
             "run": "git commit --no-verify -m '[skip ci] CI/CD: Committing possible added changes (e.g.: pyproject.toml and poetry.lock)'",  # noqa: E501
+        }
+
+    @classmethod
+    def get_setup_keyring_step(cls) -> dict[str, Any]:
+        """Get the setup keyring step."""
+        return {
+            "name": "Setup CI keyring",
+            "run": """poetry run pip install keyrings.alt && poetry run python -c "import keyring; from keyrings.alt.file import PlaintextKeyring; keyring.set_keyring(PlaintextKeyring()); keyring.set_password('video_vault','ci_user','ci-secret-token'); print('Keyring OK:', keyring.get_password('video_vault','ci_user'))" """,  # noqa: E501
         }
 
     @classmethod
