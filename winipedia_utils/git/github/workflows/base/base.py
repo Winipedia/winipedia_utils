@@ -74,6 +74,7 @@ class Workflow(YamlConfigFile):
             "on": cls.get_workflow_triggers(),
             "permissions": cls.get_permissions(),
             "run-name": cls.get_run_name(),
+            "defaults": {"run": {"shell": "bash"}},
             "jobs": cls.get_jobs(),
         }
 

@@ -55,3 +55,6 @@ jobs:
       run: poetry run pre-commit run --all-files --verbose
       env:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
+defaults:
+  run:
+    shell: bash

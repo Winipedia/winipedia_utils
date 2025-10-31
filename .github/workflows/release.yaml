@@ -81,3 +81,6 @@ jobs:
         name: ${{ github.event.repository.name }} ${{ steps.version.outputs.version
           }}
         body: ${{ steps.build_changelog.outputs.changelog }}
+defaults:
+  run:
+    shell: bash
