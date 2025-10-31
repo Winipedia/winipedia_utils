@@ -78,7 +78,7 @@ The setup creates the following configuration files:
 - `.pre-commit-config.yaml` - Pre-commit hook configuration
 - `.gitignore` - Git ignore rules (assumes you added one on GitHub before.)
 - `pyproject.toml` - Project configuration with Poetry settings
-- `.github/workflows/health_check.yaml` - Health check workflow (Runs on every push and pull request, all workfows run on the latest possible python version in pyproject.toml)
+- `.github/workflows/health_check.yaml` - Health check workflow (Runs on every push and pull request using a matrix strategy to test across multiple operating systems and Python versions)
 - `.github/workflows/release.yaml` - Release workflow (Creates a release on GitHub when the same actions as in health check pass and commits are pushed to main)
 - `.github/workflows/publish.yaml` - Publishing workflow (Publishes to PyPI when a release is created by the release workflow, if you use this workflow, you need to add a PYPI_TOKEN (named PYPI_TOKEN) to your GitHub secrets that has write access to the package on PyPI.)
 - `py.typed` - PEP 561 marker for type hints
@@ -86,6 +86,38 @@ The setup creates the following configuration files:
 - `test_zero.py` - Test file with one empyt test (so that initial tests pass)
 - `conftest.py` - Pytest configuration file
 - `.python-version` - Python version file for pyenv (if you use pyenv, puts in the lowest supported python version in pyproject.toml opposed to the latest possible python version in workflows)
+
+### GitHub Workflows and Matrix Strategy
+
+The project uses GitHub Actions workflows with a **matrix strategy** to ensure cross-platform compatibility:
+
+#### Matrix Configuration
+
+The health check and release workflows test your code across:
+- **Operating Systems**: Ubuntu (latest), Windows (latest), macOS (latest)
+- **Python Versions**: All versions specified in your `pyproject.toml` (e.g., 3.12, 3.13, 3.14)
+
+This matrix strategy ensures your code works reliably across different environments before merging or releasing.
+
+#### Workflow Structure
+
+The health check workflow consists of two jobs:
+
+1. **Matrix Job** (`health_check_matrix`) - Runs all checks in parallel across the matrix of OS and Python versions:
+   - Checkout repository
+   - Setup Git, Python, and Poetry
+   - Add Poetry to PATH (Windows-specific step)
+   - Install dependencies
+   - Setup CI keyring
+   - Protect repository (applies branch protection rules)
+   - Run pre-commit hooks (linting, formatting, type checking, security, tests)
+
+2. **Aggregation Job** (`health_check`) - Aggregates matrix results into a single status check:
+   - Required for branch protection compatibility
+   - Only runs after all matrix jobs complete successfully
+   - Provides a single status check that can be marked as required in branch protection rules
+
+The release workflow extends the health check workflow and adds a release job that runs after all health checks pass.
 
 ### Pre-commit Hook Workflow
 
@@ -176,8 +208,8 @@ A ruleset named `main protection` is created for the `main` branch with the foll
   - Requires review thread resolution (all comments in reviews must be resolved before merge)
   - Allowed merge methods: `squash` and `rebase` (no merge commits, keeps history clean)
 - **Required Status Checks:**
-  - Strict mode enabled (all status checks must pass on the latest commit, not older ones (sets the health check as required status check))
-  - Health check workflow must pass (the CI/CD pipeline must complete successfully)
+  - Strict mode enabled (all status checks must pass on the latest commit, not older ones)
+  - Health check workflow must pass (the aggregated `health_check` job ensures all matrix combinations passed successfully)
 - **Bypass Actors** - Repository admins can bypass all rules (for emergency situations)
 
 ## Utilities

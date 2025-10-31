@@ -243,6 +243,7 @@ class Workflow(YamlConfigFile):
             *cls.get_poetry_setup_steps(
                 install_dependencies=True,
                 repo_token=True,
+                with_keyring=True,
             ),
             cls.get_pre_commit_step(),
             cls.get_commit_step(),
