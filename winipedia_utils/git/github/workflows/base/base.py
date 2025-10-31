@@ -144,7 +144,7 @@ class Workflow(YamlConfigFile):
         return step
 
     @classmethod
-    def get_poetry_setup_steps(
+    def get_poetry_setup_steps(  # noqa: PLR0913
         cls,
         *,
         install_dependencies: bool = False,
@@ -152,6 +152,7 @@ class Workflow(YamlConfigFile):
         configure_pipy_token: bool = False,
         force_main_head: bool = False,
         token: bool = False,
+        with_keyring: bool = False,
     ) -> list[dict[str, Any]]:
         """Get the poetry steps.
 
@@ -163,6 +164,7 @@ class Workflow(YamlConfigFile):
             equal to the most recent commit on main. This is useful for workflows that
             should only run on main.
         token: Whether to use the repository token.
+        with_keyring: Whether to setup the keyring.
 
         Returns:
         The poetry steps.
@@ -192,7 +194,7 @@ class Workflow(YamlConfigFile):
                 "run": "curl -sSL https://install.python-poetry.org | python3 -",
             }
         )
-        steps.append(cls.get_setup_keyring_step())
+
         if configure_pipy_token:
             steps.append(
                 {
@@ -200,8 +202,13 @@ class Workflow(YamlConfigFile):
                     "run": "poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}",
                 }
             )
+
         if install_dependencies:
             steps.append({"name": "Install Dependencies", "run": "poetry install"})
+
+        if with_keyring:
+            steps.append(cls.get_setup_keyring_step())
+
         return steps
 
     @classmethod

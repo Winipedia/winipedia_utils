@@ -46,6 +46,7 @@ class HealthCheckWorkflow(Workflow):
                         cls.get_poetry_setup_steps(
                             install_dependencies=True,
                             token=True,
+                            with_keyring=True,
                         )
                     ),
                     cls.get_protect_repository_step(),
