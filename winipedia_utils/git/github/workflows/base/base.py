@@ -211,13 +211,14 @@ class Workflow(YamlConfigFile):
             }
         )
 
-        steps.append(
-            {
-                # windows needs this step to find poetry
-                "name": "Add Poetry to PATH",
-                "run": "echo 'C:/Users/runneradmin/.local/bin' >> $GITHUB_PATH",
-            }
-        )
+        if strategy_matrix:
+            steps.append(
+                {
+                    # windows needs this step to find poetry
+                    "name": "Add Poetry to PATH",
+                    "run": "echo 'C:/Users/runneradmin/.local/bin' >> $GITHUB_PATH",
+                }
+            )
 
         if configure_pipy_token:
             steps.append(
