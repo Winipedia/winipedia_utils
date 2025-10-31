@@ -205,15 +205,16 @@ class Workflow(YamlConfigFile):
         )
         steps.append(
             {
-                "name": "Install Poetry",
-                "run": "curl -sSL https://install.python-poetry.org | python3 -",
+                "name": "Setup Poetry",
+                "uses": "snok/install-poetry@main",
+                "with": {"version": "latest"},
             }
         )
 
         if configure_pipy_token:
             steps.append(
                 {
-                    "name": "Configure Poetry",
+                    "name": "Configure Poetry with PyPI Token",
                     "run": "poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}",
                 }
             )

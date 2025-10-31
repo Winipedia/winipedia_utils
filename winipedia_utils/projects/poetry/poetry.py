@@ -149,6 +149,10 @@ class VersionConstraint:
         Returns:
             The maximum version
         """
+        # increment the default by 1 micro to make it exclusive
+        if default:
+            default = Version(str(default))
+            default = Version(f"{default.major}.{default.minor}.{default.micro + 1}")
         upper_exclusive = self.get_upper_exclusive(default)
         if upper_exclusive is None:
             return None
@@ -175,6 +179,14 @@ class VersionConstraint:
             >=3.8, <4.12; level=major -> 3, 4
         E.g. >=3.8, <=3.12; level=minor -> 3.8, 3.9, 3.10, 3.11, 3.12
         E.g. >=3.8.1, <=4.12.1; level=micro -> 3.8.1, 3.8.2, ... 4.12.1
+
+        Args:
+            level: The level of the version to return
+            lower_default: The default lower bound if none is specified
+            upper_default: The default upper bound if none is specified
+
+        Returns:
+            A list of versions
         """
         lower = self.get_lower_inclusive(lower_default)
         upper = self.get_upper_inclusive(upper_default)
@@ -193,19 +205,39 @@ class VersionConstraint:
         versions: list[list[int]] = []
         for major in range(lower_as_list[major_level], upper_as_list[major_level] + 1):
             version = [major]
-            for minor in range(
+
+            minor_lower_og, minor_upper_og = (
                 lower_as_list[minor_level],
-                upper_as_list[minor_level] + 1,
+                upper_as_list[minor_level],
+            )
+            diff = minor_upper_og - minor_lower_og
+            minor_lower = minor_lower_og if diff >= 0 else 0
+            minor_upper = minor_upper_og if diff >= 0 else minor_lower_og + abs(diff)
+            for minor in range(
+                minor_lower,
+                minor_upper + 1,
             ):
                 # pop the minor if one already exists
                 if len(version) > minor_level:
                     version.pop()
+
                 version.append(minor)
-                for micro in range(
+
+                micro_lower_og, micro_upper_og = (
                     lower_as_list[micro_level],
-                    upper_as_list[micro_level] + 1,
+                    upper_as_list[micro_level],
+                )
+                diff = micro_upper_og - micro_lower_og
+                micro_lower = micro_lower_og if diff >= 0 else 0
+                micro_upper = (
+                    micro_upper_og if diff >= 0 else micro_lower_og + abs(diff)
+                )
+                for micro in range(
+                    micro_lower,
+                    micro_upper + 1,
                 ):
                     version.append(micro)
                     versions.append(version[: level_int + 1])
                     version.pop()
-        return sorted({Version(".".join(map(str, v))) for v in versions})
+        version_versions = sorted({Version(".".join(map(str, v))) for v in versions})
+        return [v for v in version_versions if self.sset.contains(v)]

@@ -2,6 +2,7 @@
 
 from types import ModuleType
 
+from packaging.version import Version
 from pytest_mock import MockFixture
 
 from winipedia_utils.projects.poetry.poetry import (
@@ -202,37 +203,115 @@ class TestVersionConstraint:
 
     def test_get_version_range(self) -> None:
         """Test method for get_version_range."""
-        constraint = ">=3.8, <3.12"
+        constraint = ">=3, <3.12"
         version_constraint = VersionConstraint(constraint)
         versions = version_constraint.get_version_range(level="major")
-        expected = ["3"]
-        actual = [str(v) for v in versions]
+        expected = [Version("3")]
         assert_with_msg(
-            actual == expected,
-            f"Expected {expected}, got {actual}",
+            versions == expected,
+            f"Expected {expected}, got {versions}",
         )
         versions = version_constraint.get_version_range(level="minor")
-        expected = ["3.8", "3.9", "3.10", "3.11"]
-        actual = [str(v) for v in versions]
+        expected = [
+            Version(x)
+            for x in [
+                "3.0",
+                "3.1",
+                "3.2",
+                "3.3",
+                "3.4",
+                "3.5",
+                "3.6",
+                "3.7",
+                "3.8",
+                "3.9",
+                "3.10",
+                "3.11",
+            ]
+        ]
         assert_with_msg(
-            actual == expected,
-            f"Expected {expected}, got {actual}",
+            versions == expected,
+            f"Expected {expected}, got {versions}",
         )
         constraint = ">=3.8.2, <3.9.6"
         version_constraint = VersionConstraint(constraint)
         versions = version_constraint.get_version_range(level="micro")
         expected = [
-            "3.8.2",
-            "3.8.3",
-            "3.8.4",
-            "3.8.5",
-            "3.9.2",
-            "3.9.3",
-            "3.9.4",
-            "3.9.5",
+            Version(x)
+            for x in [
+                "3.8.2",
+                "3.8.3",
+                "3.8.4",
+                "3.8.5",
+                "3.9.2",
+                "3.9.3",
+                "3.9.4",
+                "3.9.5",
+            ]
         ]
-        actual = [str(v) for v in versions]
         assert_with_msg(
-            actual == expected,
-            f"Expected {expected}, got {actual}",
+            versions == expected,
+            f"Expected {expected}, got {versions}",
+        )
+
+        constraint = ">=3.12"
+        version_constraint = VersionConstraint(constraint)
+        versions = version_constraint.get_version_range(
+            level="minor", upper_default="3.14.0"
+        )
+        expected = [Version(x) for x in ["3.12", "3.13", "3.14"]]
+        assert_with_msg(
+            versions == expected,
+            f"Expected {expected}, got {versions}",
+        )
+
+        # what if the micro or minor is smaller in lower than upper
+        # but the minor or major is larger
+        constraint = ">=3.12, <4.1"
+        version_constraint = VersionConstraint(constraint)
+        versions = version_constraint.get_version_range(level="minor")
+        expected = [
+            Version(x)
+            for x in [
+                "3.12",
+                "3.13",
+                "3.14",
+                "3.15",
+                "3.16",
+                "3.17",
+                "3.18",
+                "3.19",
+                "3.20",
+                "3.21",
+                "3.22",
+                "3.23",
+                "3.24",
+                "4.0",
+            ]
+        ]
+        assert_with_msg(
+            versions == expected,
+            f"Expected {expected}, got {versions}",
+        )
+
+        constraint = ">=3.11.7, <3.12.2"
+        version_constraint = VersionConstraint(constraint)
+        versions = version_constraint.get_version_range(level="micro")
+        expected = [
+            Version(x)
+            for x in [
+                "3.11.7",
+                "3.11.8",
+                "3.11.9",
+                "3.11.10",
+                "3.11.11",
+                "3.11.12",
+                "3.11.13",
+                "3.12.0",
+                "3.12.1",
+            ]
+        ]
+        assert_with_msg(
+            versions == expected,
+            f"Expected {expected}, got {versions}",
         )
