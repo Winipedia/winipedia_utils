@@ -161,7 +161,7 @@ class Workflow(YamlConfigFile):
         fetch_depth: int | None = None,
         configure_pipy_token: bool = False,
         force_main_head: bool = False,
-        token: bool = False,
+        repo_token: bool = False,
         with_keyring: bool = False,
         strategy_matrix: bool = False,
     ) -> list[dict[str, Any]]:
@@ -174,7 +174,7 @@ class Workflow(YamlConfigFile):
         force_main_head: Whether to exit if the running branch or current commit is not
             equal to the most recent commit on main. This is useful for workflows that
             should only run on main.
-        token: Whether to use the repository token.
+        repo_token: Whether to use the repository token.
         with_keyring: Whether to setup the keyring.
         strategy_matrix: Whether to use the strategy matrix python-version.
             This is useful for jobs that use a matrix.
@@ -182,7 +182,7 @@ class Workflow(YamlConfigFile):
         Returns:
         The poetry steps.
         """
-        steps = [cls.get_checkout_step(fetch_depth, token=token)]
+        steps = [cls.get_checkout_step(fetch_depth, token=repo_token)]
         if force_main_head:
             # exit with code 1 if the running branch is not main
             steps.append(
@@ -211,13 +211,6 @@ class Workflow(YamlConfigFile):
             }
         )
 
-        steps.append(
-            {
-                "name": "Ensure Poetry on PATH (Windows only)",
-                "run": "echo 'C:/Users/runneradmin/.local/bin' >> $GITHUB_PATH",
-            }
-        )
-
         if configure_pipy_token:
             steps.append(
                 {
@@ -238,6 +231,11 @@ class Workflow(YamlConfigFile):
     def get_release_steps(cls) -> list[dict[str, Any]]:
         """Get the release steps."""
         return [
+            *cls.get_poetry_setup_steps(
+                install_dependencies=True,
+                repo_token=True,
+            ),
+            cls.get_pre_commit_step(),
             cls.get_commit_step(),
             cls.get_extract_version_step(),
             {

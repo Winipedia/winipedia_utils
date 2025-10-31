@@ -59,7 +59,7 @@ class HealthCheckWorkflow(Workflow):
                     *(
                         cls.get_poetry_setup_steps(
                             install_dependencies=True,
-                            token=True,
+                            repo_token=True,
                             with_keyring=True,
                             strategy_matrix=True,
                         )
