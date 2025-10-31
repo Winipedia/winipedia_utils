@@ -285,8 +285,10 @@ class Workflow(YamlConfigFile):
         """
         step: dict[str, Any] = {
             "name": "Run Hooks",
-            # no poetry run necessary happens inside hook
-            "run": "pre-commit run --all-files --verbose",
+            # poetry run is necessary although the hook itself uses poetry run as well.
+            # not sure why, but on windows-latest the venv is not continued to the hooks
+            # and if you leave it here then pre-commit command is not found
+            "run": "poetry run pre-commit run --all-files --verbose",
         }
         if get_src_package() == winipedia_utils:
             step["env"] = {"REPO_TOKEN": cls.get_repo_token()}
