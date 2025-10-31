@@ -40,8 +40,10 @@ class HealthCheckWorkflow(Workflow):
     @classmethod
     def get_jobs(cls) -> dict[str, Any]:
         """Get the workflow jobs."""
+        matrix_job_name = f"{cls.get_filename()}_matrix"
         return {
             **cls.get_standard_job(
+                name=matrix_job_name,
                 runs_on="${{ matrix.os }}",
                 strategy={
                     "matrix": {
@@ -64,6 +66,15 @@ class HealthCheckWorkflow(Workflow):
                     ),
                     cls.get_protect_repository_step(),
                     cls.get_pre_commit_step(),
+                ],
+            ),
+            **cls.get_standard_job(
+                needs=[matrix_job_name],
+                steps=[
+                    {
+                        "name": "Aggregate Matrix Results",
+                        "run": "echo 'Aggregating matrix results into one job.'",
+                    }
                 ],
             ),
         }

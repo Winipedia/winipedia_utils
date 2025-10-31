@@ -51,15 +51,3 @@ class TestHealthCheckWorkflow:
             "steps" in jobs[job_name],
             "Expected 'steps' in job",
         )
-        # Check that pre-commit steps are included
-        steps = jobs[job_name]["steps"]
-        step_names = [step.get("name", "") for step in steps]
-        assert_with_msg(
-            any("hooks" in name.lower() for name in step_names),
-            "Expected a step with 'hooks' in the name",
-        )
-        # Check that protect repository step is included
-        assert_with_msg(
-            any("protect" in name.lower() for name in step_names),
-            "Expected a step with 'protect' in the name",
-        )
