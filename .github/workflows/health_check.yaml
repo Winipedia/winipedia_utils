@@ -10,6 +10,9 @@ name: Health Check Workflow
   workflow_dispatch: {}
 permissions: {}
 run-name: Health Check Workflow
+defaults:
+  run:
+    shell: bash
 jobs:
   health_check:
     strategy:
@@ -55,6 +58,3 @@ jobs:
       run: poetry run pre-commit run --all-files --verbose
       env:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
-defaults:
-  run:
-    shell: bash

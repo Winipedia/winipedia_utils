@@ -8,6 +8,9 @@ name: Publish Workflow
 permissions:
   contents: read
 run-name: Publish Workflow
+defaults:
+  run:
+    shell: bash
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -30,6 +33,3 @@ jobs:
       run: poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
     - name: Build and publish to PyPI
       run: poetry publish --build
-defaults:
-  run:
-    shell: bash
