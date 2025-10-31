@@ -40,8 +40,6 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Setup Poetry
       uses: snok/install-poetry@main
-    - name: Ensure Poetry on PATH (Windows only)
-      run: echo 'C:/Users/runneradmin/.local/bin' >> $GITHUB_PATH
     - name: Install Dependencies
       run: poetry install
     - name: Setup CI keyring
@@ -68,33 +66,19 @@ jobs:
     - health_check
     steps:
     - name: Checkout repository
-      run: 'git commit --no-verify -m ''[skip ci] CI/CD: Committing possible added
-        changes (e.g.: pyproject.toml and poetry.lock)'''
       uses: actions/checkout@main
       with:
         token: ${{ secrets.REPO_TOKEN }}
     - name: Setup Git
-      id: version
       run: git config --global user.email "github-actions[bot]@users.noreply.github.com"
         && git config --global user.name "github-actions[bot]"
     - name: Setup Python
-      run: git push && git tag ${{ steps.version.outputs.version }} && git push origin
-        ${{ steps.version.outputs.version }}
       uses: actions/setup-python@main
       with:
         python-version: 3.14.0
     - name: Setup Poetry
-      id: build_changelog
       uses: snok/install-poetry@main
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
     - name: Install Dependencies
-      uses: ncipollo/release-action@main
-      with:
-        tag: ${{ steps.version.outputs.version }}
-        name: ${{ github.event.repository.name }} ${{ steps.version.outputs.version
-          }}
-        body: ${{ steps.build_changelog.outputs.changelog }}
       run: poetry install
     - name: Run Hooks
       run: poetry run pre-commit run --all-files --verbose
