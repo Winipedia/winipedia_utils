@@ -59,6 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
     - health_check_matrix
+    - release_matrix
     steps:
     - name: Aggregate Matrix Results
       run: echo 'Aggregating matrix results into one job.'

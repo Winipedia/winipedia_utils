@@ -3,9 +3,12 @@
 This workflow is used to create a release on GitHub.
 """
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from winipedia_utils.git.github.workflows.health_check import HealthCheckWorkflow
+
+if TYPE_CHECKING:
+    from winipedia_utils.git.github.workflows.base.base import Workflow
 
 
 class ReleaseWorkflow(HealthCheckWorkflow):
@@ -40,9 +43,10 @@ class ReleaseWorkflow(HealthCheckWorkflow):
     @classmethod
     def get_jobs(cls) -> dict[str, Any]:
         """Get the workflow jobs."""
-        jobs = HealthCheckWorkflow.get_jobs()
+        parent_cls: type[Workflow] = cls.__bases__[0]
+        jobs = parent_cls.get_jobs()
         release_job = cls.get_standard_job(
-            needs=[HealthCheckWorkflow.get_filename()],
+            needs=[parent_cls.get_filename()],
             steps=[
                 *cls.get_release_steps(),
             ],
