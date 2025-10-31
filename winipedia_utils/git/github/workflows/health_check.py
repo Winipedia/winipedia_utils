@@ -6,6 +6,7 @@ This workflow is used to run tests on pull requests.
 from typing import Any
 
 from winipedia_utils.git.github.workflows.base.base import Workflow
+from winipedia_utils.projects.poetry.config import PyprojectConfigFile
 
 
 class HealthCheckWorkflow(Workflow):
@@ -41,18 +42,28 @@ class HealthCheckWorkflow(Workflow):
         """Get the workflow jobs."""
         return {
             **cls.get_standard_job(
+                runs_on="${{ matrix.os }}",
+                strategy={
+                    "matrix": {
+                        "os": ["ubuntu-latest", "windows-latest", "macos-latest"],
+                        "python-version": [
+                            str(v)
+                            for v in PyprojectConfigFile.get_supported_python_versions()
+                        ],
+                    },
+                    "fail-fast": True,
+                },
                 steps=[
                     *(
                         cls.get_poetry_setup_steps(
                             install_dependencies=True,
                             token=True,
                             with_keyring=True,
+                            strategy_matrix=True,
                         )
                     ),
                     cls.get_protect_repository_step(),
                     cls.get_pre_commit_step(),
-                    cls.get_commit_step(),
-                    cls.get_extract_version_step(),
                 ],
             ),
         }

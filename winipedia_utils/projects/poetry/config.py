@@ -1,7 +1,11 @@
 """Config utilities for poetry and pyproject.toml."""
 
+from functools import cache
 from pathlib import Path
 from typing import Any, cast
+
+import requests
+from packaging.version import Version
 
 from winipedia_utils.modules.package import get_src_package, make_name_from_package
 from winipedia_utils.projects.poetry.poetry import VersionConstraint
@@ -135,25 +139,29 @@ class PyprojectConfigFile(TomlConfigFile):
         return cls.get_main_author()["name"]
 
     @classmethod
-    def get_latest_possible_python_version(cls) -> str:
+    @cache
+    def fetch_latest_python_version(cls) -> Version:
+        """Fetch the latest python version from python.org."""
+        url = "https://endoflife.date/api/python.json"
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        # first element has metadata for latest stable
+        latest_version = data[0]["latest"]
+        return Version(latest_version)
+
+    @classmethod
+    def get_latest_possible_python_version(cls) -> Version:
         """Get the latest possible python version."""
         constraint = cls.load()["project"]["requires-python"]
         version_constraint = VersionConstraint(constraint)
-        upper = version_constraint.get_upper_exclusive()
-        if upper is None:
-            return "3.x"
-
-        # convert to inclusive
-        if upper.micro != 0:
-            micro = upper.micro - 1
-            return f"{upper.major}.{upper.minor}" + (f".{micro}" if micro != 0 else "")
-        if upper.minor != 0:
-            minor = upper.minor - 1
-            return f"{upper.major}" + (f".{minor}" if minor != 0 else "")
-        return f"{upper.major - 1}.x"
+        version = version_constraint.get_upper_inclusive()
+        if version is None:
+            version = cls.fetch_latest_python_version()
+        return version
 
     @classmethod
-    def get_first_supported_python_version(cls) -> str:
+    def get_first_supported_python_version(cls) -> Version:
         """Get the first supported python version."""
         constraint = cls.load()["project"]["requires-python"]
         version_constraint = VersionConstraint(constraint)
@@ -161,7 +169,16 @@ class PyprojectConfigFile(TomlConfigFile):
         if lower is None:
             msg = "Need a lower bound for python version"
             raise ValueError(msg)
-        return str(lower)
+        return lower
+
+    @classmethod
+    def get_supported_python_versions(cls) -> list[Version]:
+        """Get all supported python versions."""
+        constraint = cls.load()["project"]["requires-python"]
+        version_constraint = VersionConstraint(constraint)
+        return version_constraint.get_version_range(
+            level="minor", upper_default=cls.fetch_latest_python_version()
+        )
 
 
 class TypedConfigFile(ConfigFile):
@@ -223,7 +240,9 @@ class DotPythonVersionConfigFile(ConfigFile):
     def get_configs(cls) -> dict[str, Any]:
         """Get the config."""
         return {
-            cls.VERSION_KEY: PyprojectConfigFile.get_first_supported_python_version()
+            cls.VERSION_KEY: str(
+                PyprojectConfigFile.get_first_supported_python_version()
+            )
         }
 
     @classmethod

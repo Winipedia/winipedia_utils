@@ -12,7 +12,17 @@ permissions: {}
 run-name: Health Check Workflow
 jobs:
   health_check:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+        - ubuntu-latest
+        - windows-latest
+        - macos-latest
+        python-version:
+        - '3.12'
+        - '3.13'
+      fail-fast: true
+    runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@main
@@ -24,7 +34,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@main
       with:
-        python-version: 3.x
+        python-version: ${{ matrix.python-version }}
     - name: Install Poetry
       run: curl -sSL https://install.python-poetry.org | python3 -
     - name: Install Dependencies
@@ -42,10 +52,3 @@ jobs:
       run: poetry run pre-commit run --all-files --verbose
       env:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
-    - name: Commit added changes
-      run: 'git commit --no-verify -m ''[skip ci] CI/CD: Committing possible added
-        changes (e.g.: pyproject.toml and poetry.lock)'''
-    - name: Extract Version from pyproject.toml
-      id: version
-      run: 'version=$(poetry version -s) && echo "Project version: $version" && echo
-        "version=v$version" >> $GITHUB_OUTPUT'

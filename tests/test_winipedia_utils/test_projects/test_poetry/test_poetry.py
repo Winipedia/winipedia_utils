@@ -155,3 +155,84 @@ class TestVersionConstraint:
             str(upper) == expected,
             f"Expected {expected}, got {upper}",
         )
+
+    def test_get_upper_inclusive(self) -> None:
+        """Test method for get_upper_inclusive."""
+        constraint = ">=3.8, <3.12"
+        version_constraint = VersionConstraint(constraint)
+        upper = version_constraint.get_upper_inclusive()
+        expected = "3.11"
+        assert_with_msg(
+            str(upper) == expected,
+            f"Expected {expected}, got {upper}",
+        )
+        constraint = ">=3.8, <=3.12"
+        version_constraint = VersionConstraint(constraint)
+        upper = version_constraint.get_upper_inclusive()
+        expected = "3.12.0"
+        assert_with_msg(
+            str(upper) == expected,
+            f"Expected {expected}, got {upper}",
+        )
+        constraint = ">=3.8, <3.12.1"
+        version_constraint = VersionConstraint(constraint)
+        upper = version_constraint.get_upper_inclusive()
+        expected = "3.12.0"
+        assert_with_msg(
+            str(upper) == expected,
+            f"Expected {expected}, got {upper}",
+        )
+
+        constraint = ">=3.8"
+        version_constraint = VersionConstraint(constraint)
+        upper = version_constraint.get_upper_inclusive()
+        assert_with_msg(
+            upper is None,
+            f"Expected None, got {upper}",
+        )
+
+        constraint = ">=2.8, <3.12.0"
+        version_constraint = VersionConstraint(constraint)
+        upper = version_constraint.get_upper_inclusive()
+        expected = "3.11"
+        assert_with_msg(
+            str(upper) == expected,
+            f"Expected {expected}, got {upper}",
+        )
+
+    def test_get_version_range(self) -> None:
+        """Test method for get_version_range."""
+        constraint = ">=3.8, <3.12"
+        version_constraint = VersionConstraint(constraint)
+        versions = version_constraint.get_version_range(level="major")
+        expected = ["3"]
+        actual = [str(v) for v in versions]
+        assert_with_msg(
+            actual == expected,
+            f"Expected {expected}, got {actual}",
+        )
+        versions = version_constraint.get_version_range(level="minor")
+        expected = ["3.8", "3.9", "3.10", "3.11"]
+        actual = [str(v) for v in versions]
+        assert_with_msg(
+            actual == expected,
+            f"Expected {expected}, got {actual}",
+        )
+        constraint = ">=3.8.2, <3.9.6"
+        version_constraint = VersionConstraint(constraint)
+        versions = version_constraint.get_version_range(level="micro")
+        expected = [
+            "3.8.2",
+            "3.8.3",
+            "3.8.4",
+            "3.8.5",
+            "3.9.2",
+            "3.9.3",
+            "3.9.4",
+            "3.9.5",
+        ]
+        actual = [str(v) for v in versions]
+        assert_with_msg(
+            actual == expected,
+            f"Expected {expected}, got {actual}",
+        )
