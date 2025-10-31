@@ -13,7 +13,7 @@ from winipedia_utils.iterating.iterate import nested_structure_is_subset
 from winipedia_utils.modules.class_ import init_all_nonabstract_subclasses
 from winipedia_utils.modules.package import DependencyGraph, get_src_package
 from winipedia_utils.projects.poetry.poetry import (
-    get_python_module_script,
+    get_poetry_run_module_script,
 )
 from winipedia_utils.text.string import split_on_uppercase
 
@@ -158,11 +158,11 @@ class ConfigFile(ABC):
             init_all_nonabstract_subclasses(cls, load_package_before=pkg)
 
     @staticmethod
-    def get_python_setup_script() -> str:
+    def get_poetry_run_setup_script() -> str:
         """Get the poetry run setup script."""
         from winipedia_utils import setup  # noqa: PLC0415  # avoid circular import
 
-        return get_python_module_script(setup)
+        return get_poetry_run_module_script(setup)
 
 
 class YamlConfigFile(ConfigFile):

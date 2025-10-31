@@ -285,7 +285,8 @@ class Workflow(YamlConfigFile):
         """
         step: dict[str, Any] = {
             "name": "Run Hooks",
-            "run": "poetry run pre-commit run --all-files --verbose",
+            # no poetry run necessary happens inside hook
+            "run": "pre-commit run --all-files --verbose",
         }
         if get_src_package() == winipedia_utils:
             step["env"] = {"REPO_TOKEN": cls.get_repo_token()}
@@ -312,7 +313,7 @@ class Workflow(YamlConfigFile):
         """Get the setup keyring step."""
         return {
             "name": "Setup CI keyring",
-            "run": """poetry run pip install keyrings.alt && poetry run python -c "import keyring; from keyrings.alt.file import PlaintextKeyring; keyring.set_keyring(PlaintextKeyring()); keyring.set_password('video_vault','ci_user','ci-secret-token'); print('Keyring OK:', keyring.get_password('video_vault','ci_user'))" """,  # noqa: E501
+            "run": 'poetry run pip install keyrings.alt && poetry run python -c "import keyring; from keyrings.alt.file import PlaintextKeyring; keyring.set_keyring(PlaintextKeyring());"',  # noqa: E501
         }
 
     @classmethod
