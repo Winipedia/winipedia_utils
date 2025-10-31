@@ -510,9 +510,11 @@ def test_get_executing_module() -> None:
     if executing_file is None:
         msg = "Expected file to be not None"
         raise ValueError(msg)
+    # end with pytest on macos and linux and on windows with pytest.exe/__main__.py
+    ends_with = "pytest" if "win" in sys.platform.lower() else "pytest.exe/__main__.py"
     assert_with_msg(
-        executing_file.endswith("pytest"),
-        f"Expected file to end with 'pytest', got {executing_file}",
+        executing_file.endswith(ends_with),
+        f"Expected file to end with {ends_with}, got {executing_file}",
     )
     assert_with_msg(
         executing_module.__name__ == "__main__",
