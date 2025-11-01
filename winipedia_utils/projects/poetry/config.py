@@ -7,11 +7,12 @@ from typing import Any, cast
 import requests
 from packaging.version import Version
 
-from winipedia_utils.modules.package import get_src_package, make_name_from_package
+from winipedia_utils.modules.package import get_src_package
 from winipedia_utils.projects.poetry.poetry import VersionConstraint
 from winipedia_utils.testing.config import ExperimentConfigFile
 from winipedia_utils.testing.convention import TESTS_PACKAGE_NAME
 from winipedia_utils.text.config import ConfigFile, TomlConfigFile
+from winipedia_utils.text.string import make_name_from_obj
 
 
 class PyprojectConfigFile(TomlConfigFile):
@@ -27,7 +28,7 @@ class PyprojectConfigFile(TomlConfigFile):
         """Get the config."""
         return {
             "project": {
-                "name": make_name_from_package(get_src_package(), capitalize=False),
+                "name": make_name_from_obj(get_src_package(), capitalize=False),
                 "readme": "README.md",
                 "dynamic": ["dependencies"],
             },

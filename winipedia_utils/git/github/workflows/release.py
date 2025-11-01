@@ -3,12 +3,9 @@
 This workflow is used to create a release on GitHub.
 """
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from winipedia_utils.git.github.workflows.health_check import HealthCheckWorkflow
-
-if TYPE_CHECKING:
-    from winipedia_utils.git.github.workflows.base.base import Workflow
 
 
 class ReleaseWorkflow(HealthCheckWorkflow):
@@ -22,16 +19,10 @@ class ReleaseWorkflow(HealthCheckWorkflow):
     @classmethod
     def get_workflow_triggers(cls) -> dict[str, Any]:
         """Get the workflow triggers."""
-        return {
-            "push": {"branches": ["main"]},
-            "workflow_dispatch": {},
-            "schedule": [
-                {
-                    # run every Tuesday at 6 am
-                    "cron": "0 6 * * 2",
-                },
-            ],
-        }
+        triggers = super().get_workflow_triggers()
+        triggers.update(cls.on_push())
+        triggers.update(cls.on_schedule(cron="0 6 * * 2"))
+        return triggers
 
     @classmethod
     def get_permissions(cls) -> dict[str, Any]:
@@ -43,13 +34,64 @@ class ReleaseWorkflow(HealthCheckWorkflow):
     @classmethod
     def get_jobs(cls) -> dict[str, Any]:
         """Get the workflow jobs."""
-        parent_cls: type[Workflow] = cls.__bases__[0]
-        jobs = parent_cls.get_jobs()
-        release_job = cls.get_standard_job(
-            needs=[parent_cls.get_filename()],
-            steps=[
-                *cls.get_release_steps(),
-            ],
-        )
-        jobs.update(release_job)
+        jobs = super().get_jobs()
+        last_job_name = list(jobs.keys())[-1]
+        jobs.update(cls.job_build(needs=[last_job_name]))
+        jobs.update(cls.job_release())
         return jobs
+
+    @classmethod
+    def job_build(cls, needs: list[str] | None = None) -> dict[str, Any]:
+        """Get the build job."""
+        return cls.get_job(
+            job_func=cls.job_build,
+            needs=needs,
+            strategy=cls.strategy_matrix_os(),
+            runs_on=cls.insert_matrix_os(),
+            steps=cls.steps_build(),
+            if_condition=cls.if_build_script_exists(),
+        )
+
+    @classmethod
+    def job_release(cls) -> dict[str, Any]:
+        """Get the release job."""
+        return cls.get_job(
+            job_func=cls.job_release,
+            needs=[cls.make_name_from_func(cls.job_build)],
+            steps=cls.steps_release(),
+        )
+
+    @classmethod
+    def steps_build(cls) -> list[dict[str, Any]]:
+        """Get the build steps."""
+        return [
+            *cls.steps_core_matrix_setup(),
+            cls.step_build_project(),
+            cls.step_create_artifacts_folder(),
+            cls.step_build_artifacts(),
+            cls.step_upload_artifacts(),
+        ]
+
+    @classmethod
+    def step_build_project(cls) -> dict[str, Any]:
+        """Get the build project step."""
+        return cls.get_step(
+            step_func=cls.step_build_project,
+            run="poetry run python -m build.py",
+        )
+
+    @classmethod
+    def steps_release(cls) -> list[dict[str, Any]]:
+        """Get the release steps."""
+        return [
+            *cls.steps_core_matrix_setup(),
+            cls.step_setup_git(),
+            cls.step_setup_keyring(),
+            cls.step_run_pre_commit_hooks(),
+            cls.step_commit_added_changes(),
+            cls.step_push_commits(),
+            cls.step_create_and_push_tag(),
+            cls.step_download_artifacts(),
+            cls.step_build_changelog(),
+            cls.step_create_release(),
+        ]

@@ -25,7 +25,6 @@ from winipedia_utils.modules.package import (
     make_dir_with_init_file,
     make_init_module,
     make_init_modules_for_package,
-    make_name_from_package,
     module_is_package,
     package_name_to_path,
     walk_package,
@@ -600,42 +599,6 @@ def test_get_main_package(mocker: MockFixture) -> None:
 
     with pytest.raises(ValueError, match="Not able to determine the main package"):
         get_main_package()
-
-
-def test_make_name_from_package() -> None:
-    """Test func for make_project_name."""
-    # Create mock source package
-    mock_src_package = ModuleType("winipedia_utils")
-    mock_src_package.__name__ = "winipedia_utils"
-
-    result = make_name_from_package(mock_src_package)
-    expected = "Winipedia-Utils"
-    assert_with_msg(
-        result == expected,
-        f"Expected '{expected}', got '{result}'",
-    )
-
-    result = make_name_from_package(mock_src_package, split_on="-", join_on="_")
-    expected = "Winipedia_utils"
-    assert_with_msg(
-        result == expected,
-        f"Expected '{expected}', got '{result}'",
-    )
-    result = make_name_from_package(mock_src_package, capitalize=False)
-    expected = "winipedia-utils"
-    assert_with_msg(
-        result == expected,
-        f"Expected '{expected}', got '{result}'",
-    )
-
-    result = make_name_from_package(
-        mock_src_package, split_on="-", join_on="_", capitalize=False
-    )
-    expected = "winipedia_utils"
-    assert_with_msg(
-        result == expected,
-        f"Expected '{expected}', got '{result}'",
-    )
 
 
 class TestDependencyGraph:

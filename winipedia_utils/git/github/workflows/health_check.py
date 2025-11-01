@@ -6,7 +6,6 @@ This workflow is used to run tests on pull requests.
 from typing import Any
 
 from winipedia_utils.git.github.workflows.base.base import Workflow
-from winipedia_utils.projects.poetry.config import PyprojectConfigFile
 
 
 class HealthCheckWorkflow(Workflow):
@@ -19,62 +18,53 @@ class HealthCheckWorkflow(Workflow):
     @classmethod
     def get_workflow_triggers(cls) -> dict[str, Any]:
         """Get the workflow triggers."""
-        return {
-            "pull_request": {
-                "types": ["opened", "synchronize", "reopened"],
-            },
-            "schedule": [
-                {
-                    # run every day at 6 am
-                    "cron": "0 6 * * *",
-                },
-            ],
-            "workflow_dispatch": {},
-        }
-
-    @classmethod
-    def get_permissions(cls) -> dict[str, Any]:
-        """Get the workflow permissions."""
-        return {}
+        triggers = super().get_workflow_triggers()
+        triggers.update(cls.on_pull_request())
+        triggers.update(cls.on_schedule(cron="0 6 * * *"))
+        return triggers
 
     @classmethod
     def get_jobs(cls) -> dict[str, Any]:
         """Get the workflow jobs."""
-        matrix_job_name = f"{cls.get_filename()}_matrix"
-        return {
-            **cls.get_standard_job(
-                name=matrix_job_name,
-                runs_on="${{ matrix.os }}",
-                strategy={
-                    "matrix": {
-                        "os": ["ubuntu-latest", "windows-latest", "macos-latest"],
-                        "python-version": [
-                            str(v)
-                            for v in PyprojectConfigFile.get_supported_python_versions()
-                        ],
-                    },
-                    "fail-fast": True,
-                },
-                steps=[
-                    *(
-                        cls.get_poetry_setup_steps(
-                            install_dependencies=True,
-                            repo_token=True,
-                            with_keyring=True,
-                            strategy_matrix=True,
-                        )
-                    ),
-                    cls.get_protect_repository_step(),
-                    cls.get_pre_commit_step(),
-                ],
+        jobs: dict[str, Any] = {}
+        jobs.update(cls.job_health_check_matrix())
+        jobs.update(cls.job_health_check())
+        return jobs
+
+    @classmethod
+    def job_health_check_matrix(cls) -> dict[str, Any]:
+        """Get the health check matrix job."""
+        return cls.get_job(
+            job_func=cls.job_health_check_matrix,
+            strategy=cls.strategy_matrix_os_and_python_version(),
+            runs_on=cls.insert_matrix_os(),
+            steps=cls.steps_health_check_matrix(),
+        )
+
+    @classmethod
+    def job_health_check(cls) -> dict[str, Any]:
+        """Get the health check job."""
+        return cls.get_job(
+            job_func=cls.job_health_check,
+            needs=[cls.make_name_from_func(cls.job_health_check_matrix)],
+            steps=cls.steps_aggregate_matrix_results(),
+        )
+
+    @classmethod
+    def steps_health_check_matrix(cls) -> list[dict[str, Any]]:
+        """Get the health check matrix steps."""
+        return [
+            *cls.steps_core_matrix_setup(
+                python_version=cls.insert_matrix_python_version()
             ),
-            **cls.get_standard_job(
-                needs=[matrix_job_name],
-                steps=[
-                    {
-                        "name": "Aggregate Matrix Results",
-                        "run": "echo 'Aggregating matrix results into one job.'",
-                    }
-                ],
-            ),
-        }
+            cls.step_setup_keyring(),
+            cls.step_protect_repository(),
+            cls.step_run_pre_commit_hooks(),
+        ]
+
+    @classmethod
+    def steps_aggregate_matrix_results(cls) -> list[dict[str, Any]]:
+        """Get the aggregate matrix results step."""
+        return [
+            cls.step_aggregate_matrix_results(),
+        ]

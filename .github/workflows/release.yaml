@@ -1,11 +1,16 @@
 name: Release Workflow
 'on':
+  workflow_dispatch: {}
+  pull_request:
+    types:
+    - opened
+    - synchronize
+    - reopened
+  schedule:
+  - cron: 0 6 * * 2
   push:
     branches:
     - main
-  workflow_dispatch: {}
-  schedule:
-  - cron: 0 6 * * 2
 permissions:
   contents: write
 run-name: Release Workflow
@@ -13,7 +18,7 @@ defaults:
   run:
     shell: bash
 jobs:
-  health_check_matrix:
+  Health Check Matrix:
     strategy:
       matrix:
         os:
@@ -27,87 +32,165 @@ jobs:
       fail-fast: true
     runs-on: ${{ matrix.os }}
     steps:
-    - name: Checkout repository
+    - name: Checkout Repository
       uses: actions/checkout@main
-      with:
-        token: ${{ secrets.REPO_TOKEN }}
-    - name: Setup Git
-      run: git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        && git config --global user.name "github-actions[bot]"
+      id: checkout_repository
     - name: Setup Python
       uses: actions/setup-python@main
       with:
         python-version: ${{ matrix.python-version }}
+      id: setup_python
     - name: Setup Poetry
       uses: snok/install-poetry@main
-    - name: Add Poetry to PATH
+      id: setup_poetry
+    - name: Add Poetry To Windows Path
       run: echo 'C:/Users/runneradmin/.local/bin' >> $GITHUB_PATH
-    - name: Install Dependencies
+      if: runners.os == 'Windows'
+      id: add_poetry_to_windows_path
+    - name: Install Python Dependencies
       run: poetry install
-    - name: Setup CI keyring
+      id: install_python_dependencies
+    - name: Setup Keyring
       run: poetry run pip install keyrings.alt && poetry run python -c "import keyring;
         from keyrings.alt.file import PlaintextKeyring; keyring.set_keyring(PlaintextKeyring());"
+      id: setup_keyring
     - name: Protect Repository
       run: poetry run python -m winipedia_utils.git.github.repo.protect
       env:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
-    - name: Run Hooks
+      id: protect_repository
+    - name: Run Pre Commit Hooks
       run: poetry run pre-commit run --all-files --verbose
       env:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
-  health_check:
-    runs-on: ubuntu-latest
+      id: run_pre_commit_hooks
+  Health Check:
     needs:
-    - health_check_matrix
+    - Health Check Matrix
+    runs-on: ubuntu-latest
     steps:
     - name: Aggregate Matrix Results
       run: echo 'Aggregating matrix results into one job.'
-  release:
-    runs-on: ubuntu-latest
+      id: aggregate_matrix_results
+  Build:
     needs:
-    - health_check
+    - Health Check
+    strategy:
+      matrix:
+        os:
+        - ubuntu-latest
+        - windows-latest
+        - macos-latest
+      fail-fast: true
+    runs-on: ${{ matrix.os }}
+    if: ' -f winipedia_utils/build/build.py'
     steps:
-    - name: Checkout repository
+    - name: Checkout Repository
       uses: actions/checkout@main
+      id: checkout_repository
+    - name: Setup Python
+      uses: actions/setup-python@main
+      id: setup_python
+    - name: Setup Poetry
+      uses: snok/install-poetry@main
+      id: setup_poetry
+    - name: Add Poetry To Windows Path
+      run: echo 'C:/Users/runneradmin/.local/bin' >> $GITHUB_PATH
+      if: runners.os == 'Windows'
+      id: add_poetry_to_windows_path
+    - name: Install Python Dependencies
+      run: poetry install
+      id: install_python_dependencies
+    - name: Build Project
+      run: poetry run python -m build.py
+      id: build_project
+    - name: Create Folder
+      run: mkdir artifacts
+      id: create_folder
+    - name: Build Artifacts
+      run: poetry run python -m build.py
+      id: build_artifacts
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@main
       with:
-        token: ${{ secrets.REPO_TOKEN }}
+        name: winipedia_utils-${{ runner.os }}
+        path: artifacts/
+      id: upload_artifacts
+  Release:
+    needs:
+    - Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@main
+      id: checkout_repository
+    - name: Setup Python
+      uses: actions/setup-python@main
+      id: setup_python
+    - name: Setup Poetry
+      uses: snok/install-poetry@main
+      id: setup_poetry
+    - name: Add Poetry To Windows Path
+      run: echo 'C:/Users/runneradmin/.local/bin' >> $GITHUB_PATH
+      if: runners.os == 'Windows'
+      id: add_poetry_to_windows_path
+    - name: Install Python Dependencies
+      run: poetry install
+      id: install_python_dependencies
     - name: Setup Git
       run: git config --global user.email "github-actions[bot]@users.noreply.github.com"
         && git config --global user.name "github-actions[bot]"
-    - name: Setup Python
-      uses: actions/setup-python@main
-      with:
-        python-version: 3.14.0
-    - name: Setup Poetry
-      uses: snok/install-poetry@main
-    - name: Install Dependencies
-      run: poetry install
-    - name: Setup CI keyring
+      id: setup_git
+    - name: Setup Keyring
       run: poetry run pip install keyrings.alt && poetry run python -c "import keyring;
         from keyrings.alt.file import PlaintextKeyring; keyring.set_keyring(PlaintextKeyring());"
-    - name: Run Hooks
+      id: setup_keyring
+    - name: Run Pre Commit Hooks
       run: poetry run pre-commit run --all-files --verbose
       env:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
-    - name: Commit added changes
+      id: run_pre_commit_hooks
+    - name: Commit Added Changes
       run: 'git commit --no-verify -m ''[skip ci] CI/CD: Committing possible added
         changes (e.g.: pyproject.toml and poetry.lock)'''
-    - name: Extract Version from pyproject.toml
-      id: version
-      run: 'version=$(poetry version -s) && echo "Project version: $version" && echo
-        "version=v$version" >> $GITHUB_OUTPUT'
-    - name: Tag and Push
-      run: git push && git tag ${{ steps.version.outputs.version }} && git push origin
-        ${{ steps.version.outputs.version }}
+      id: commit_added_changes
+    - name: Push Commits
+      run: git push
+      id: push_commits
+    - name: Create And Push Tag
+      run: git tag v$(poetry version -s) && git push origin v$(poetry version -s)
+      id: create_and_push_tag
+    - name: Download Artifacts
+      uses: actions/download-artifact@main
+      with:
+        path: artifacts/
+      id: download_artifacts
     - name: Build Changelog
-      id: build_changelog
       uses: mikepenz/release-changelog-builder-action@develop
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Create GitHub Release
+      id: build_changelog
+    - name: Create Release
+      id: create_release
       uses: ncipollo/release-action@main
       with:
-        tag: ${{ steps.version.outputs.version }}
-        name: ${{ github.event.repository.name }} ${{ steps.version.outputs.version
-          }}
-        body: ${{ steps.build_changelog.outputs.changelog }}
+        tag: v$(poetry version -s)
+        name: ${{ github.event.repository.name }} v$(poetry version -s)
+        body: ${ steps.build_changelog.outputs.changelog }
+        artifacts: artifacts/*
+    - name: Create Release
+      id: create_release
+      uses: ncipollo/release-action@main
+      with:
+        tag: v$(poetry version -s)
+        name: ${{ github.event.repository.name }} v$(poetry version -s)
+        body: ${ steps.build_changelog.outputs.changelog }
+        artifacts: artifacts/*
+    - name: Create Release
+      uses: ncipollo/release-action@main
+      with:
+        tag: v$(poetry version -s)
+        name: ${{ github.event.repository.name }} v$(poetry version -s)
+        body: ${ steps._build_changelog.outputs.changelog }
+        artifacts: artifacts/*
+      id: _create_release

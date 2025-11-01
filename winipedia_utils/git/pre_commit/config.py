@@ -5,9 +5,9 @@ from typing import Any
 
 import winipedia_utils
 from winipedia_utils.logging.logger import get_logger
-from winipedia_utils.modules.package import make_name_from_package
 from winipedia_utils.os.os import run_subprocess
 from winipedia_utils.text.config import YamlConfigFile
+from winipedia_utils.text.string import make_name_from_obj
 
 logger = get_logger(__name__)
 
@@ -29,7 +29,7 @@ class PreCommitConfigConfigFile(YamlConfigFile):
     @classmethod
     def get_configs(cls) -> dict[str, Any]:
         """Get the config."""
-        hook_name = make_name_from_package(winipedia_utils, capitalize=False)
+        hook_name = make_name_from_obj(winipedia_utils, capitalize=False)
         return {
             "repos": [
                 {

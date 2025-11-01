@@ -2,6 +2,7 @@
 
 import hashlib
 from io import StringIO
+from types import ModuleType
 
 from pytest_mock import MockFixture
 
@@ -10,6 +11,7 @@ from winipedia_utils.text.string import (
     ask_for_input_with_timeout,
     find_xml_namespaces,
     get_reusable_hash,
+    make_name_from_obj,
     split_on_uppercase,
     value_to_truncated_string,
 )
@@ -289,4 +291,40 @@ def test_split_on_uppercase() -> None:
     assert_with_msg(
         result == ["split1", "Camel2", "Case"],
         f"Expected ['split1', 'Camel2', 'Case'], got {result}",
+    )
+
+
+def test_make_name_from_obj() -> None:
+    """Test func for make_project_name."""
+    # Create mock source package
+    mock_src_package = ModuleType("winipedia_utils")
+    mock_src_package.__name__ = "winipedia_utils"
+
+    result = make_name_from_obj(mock_src_package)
+    expected = "Winipedia-Utils"
+    assert_with_msg(
+        result == expected,
+        f"Expected '{expected}', got '{result}'",
+    )
+
+    result = make_name_from_obj(mock_src_package, split_on="-", join_on="_")
+    expected = "Winipedia_utils"
+    assert_with_msg(
+        result == expected,
+        f"Expected '{expected}', got '{result}'",
+    )
+    result = make_name_from_obj(mock_src_package, capitalize=False)
+    expected = "winipedia-utils"
+    assert_with_msg(
+        result == expected,
+        f"Expected '{expected}', got '{result}'",
+    )
+
+    result = make_name_from_obj(
+        mock_src_package, split_on="-", join_on="_", capitalize=False
+    )
+    expected = "winipedia_utils"
+    assert_with_msg(
+        result == expected,
+        f"Expected '{expected}', got '{result}'",
     )

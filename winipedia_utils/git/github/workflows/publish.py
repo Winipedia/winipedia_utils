@@ -19,31 +19,33 @@ class PublishWorkflow(Workflow):
     @classmethod
     def get_workflow_triggers(cls) -> dict[str, Any]:
         """Get the workflow triggers."""
-        return {
-            "workflow_run": {
-                "workflows": [ReleaseWorkflow.get_workflow_name()],
-                "types": ["completed"],
-            },
-        }
-
-    @classmethod
-    def get_permissions(cls) -> dict[str, Any]:
-        """Get the workflow permissions."""
-        return {
-            "contents": "read",
-        }
+        triggers = super().get_workflow_triggers()
+        triggers.update(
+            cls.on_workflow_run(workflows=[ReleaseWorkflow.get_workflow_name()])
+        )
+        return triggers
 
     @classmethod
     def get_jobs(cls) -> dict[str, Any]:
         """Get the workflow jobs."""
-        return cls.get_standard_job(
-            steps=[
-                *(
-                    cls.get_poetry_setup_steps(
-                        configure_pipy_token=True,
-                    )
-                ),
-                cls.get_publish_to_pypi_step(),
-            ],
-            if_condition="${{ github.event.workflow_run.conclusion == 'success' }}",
+        jobs: dict[str, Any] = {}
+        jobs.update(cls.job_publish())
+        return jobs
+
+    @classmethod
+    def job_publish(cls) -> dict[str, Any]:
+        """Get the publish job."""
+        return cls.get_job(
+            job_func=cls.job_publish,
+            steps=cls.steps_publish(),
+            if_condition=cls.if_workflow_run_is_success(),
         )
+
+    @classmethod
+    def steps_publish(cls) -> list[dict[str, Any]]:
+        """Get the publish steps."""
+        return [
+            *cls.steps_core_setup(),
+            cls.step_add_pypi_token_to_poetry(),
+            cls.step_publish_to_pypi(),
+        ]

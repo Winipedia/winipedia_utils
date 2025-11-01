@@ -409,33 +409,6 @@ def get_main_package() -> ModuleType:
     raise ValueError(msg)
 
 
-def make_name_from_package(
-    package: ModuleType,
-    split_on: str = "_",
-    join_on: str = "-",
-    *,
-    capitalize: bool = True,
-) -> str:
-    """Make a name from a package.
-
-    takes a package and makes a name from it that is readable by humans.
-
-    Args:
-        package (ModuleType): The package to make a name from
-        split_on (str, optional): what to split the package name on. Defaults to "_".
-        join_on (str, optional): what to join the package name with. Defaults to "-".
-        capitalize (bool, optional): Whether to capitalize each part. Defaults to True.
-
-    Returns:
-        str: _description_
-    """
-    package_name = package.__name__.split(".")[-1]
-    parts = package_name.split(split_on)
-    if capitalize:
-        parts = [part.capitalize() for part in parts]
-    return join_on.join(parts)
-
-
 class DependencyGraph(nx.DiGraph):  # type: ignore [type-arg]
     """A directed graph representing Python package dependencies."""
 
