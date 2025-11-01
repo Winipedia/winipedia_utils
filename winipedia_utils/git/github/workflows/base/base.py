@@ -9,7 +9,7 @@ from winipedia_utils.modules.module import to_module_name
 from winipedia_utils.modules.package import get_src_package
 from winipedia_utils.projects.poetry.config import PyprojectConfigFile
 from winipedia_utils.text.config import YamlConfigFile
-from winipedia_utils.text.string import split_on_uppercase
+from winipedia_utils.text.string import make_name_from_obj, split_on_uppercase
 
 
 class Workflow(YamlConfigFile):
@@ -165,6 +165,13 @@ class Workflow(YamlConfigFile):
         return {name: job_config}
 
     @classmethod
+    def make_name_from_func(cls, func: Callable[..., Any]) -> str:
+        """Make a name from a function."""
+        name = make_name_from_obj(func, split_on="_", join_on=" ", capitalize=True)
+        prefix = split_on_uppercase(name)[0]
+        return name.removeprefix(prefix)
+
+    @classmethod
     def make_id_from_func(cls, func: Callable[..., Any]) -> str:
         """Make an id from a function."""
         name = func.__name__
@@ -238,7 +245,7 @@ class Workflow(YamlConfigFile):
         if step is None:
             step = {}
         # make name from setup function name if name is a function
-        name = cls.make_id_from_func(step_func)
+        name = cls.make_name_from_func(step_func)
         id_ = cls.make_id_from_func(step_func)
         step_config: dict[str, Any] = {"name": name, "id": id_}
         if run is not None:
@@ -494,7 +501,7 @@ class Workflow(YamlConfigFile):
         return cls.get_step(
             step_func=cls.step_add_poetry_to_windows_path,
             run="echo 'C:/Users/runneradmin/.local/bin' >> $GITHUB_PATH",
-            if_condition="runners.os == 'Windows'",
+            if_condition=f"{cls.insert_os()} == 'Windows'",
             step=step,
         )
 
@@ -805,9 +812,14 @@ class Workflow(YamlConfigFile):
         )
 
     @classmethod
+    def if_file_exists(cls, file: str | Path) -> str:
+        """Insert the if file exists."""
+        return f"hashFiles('{file}') != ''"
+
+    @classmethod
     def if_build_script_exists(cls) -> str:
         """Insert the if build script exists."""
-        return f" -f {cls.BUILD_SCRIPT_PATH}"
+        return cls.if_file_exists(cls.BUILD_SCRIPT_PATH)
 
     @classmethod
     def if_workflow_run_is_success(cls) -> str:

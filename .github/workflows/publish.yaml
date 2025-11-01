@@ -16,18 +16,18 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-    - name: checkout_repository
+    - name: Checkout Repository
       id: checkout_repository
       uses: actions/checkout@main
-    - name: setup_python
+    - name: Setup Python
       id: setup_python
       uses: actions/setup-python@main
-    - name: setup_poetry
+    - name: Setup Poetry
       id: setup_poetry
       uses: snok/install-poetry@main
-    - name: add_pypi_token_to_poetry
+    - name: Add Pypi Token To Poetry
       id: add_pypi_token_to_poetry
       run: poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
-    - name: publish_to_pypi
+    - name: Publish To Pypi
       id: publish_to_pypi
       run: poetry publish --build
