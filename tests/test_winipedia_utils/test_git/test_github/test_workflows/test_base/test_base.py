@@ -124,15 +124,6 @@ class TestWorkflow:
         result = my_test_workflow.get_job(job_test, steps=[])
         assert_with_msg(len(result) == 1, "Expected job to have one key")
 
-    def test_make_name_from_func(self, my_test_workflow: type[Workflow]) -> None:
-        """Test method for make_name_from_func."""
-
-        def job_test_function() -> None:
-            pass
-
-        result = my_test_workflow.make_name_from_func(job_test_function)
-        assert_with_msg(len(result) > 0, "Expected name to be non-empty")
-
     def test_on_workflow_dispatch(self, my_test_workflow: type[Workflow]) -> None:
         """Test method for on_workflow_dispatch."""
         result = my_test_workflow.on_workflow_dispatch()

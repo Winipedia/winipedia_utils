@@ -14,7 +14,7 @@ defaults:
   run:
     shell: bash
 jobs:
-  Health Check Matrix:
+  health_check_matrix:
     strategy:
       matrix:
         os:
@@ -28,43 +28,43 @@ jobs:
       fail-fast: true
     runs-on: ${{ matrix.os }}
     steps:
-    - name: Checkout Repository
+    - name: checkout_repository
       id: checkout_repository
       uses: actions/checkout@main
-    - name: Setup Python
+    - name: setup_python
       id: setup_python
       uses: actions/setup-python@main
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Setup Poetry
+    - name: setup_poetry
       id: setup_poetry
       uses: snok/install-poetry@main
-    - name: Add Poetry To Windows Path
+    - name: add_poetry_to_windows_path
       id: add_poetry_to_windows_path
       run: echo 'C:/Users/runneradmin/.local/bin' >> $GITHUB_PATH
       if: runners.os == 'Windows'
-    - name: Install Python Dependencies
+    - name: install_python_dependencies
       id: install_python_dependencies
       run: poetry install
-    - name: Setup Keyring
+    - name: setup_keyring
       id: setup_keyring
       run: poetry run pip install keyrings.alt && poetry run python -c "import keyring;
         from keyrings.alt.file import PlaintextKeyring; keyring.set_keyring(PlaintextKeyring());"
-    - name: Protect Repository
+    - name: protect_repository
       id: protect_repository
       run: poetry run python -m winipedia_utils.git.github.repo.protect
       env:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
-    - name: Run Pre Commit Hooks
+    - name: run_pre_commit_hooks
       id: run_pre_commit_hooks
       run: poetry run pre-commit run --all-files --verbose
       env:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
-  Health Check:
+  health_check:
     needs:
-    - Health Check Matrix
+    - health_check_matrix
     runs-on: ubuntu-latest
     steps:
-    - name: Aggregate Matrix Results
+    - name: aggregate_matrix_results
       id: aggregate_matrix_results
       run: echo 'Aggregating matrix results into one job.'

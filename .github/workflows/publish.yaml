@@ -12,22 +12,22 @@ defaults:
   run:
     shell: bash
 jobs:
-  Publish:
+  publish:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-    - name: Checkout Repository
+    - name: checkout_repository
       id: checkout_repository
       uses: actions/checkout@main
-    - name: Setup Python
+    - name: setup_python
       id: setup_python
       uses: actions/setup-python@main
-    - name: Setup Poetry
+    - name: setup_poetry
       id: setup_poetry
       uses: snok/install-poetry@main
-    - name: Add Pypi Token To Poetry
+    - name: add_pypi_token_to_poetry
       id: add_pypi_token_to_poetry
       run: poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
-    - name: Publish To Pypi
+    - name: publish_to_pypi
       id: publish_to_pypi
       run: poetry publish --build

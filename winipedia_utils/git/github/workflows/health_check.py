@@ -46,7 +46,7 @@ class HealthCheckWorkflow(Workflow):
         """Get the health check job."""
         return cls.get_job(
             job_func=cls.job_health_check,
-            needs=[cls.make_name_from_func(cls.job_health_check_matrix)],
+            needs=[cls.make_id_from_func(cls.job_health_check_matrix)],
             steps=cls.steps_aggregate_matrix_results(),
         )
 

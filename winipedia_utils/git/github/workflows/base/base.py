@@ -9,7 +9,7 @@ from winipedia_utils.modules.module import to_module_name
 from winipedia_utils.modules.package import get_src_package
 from winipedia_utils.projects.poetry.config import PyprojectConfigFile
 from winipedia_utils.text.config import YamlConfigFile
-from winipedia_utils.text.string import make_name_from_obj, split_on_uppercase
+from winipedia_utils.text.string import split_on_uppercase
 
 
 class Workflow(YamlConfigFile):
@@ -146,7 +146,7 @@ class Workflow(YamlConfigFile):
         Returns:
         The job.
         """
-        name = cls.make_name_from_func(job_func)
+        name = cls.make_id_from_func(job_func)
         if job is None:
             job = {}
         job_config: dict[str, Any] = {}
@@ -163,13 +163,6 @@ class Workflow(YamlConfigFile):
             job_config["steps"] = steps
         job_config.update(job)
         return {name: job_config}
-
-    @classmethod
-    def make_name_from_func(cls, func: Callable[..., Any]) -> str:
-        """Make a name from a function."""
-        name = make_name_from_obj(func, split_on="_", join_on=" ", capitalize=True)
-        prefix = split_on_uppercase(name)[0]
-        return name.removeprefix(prefix)
 
     @classmethod
     def make_id_from_func(cls, func: Callable[..., Any]) -> str:
@@ -245,7 +238,7 @@ class Workflow(YamlConfigFile):
         if step is None:
             step = {}
         # make name from setup function name if name is a function
-        name = cls.make_name_from_func(step_func)
+        name = cls.make_id_from_func(step_func)
         id_ = cls.make_id_from_func(step_func)
         step_config: dict[str, Any] = {"name": name, "id": id_}
         if run is not None:

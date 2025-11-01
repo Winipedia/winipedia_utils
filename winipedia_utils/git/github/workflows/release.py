@@ -57,7 +57,7 @@ class ReleaseWorkflow(HealthCheckWorkflow):
         """Get the release job."""
         return cls.get_job(
             job_func=cls.job_release,
-            needs=[cls.make_name_from_func(cls.job_build)],
+            needs=[cls.make_id_from_func(cls.job_build)],
             steps=cls.steps_release(),
         )
 
