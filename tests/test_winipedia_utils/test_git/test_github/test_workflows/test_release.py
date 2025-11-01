@@ -69,14 +69,6 @@ class TestReleaseWorkflow:
         result = my_test_release_workflow.steps_build()
         assert_with_msg(len(result) > 0, "Expected steps to be non-empty")
 
-    def test_step_build_project(
-        self, my_test_release_workflow: type[ReleaseWorkflow]
-    ) -> None:
-        """Test method for step_build_project."""
-        result = my_test_release_workflow.step_build_project()
-        assert_with_msg("name" in result, "Expected 'name' in step")
-        assert_with_msg("run" in result, "Expected 'run' in step")
-
     def test_steps_release(
         self, my_test_release_workflow: type[ReleaseWorkflow]
     ) -> None:

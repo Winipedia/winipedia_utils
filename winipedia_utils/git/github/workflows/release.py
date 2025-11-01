@@ -66,19 +66,11 @@ class ReleaseWorkflow(HealthCheckWorkflow):
         """Get the build steps."""
         return [
             *cls.steps_core_matrix_setup(),
-            cls.step_build_project(),
+            cls.step_build_artifacts(),
             cls.step_create_artifacts_folder(),
             cls.step_build_artifacts(),
             cls.step_upload_artifacts(),
         ]
-
-    @classmethod
-    def step_build_project(cls) -> dict[str, Any]:
-        """Get the build project step."""
-        return cls.get_step(
-            step_func=cls.step_build_project,
-            run="poetry run python -m build.py",
-        )
 
     @classmethod
     def steps_release(cls) -> list[dict[str, Any]]:

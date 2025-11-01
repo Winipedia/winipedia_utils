@@ -5,6 +5,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, ClassVar
 
+from winipedia_utils.modules.module import to_module_name
 from winipedia_utils.modules.package import get_src_package
 from winipedia_utils.projects.poetry.config import PyprojectConfigFile
 from winipedia_utils.text.config import YamlConfigFile
@@ -19,8 +20,11 @@ class Workflow(YamlConfigFile):
     MACOS_LATEST = "macos-latest"
 
     ARTIFACTS_FOLDER = "artifacts"
-    ARTIFACTS_PATH = f"{ARTIFACTS_FOLDER}/"
+    ARTIFACTS_PATH = Path(f"{ARTIFACTS_FOLDER}/")
     ARTIFACTS_PATTERN = f"{ARTIFACTS_PATH}*"
+
+    BUILD_SCRIPT_PATH = Path(f"{get_src_package().__name__}/build/build.py")
+    BUILD_SCRIPT_MODULE = to_module_name(BUILD_SCRIPT_PATH)
 
     EMPTY_CONFIG: ClassVar[dict[str, Any]] = {
         "on": {
@@ -650,7 +654,7 @@ class Workflow(YamlConfigFile):
         cls,
         *,
         name: str | None = None,
-        path: str = ARTIFACTS_PATH,
+        path: str | Path = ARTIFACTS_PATH,
         step: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Get the upload artifacts step."""
@@ -659,7 +663,7 @@ class Workflow(YamlConfigFile):
         return cls.get_step(
             step_func=cls.step_upload_artifacts,
             uses="actions/upload-artifact@main",
-            with_={"name": name, "path": path},
+            with_={"name": name, "path": str(path)},
             step=step,
         )
 
@@ -668,7 +672,7 @@ class Workflow(YamlConfigFile):
         """Get the build artifacts step."""
         return cls.get_step(
             step_func=cls.step_build_artifacts,
-            run="poetry run python -m build.py",
+            run=f"poetry run python -m {cls.BUILD_SCRIPT_MODULE}",
         )
 
     @classmethod
@@ -676,12 +680,12 @@ class Workflow(YamlConfigFile):
         cls,
         *,
         name: str | None = None,
-        path: str = ARTIFACTS_PATH,
+        path: str | Path = ARTIFACTS_PATH,
         step: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Get the download artifacts step."""
         # omit name downloads all by default
-        with_: dict[str, Any] = {"path": path}
+        with_: dict[str, Any] = {"path": str(path)}
         if name is not None:
             with_["name"] = name
         return cls.get_step(
@@ -810,7 +814,7 @@ class Workflow(YamlConfigFile):
     @classmethod
     def if_build_script_exists(cls) -> str:
         """Insert the if build script exists."""
-        return f" -f {get_src_package().__name__}/build/build.py"
+        return f" -f {cls.BUILD_SCRIPT_PATH}"
 
     @classmethod
     def if_workflow_run_is_success(cls) -> str:
