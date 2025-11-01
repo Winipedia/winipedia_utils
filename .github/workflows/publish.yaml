@@ -17,17 +17,17 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@main
       id: checkout_repository
+      uses: actions/checkout@main
     - name: Setup Python
-      uses: actions/setup-python@main
       id: setup_python
+      uses: actions/setup-python@main
     - name: Setup Poetry
-      uses: snok/install-poetry@main
       id: setup_poetry
+      uses: snok/install-poetry@main
     - name: Add Pypi Token To Poetry
-      run: poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
       id: add_pypi_token_to_poetry
+      run: poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
     - name: Publish To Pypi
-      run: poetry publish --build
       id: publish_to_pypi
+      run: poetry publish --build
