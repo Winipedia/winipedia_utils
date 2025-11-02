@@ -19,7 +19,6 @@ def run_hooks() -> None:
     """Import all funcs defined in hooks.py and runs them."""
     hook_funcs = get_all_functions_from_module(hooks)
 
-    exit_code = 0
     for hook_func in hook_funcs:
         subprocess_args = hook_func()
         result = run_subprocess(
@@ -44,7 +43,7 @@ Stderr:
 
 ---------------------------------------------------------------------------------------------
 """
-            exit_code = 1
+
         # make the dashes always the same lentgth by adjusting to len of hook name
         num_dashes = 50 - len(hook_func.__name__)
         log_method(
@@ -53,6 +52,5 @@ Stderr:
             "-" * num_dashes,
             status_str,
         )
-
-    if exit_code != 0:
-        sys.exit(exit_code)
+        if not passed:
+            sys.exit(1)

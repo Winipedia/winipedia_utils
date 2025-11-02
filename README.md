@@ -126,21 +126,28 @@ When you commit code using `git commit`, the following checks run automatically:
 
 Info: If git commit fails bc of ModuleNotFoundError or smth similar, you need to run `poetry run git commit` instead.
 winipedia_utils hook is a python script that depends on winipedia_utils being installed. Poetry is needed to install winipedia_utils.
-Usually VSCode or other IDEs activates the venv automatically when opening the terminal but if not you need to activate it manually or run `poetry run git commit` instead.
+Usually VSCode or other IDEs activates the venv automatically when opening the terminal but if not you need to activate it manually or run `poetry run git commit` instead. It fails fast, so if one hook in winipedia_utils hook fails, the others don't run bc sys.exit(1) is called.
 
-1. Patch version (poetry version patch)
-2. Add version patch to git (git add pyproject.toml)
-3. Update package manager (poetry self update)
-4. Install packages (poetry install --with dev)
-5. Update packages (poetry update --with dev (winipedia_utils forces all dependencies with * to be updated to latest compatible version))
-6. Lock dependencies (poetry lock)
-7. Check package manager configs (poetry check --strict)
-8. Create tests (python -m winipedia_utils.testing.create_tests)
-9. Lint code (ruff check --fix)
-10. Format code (ruff format)
-11. Check static types (mypy)
-12. Check security (bandit -c pyproject.toml -r .)
-13. Run tests (pytest (uses pyproject.toml as config))
+Hooks run in the following order:
+
+- Fetch latest changes (git fetch origin)
+- Stash changes (git stash push -m "WIP: Stashed changes before rebasing")
+- Rebase on main (git rebase origin/main)
+- Pop stashed changes (git stash pop)
+- Add popped stash to git (git add ., bc unstashing unadds the changes and pre-commit fails, be aware that this might add changes you didn't want to commit, so inspect the changes before committing)
+- Patch version (poetry version patch)
+- Add version patch to git (git add pyproject.toml)
+- Update package manager (poetry self update)
+- Install packages (poetry install --with dev)
+- Update packages (poetry update --with dev (winipedia_utils forces all dependencies with * to be updated to latest compatible version))
+- Lock dependencies (poetry lock)
+- Check package manager configs (poetry check --strict)
+- Create tests (python -m winipedia_utils.testing.create_tests)
+- Lint code (ruff check --fix)
+- Format code (ruff format)
+- Check static types (mypy)
+- Check security (bandit -c pyproject.toml -r .)
+- Run tests (pytest (uses pyproject.toml as config))
 
 ### Auto-generated Test Structure
 
