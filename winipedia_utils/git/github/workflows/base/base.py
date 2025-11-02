@@ -778,7 +778,7 @@ class Workflow(YamlConfigFile):
         """Insert the version from the extract version step."""
         # make dynamic with cls.make_id_from_func(cls.step_extract_version)
         return (
-            "{{ "
+            "${{ "
             f"steps.{cls.make_id_from_func(cls.step_extract_version)}.outputs.version"
             " }}"
         )
@@ -787,7 +787,7 @@ class Workflow(YamlConfigFile):
     def insert_changelog(cls) -> str:
         """Insert the changelog."""
         return (
-            "{{ "
+            "${{ "
             f"steps.{cls.make_id_from_func(cls.step_build_changelog)}.outputs.changelog"
             " }}"
         )

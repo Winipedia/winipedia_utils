@@ -175,7 +175,7 @@ jobs:
       id: create_release
       uses: ncipollo/release-action@main
       with:
-        tag: '{{ steps.extract_version.outputs.version }}'
+        tag: ${{ steps.extract_version.outputs.version }}
         name: ${{ github.event.repository.name }} v$(poetry version -s)
-        body: '{{ steps.build_changelog.outputs.changelog }}'
+        body: ${{ steps.build_changelog.outputs.changelog }}
         artifacts: artifacts*
