@@ -57,7 +57,6 @@ class HealthCheckWorkflow(Workflow):
             *cls.steps_core_matrix_setup(
                 python_version=cls.insert_matrix_python_version()
             ),
-            cls.step_setup_keyring(),
             cls.step_protect_repository(),
             cls.step_run_pre_commit_hooks(),
         ]

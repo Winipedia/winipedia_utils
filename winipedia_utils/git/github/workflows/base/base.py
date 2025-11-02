@@ -412,6 +412,7 @@ class Workflow(YamlConfigFile):
             *cls.steps_core_setup(python_version=python_version, repo_token=repo_token),
             cls.step_add_poetry_to_windows_path(),
             cls.step_install_python_dependencies(),
+            cls.step_setup_keyring(),
         ]
 
     # Single Step
