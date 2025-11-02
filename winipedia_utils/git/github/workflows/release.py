@@ -36,7 +36,8 @@ class ReleaseWorkflow(HealthCheckWorkflow):
         """Get the workflow jobs."""
         jobs = super().get_jobs()
         last_job_name = list(jobs.keys())[-1]
-        jobs.update(cls.job_build(needs=[last_job_name]))
+        if cls.BUILD_SCRIPT_PATH.exists():
+            jobs.update(cls.job_build(needs=[last_job_name]))
         jobs.update(cls.job_release())
         return jobs
 
@@ -49,7 +50,6 @@ class ReleaseWorkflow(HealthCheckWorkflow):
             strategy=cls.strategy_matrix_os(),
             runs_on=cls.insert_matrix_os(),
             steps=cls.steps_build(),
-            if_condition=cls.if_build_script_exists(),
         )
 
     @classmethod

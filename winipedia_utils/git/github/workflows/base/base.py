@@ -812,16 +812,6 @@ class Workflow(YamlConfigFile):
         )
 
     @classmethod
-    def if_file_exists(cls, file: str | Path) -> str:
-        """Insert the if file exists."""
-        return f"${{{{ always() && hashFiles('{file}') }}}}"
-
-    @classmethod
-    def if_build_script_exists(cls) -> str:
-        """Insert the if build script exists."""
-        return cls.if_file_exists(cls.BUILD_SCRIPT_PATH)
-
-    @classmethod
     def if_workflow_run_is_success(cls) -> str:
         """Insert the if workflow run is success."""
         return "${{ github.event.workflow_run.conclusion == 'success' }}"

@@ -83,7 +83,6 @@ jobs:
         - macos-latest
       fail-fast: true
     runs-on: ${{ matrix.os }}
-    if: ${{ always() && hashFiles('winipedia_utils/build/build.py') }}
     steps:
     - name: Checkout Repository
       id: checkout_repository

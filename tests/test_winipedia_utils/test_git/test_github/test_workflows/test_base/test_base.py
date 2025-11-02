@@ -482,16 +482,6 @@ class TestWorkflow:
         )
         assert_with_msg("matrix.os" in result, "Expected 'matrix.os' in result")
 
-    def test_if_build_script_exists(self, my_test_workflow: type[Workflow]) -> None:
-        """Test method for if_build_script_exists."""
-        result = my_test_workflow.if_build_script_exists()
-        assert_with_msg("build.py" in result, "Expected 'build.py' in result")
-
-    def test_if_file_exists(self, my_test_workflow: type[Workflow]) -> None:
-        """Test method for if_file_exists."""
-        result = my_test_workflow.if_file_exists("test.txt")
-        assert_with_msg("test.txt" in result, "Expected 'test.txt' in result")
-
     def test_if_workflow_run_is_success(self, my_test_workflow: type[Workflow]) -> None:
         """Test method for if_workflow_run_is_success."""
         result = my_test_workflow.if_workflow_run_is_success()

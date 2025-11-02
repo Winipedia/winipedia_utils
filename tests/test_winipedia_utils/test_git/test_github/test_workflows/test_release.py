@@ -54,7 +54,6 @@ class TestReleaseWorkflow:
         assert_with_msg("steps" in result[job_name], "Expected 'steps' in job")
         assert_with_msg("strategy" in result[job_name], "Expected 'strategy' in job")
         assert_with_msg("runs-on" in result[job_name], "Expected 'runs-on' in job")
-        assert_with_msg("if" in result[job_name], "Expected 'if' condition in job")
 
     def test_job_release(self, my_test_release_workflow: type[ReleaseWorkflow]) -> None:
         """Test method for job_release."""
