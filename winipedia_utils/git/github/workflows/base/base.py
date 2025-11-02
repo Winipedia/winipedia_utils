@@ -737,7 +737,7 @@ class Workflow(YamlConfigFile):
         """Get the extract version step."""
         return cls.get_step(
             step_func=cls.step_extract_version,
-            run=f"echo '{cls.insert_version()}' >> $GITHUB_OUTPUT",
+            run=f'echo "version={cls.insert_version()}" >> $GITHUB_OUTPUT',
             step=step,
         )
 

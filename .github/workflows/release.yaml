@@ -160,7 +160,7 @@ jobs:
       run: git tag v$(poetry version -s) && git push origin v$(poetry version -s)
     - name: Extract Version
       id: extract_version
-      run: echo 'v$(poetry version -s)' >> $GITHUB_OUTPUT
+      run: echo "version=v$(poetry version -s)" >> $GITHUB_OUTPUT
     - name: Download Artifacts
       id: download_artifacts
       uses: actions/download-artifact@main
