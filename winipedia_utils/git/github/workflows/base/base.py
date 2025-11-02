@@ -20,8 +20,8 @@ class Workflow(YamlConfigFile):
     MACOS_LATEST = "macos-latest"
 
     ARTIFACTS_FOLDER = "artifacts"
-    ARTIFACTS_PATH = Path(f"{ARTIFACTS_FOLDER}/")
-    ARTIFACTS_PATTERN = f"{ARTIFACTS_PATH}*"
+    ARTIFACTS_PATH = Path(f"{ARTIFACTS_FOLDER}")
+    ARTIFACTS_PATTERN = f"{ARTIFACTS_PATH}/*"
 
     BUILD_SCRIPT_PATH = Path(
         f"{get_src_package().__name__}/{ARTIFACTS_FOLDER}/build.py"
