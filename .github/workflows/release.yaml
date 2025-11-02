@@ -166,6 +166,7 @@ jobs:
       uses: actions/download-artifact@main
       with:
         path: artifacts
+        merge-multiple: 'true'
     - name: Build Changelog
       id: build_changelog
       uses: mikepenz/release-changelog-builder-action@develop
@@ -176,6 +177,7 @@ jobs:
       uses: ncipollo/release-action@main
       with:
         tag: ${{ steps.extract_version.outputs.version }}
-        name: ${{ github.event.repository.name }} v$(poetry version -s)
+        name: ${{ github.event.repository.name }} ${{ steps.extract_version.outputs.version
+          }}
         body: ${{ steps.build_changelog.outputs.changelog }}
         artifacts: artifacts*

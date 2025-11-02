@@ -707,6 +707,7 @@ class Workflow(YamlConfigFile):
         with_: dict[str, Any] = {"path": str(path)}
         if name is not None:
             with_["name"] = name
+        with_["merge-multiple"] = "true"
         return cls.get_step(
             step_func=cls.step_download_artifacts,
             uses="actions/download-artifact@main",
@@ -749,12 +750,13 @@ class Workflow(YamlConfigFile):
         artifacts_pattern: str = ARTIFACTS_PATTERN,
     ) -> dict[str, Any]:
         """Get the create release step."""
+        version = cls.insert_version_from_extract_version_step()
         return cls.get_step(
             step_func=cls.step_create_release,
             uses="ncipollo/release-action@main",
             with_={
-                "tag": cls.insert_version_from_extract_version_step(),
-                "name": f"{cls.insert_repository_name()} {cls.insert_version()}",
+                "tag": version,
+                "name": f"{cls.insert_repository_name()} {version}",
                 "body": cls.insert_changelog(),
                 cls.ARTIFACTS_FOLDER: artifacts_pattern,
             },
