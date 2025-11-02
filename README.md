@@ -109,7 +109,7 @@ The health check workflow consists of two jobs:
    - Add Poetry to PATH (Windows-specific step)
    - Install dependencies
    - Setup CI keyring
-   - Protect repository (applies branch protection rules)
+   - Protect repository (applies branch protection rules and repository settings)
    - Run pre-commit hooks (linting, formatting, type checking, security, tests)
 
 2. **Aggregation Job** (`health_check`) - Aggregates matrix results into a single status check:
@@ -118,6 +118,7 @@ The health check workflow consists of two jobs:
    - Provides a single status check that can be marked as required in branch protection rules
 
 The release workflow extends the health check workflow and adds a release job that runs after all health checks pass.
+A build job is added before the release job if a script src/artifacts/build.py exists. This script is created by the setup command and can be modified to create build artifacts for your project. This script then just needs to create artifacts in a folder called artifacts and those will be uploaded as artifacts to the release.
 
 ### Pre-commit Hook Workflow
 

@@ -36,8 +36,7 @@ class ReleaseWorkflow(HealthCheckWorkflow):
         """Get the workflow jobs."""
         jobs = super().get_jobs()
         last_job_name = list(jobs.keys())[-1]
-        if cls.BUILD_SCRIPT_PATH.exists():
-            jobs.update(cls.job_build(needs=[last_job_name]))
+        jobs.update(cls.job_build(needs=[last_job_name]))
         jobs.update(cls.job_release())
         return jobs
 
@@ -64,6 +63,8 @@ class ReleaseWorkflow(HealthCheckWorkflow):
     @classmethod
     def steps_build(cls) -> list[dict[str, Any]]:
         """Get the build steps."""
+        if not cls.BUILD_SCRIPT_PATH.exists():
+            return [cls.step_no_build_script()]
         return [
             *cls.steps_core_matrix_setup(),
             cls.step_create_artifacts_folder(),
@@ -83,6 +84,7 @@ class ReleaseWorkflow(HealthCheckWorkflow):
             cls.step_commit_added_changes(),
             cls.step_push_commits(),
             cls.step_create_and_push_tag(),
+            cls.step_extract_version(),
             cls.step_download_artifacts(),
             cls.step_build_changelog(),
             cls.step_create_release(),

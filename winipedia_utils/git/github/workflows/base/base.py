@@ -429,6 +429,19 @@ class Workflow(YamlConfigFile):
         )
 
     @classmethod
+    def step_no_build_script(
+        cls,
+        *,
+        step: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Get the no build script step."""
+        return cls.get_step(
+            step_func=cls.step_no_build_script,
+            run="echo 'No build script found. Skipping build.'",
+            step=step,
+        )
+
+    @classmethod
     def step_checkout_repository(
         cls,
         *,
@@ -716,6 +729,19 @@ class Workflow(YamlConfigFile):
         )
 
     @classmethod
+    def step_extract_version(
+        cls,
+        *,
+        step: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Get the extract version step."""
+        return cls.get_step(
+            step_func=cls.step_extract_version,
+            run=f"echo '{cls.insert_version()}' >> $GITHUB_OUTPUT",
+            step=step,
+        )
+
+    @classmethod
     def step_create_release(
         cls,
         *,
@@ -727,9 +753,9 @@ class Workflow(YamlConfigFile):
             step_func=cls.step_create_release,
             uses="ncipollo/release-action@main",
             with_={
-                "tag": cls.insert_version(),
+                "tag": cls.insert_version_from_extract_version_step(),
                 "name": f"{cls.insert_repository_name()} {cls.insert_version()}",
-                "body": f"${{ steps.{cls.make_id_from_func(cls.step_build_changelog)}.outputs.changelog }}",  # noqa: E501
+                "body": cls.insert_changelog(),
                 cls.ARTIFACTS_FOLDER: artifacts_pattern,
             },
             step=step,
@@ -746,6 +772,25 @@ class Workflow(YamlConfigFile):
     def insert_version(cls) -> str:
         """Insert the version."""
         return "v$(poetry version -s)"
+
+    @classmethod
+    def insert_version_from_extract_version_step(cls) -> str:
+        """Insert the version from the extract version step."""
+        # make dynamic with cls.make_id_from_func(cls.step_extract_version)
+        return (
+            "{{ "
+            f"steps.{cls.make_id_from_func(cls.step_extract_version)}.outputs.version"
+            " }}"
+        )
+
+    @classmethod
+    def insert_changelog(cls) -> str:
+        """Insert the changelog."""
+        return (
+            "{{ "
+            f"steps.{cls.make_id_from_func(cls.step_build_changelog)}.outputs.changelog"
+            " }}"
+        )
 
     @classmethod
     def insert_github_token(cls) -> str:

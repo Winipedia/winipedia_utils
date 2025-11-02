@@ -256,6 +256,11 @@ class TestWorkflow:
         assert_with_msg("name" in result, "Expected 'name' in step")
         assert_with_msg("run" in result, "Expected 'run' in step")
 
+    def test_step_no_build_script(self, my_test_workflow: type[Workflow]) -> None:
+        """Test method for step_no_build_script."""
+        result = my_test_workflow.step_no_build_script()
+        assert_with_msg("run" in result, "Expected 'run' in step")
+
     def test_step_checkout_repository(self, my_test_workflow: type[Workflow]) -> None:
         """Test method for step_checkout_repository."""
         result = my_test_workflow.step_checkout_repository()
@@ -364,6 +369,11 @@ class TestWorkflow:
         result = my_test_workflow.step_build_changelog()
         assert_with_msg("uses" in result, "Expected 'uses' in step")
 
+    def test_step_extract_version(self, my_test_workflow: type[Workflow]) -> None:
+        """Test method for step_extract_version."""
+        result = my_test_workflow.step_extract_version()
+        assert_with_msg("run" in result, "Expected 'run' in step")
+
     def test_step_create_release(self, my_test_workflow: type[Workflow]) -> None:
         """Test method for step_create_release."""
         result = my_test_workflow.step_create_release()
@@ -419,6 +429,24 @@ class TestWorkflow:
         """Test method for insert_matrix_os."""
         result = my_test_workflow.insert_matrix_os()
         assert_with_msg("matrix.os" in result, "Expected 'matrix.os' in result")
+
+    def test_insert_version_from_extract_version_step(
+        self, my_test_workflow: type[Workflow]
+    ) -> None:
+        """Test method for insert_version_from_extract_version_step."""
+        result = my_test_workflow.insert_version_from_extract_version_step()
+        assert_with_msg(
+            "steps.extract_version.outputs.version" in result,
+            "Expected 'steps.extract_version.outputs.version' in result",
+        )
+
+    def test_insert_changelog(self, my_test_workflow: type[Workflow]) -> None:
+        """Test method for insert_changelog."""
+        result = my_test_workflow.insert_changelog()
+        assert_with_msg(
+            "steps.build_changelog.outputs.changelog" in result,
+            "Expected 'steps.build_changelog.outputs.changelog' in result",
+        )
 
     def test_insert_matrix_python_version(
         self, my_test_workflow: type[Workflow]

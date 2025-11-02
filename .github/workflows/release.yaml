@@ -158,6 +158,9 @@ jobs:
     - name: Create And Push Tag
       id: create_and_push_tag
       run: git tag v$(poetry version -s) && git push origin v$(poetry version -s)
+    - name: Extract Version
+      id: extract_version
+      run: echo 'v$(poetry version -s)' >> $GITHUB_OUTPUT
     - name: Download Artifacts
       id: download_artifacts
       uses: actions/download-artifact@main
@@ -172,7 +175,7 @@ jobs:
       id: create_release
       uses: ncipollo/release-action@main
       with:
-        tag: v$(poetry version -s)
+        tag: '{{ steps.extract_version.outputs.version }}'
         name: ${{ github.event.repository.name }} v$(poetry version -s)
-        body: ${ steps.build_changelog.outputs.changelog }
+        body: '{{ steps.build_changelog.outputs.changelog }}'
         artifacts: artifacts*
