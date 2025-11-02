@@ -122,6 +122,8 @@ jobs:
     - name: Checkout Repository
       id: checkout_repository
       uses: actions/checkout@main
+      with:
+        token: ${{ secrets.REPO_TOKEN }}
     - name: Setup Python
       id: setup_python
       uses: actions/setup-python@main
@@ -130,10 +132,6 @@ jobs:
     - name: Setup Poetry
       id: setup_poetry
       uses: snok/install-poetry@main
-    - name: Add Poetry To Windows Path
-      id: add_poetry_to_windows_path
-      run: echo 'C:/Users/runneradmin/.local/bin' >> $GITHUB_PATH
-      if: ${{ runner.os }} == 'Windows'
     - name: Install Python Dependencies
       id: install_python_dependencies
       run: poetry install

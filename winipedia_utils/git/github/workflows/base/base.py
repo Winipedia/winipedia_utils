@@ -394,22 +394,22 @@ class Workflow(YamlConfigFile):
     # Combined Steps
     @classmethod
     def steps_core_setup(
-        cls, python_version: str | None = None
+        cls, python_version: str | None = None, *, repo_token: bool = False
     ) -> list[dict[str, Any]]:
         """Get the core setup steps."""
         return [
-            cls.step_checkout_repository(),
+            cls.step_checkout_repository(repo_token=repo_token),
             cls.step_setup_python(python_version=python_version),
             cls.step_setup_poetry(),
         ]
 
     @classmethod
     def steps_core_matrix_setup(
-        cls, python_version: str | None = None
+        cls, python_version: str | None = None, *, repo_token: bool = False
     ) -> list[dict[str, Any]]:
         """Get the core matrix setup steps."""
         return [
-            *cls.steps_core_setup(python_version=python_version),
+            *cls.steps_core_setup(python_version=python_version, repo_token=repo_token),
             cls.step_add_poetry_to_windows_path(),
             cls.step_install_python_dependencies(),
         ]
