@@ -63,15 +63,6 @@ def add_popped_stash_to_git() -> list[str]:
     return ["git", "add", "."]
 
 
-def patch_version() -> list[str]:
-    """Patch the version in pyproject.toml.
-
-    This function returns the input for subprocess.run() to patch the version
-    in pyproject.toml.
-    """
-    return [POETRY_ARG, "version", "patch"]
-
-
 def add_version_patch_to_git() -> list[str]:
     """Add the version patch to git.
 

@@ -288,6 +288,11 @@ class TestWorkflow:
         result = my_test_workflow.step_add_poetry_to_windows_path()
         assert_with_msg("if" in result, "Expected 'if' in step")
 
+    def test_step_patch_version(self, my_test_workflow: type[Workflow]) -> None:
+        """Test method for step_patch_version."""
+        result = my_test_workflow.step_patch_version()
+        assert_with_msg("run" in result, "Expected 'run' in step")
+
     def test_step_add_pypi_token_to_poetry(
         self, my_test_workflow: type[Workflow]
     ) -> None:

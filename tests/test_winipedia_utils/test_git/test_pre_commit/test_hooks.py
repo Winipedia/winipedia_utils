@@ -17,7 +17,6 @@ from winipedia_utils.git.pre_commit.hooks import (
     install_dependencies_with_dev,
     lint_code,
     lock_dependencies,
-    patch_version,
     pop_stashed_changes,
     rebase_on_main,
     run_tests,
@@ -108,21 +107,6 @@ def test_add_popped_stash_to_git() -> None:
 
     # Expected result
     expected = ["git", "add", "."]
-
-    # Verify the result
-    assert_with_msg(
-        result == expected,
-        f"Expected {expected}, got {result}",
-    )
-
-
-def test_patch_version() -> None:
-    """Test func for patch_version."""
-    # Call the function
-    result = patch_version()
-
-    # Expected result
-    expected = [POETRY_ARG, "version", "patch"]
 
     # Verify the result
     assert_with_msg(

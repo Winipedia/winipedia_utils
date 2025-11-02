@@ -61,7 +61,8 @@ jobs:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
     - name: Run Pre Commit Hooks
       id: run_pre_commit_hooks
-      run: poetry run pre-commit run --all-files --verbose
+      run: poetry version patch && git add pyproject.toml && poetry run pre-commit
+        run --all-files --verbose
       env:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
   health_check:
@@ -145,7 +146,8 @@ jobs:
         from keyrings.alt.file import PlaintextKeyring; keyring.set_keyring(PlaintextKeyring());"
     - name: Run Pre Commit Hooks
       id: run_pre_commit_hooks
-      run: poetry run pre-commit run --all-files --verbose
+      run: poetry version patch && git add pyproject.toml && poetry run pre-commit
+        run --all-files --verbose
       env:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
     - name: Commit Added Changes

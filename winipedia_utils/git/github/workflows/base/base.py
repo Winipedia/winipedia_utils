@@ -442,6 +442,19 @@ class Workflow(YamlConfigFile):
         )
 
     @classmethod
+    def step_patch_version(
+        cls,
+        *,
+        step: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Get the patch version step."""
+        return cls.get_step(
+            step_func=cls.step_patch_version,
+            run="poetry version patch && git add pyproject.toml",
+            step=step,
+        )
+
+    @classmethod
     def step_checkout_repository(
         cls,
         *,
@@ -596,10 +609,15 @@ class Workflow(YamlConfigFile):
         *,
         step: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """Get the run pre-commit hooks step."""
+        """Get the run pre-commit hooks step.
+
+        Patching version is useful to have at least a minimal version bump when
+        creating a release and it also makes sure git stash pop does not fail when
+        there are no changes.
+        """
         return cls.get_step(
             step_func=cls.step_run_pre_commit_hooks,
-            run="poetry run pre-commit run --all-files --verbose",
+            run="poetry version patch && git add pyproject.toml && poetry run pre-commit run --all-files --verbose",  # noqa: E501
             env={"REPO_TOKEN": cls.insert_repo_token()},
             step=step,
         )
