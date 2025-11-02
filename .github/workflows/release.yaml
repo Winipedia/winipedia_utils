@@ -90,6 +90,8 @@ jobs:
     - name: Setup Python
       id: setup_python
       uses: actions/setup-python@main
+      with:
+        python-version: 3.14.0
     - name: Setup Poetry
       id: setup_poetry
       uses: snok/install-poetry@main
@@ -105,7 +107,7 @@ jobs:
       run: mkdir artifacts
     - name: Build Artifacts
       id: build_artifacts
-      run: poetry run python -m winipedia_utils.build.build
+      run: poetry run python -m winipedia_utils.artifacts.build
     - name: Upload Artifacts
       id: upload_artifacts
       uses: actions/upload-artifact@main
@@ -123,6 +125,8 @@ jobs:
     - name: Setup Python
       id: setup_python
       uses: actions/setup-python@main
+      with:
+        python-version: 3.14.0
     - name: Setup Poetry
       id: setup_poetry
       uses: snok/install-poetry@main

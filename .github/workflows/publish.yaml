@@ -22,6 +22,8 @@ jobs:
     - name: Setup Python
       id: setup_python
       uses: actions/setup-python@main
+      with:
+        python-version: 3.14.0
     - name: Setup Poetry
       id: setup_poetry
       uses: snok/install-poetry@main

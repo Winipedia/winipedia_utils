@@ -23,7 +23,9 @@ class Workflow(YamlConfigFile):
     ARTIFACTS_PATH = Path(f"{ARTIFACTS_FOLDER}/")
     ARTIFACTS_PATTERN = f"{ARTIFACTS_PATH}*"
 
-    BUILD_SCRIPT_PATH = Path(f"{get_src_package().__name__}/build/build.py")
+    BUILD_SCRIPT_PATH = Path(
+        f"{get_src_package().__name__}/{ARTIFACTS_FOLDER}/build.py"
+    )
     BUILD_SCRIPT_MODULE = to_module_name(BUILD_SCRIPT_PATH)
 
     EMPTY_CONFIG: ClassVar[dict[str, Any]] = {
@@ -470,8 +472,12 @@ class Workflow(YamlConfigFile):
         """Get the setup python step."""
         if step is None:
             step = {}
-        if python_version is not None:
-            step.setdefault("with", {})["python-version"] = python_version
+        if python_version is None:
+            python_version = str(
+                PyprojectConfigFile.get_latest_possible_python_version()
+            )
+
+        step.setdefault("with", {})["python-version"] = python_version
         return cls.get_step(
             step_func=cls.step_setup_python,
             uses="actions/setup-python@main",
