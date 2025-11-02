@@ -49,7 +49,7 @@ class TestBuild:
     def test___init__(self, my_test_build: type[Build]) -> None:
         """Test method for __init__."""
         my_test_build()
-        build_txt = my_test_build.ARTIFACTS_PATH / f"build.txt-{platform.system()}"
+        build_txt = my_test_build.ARTIFACTS_PATH / f"build-{platform.system()}.txt"
         assert_with_msg(
             build_txt.exists(),
             "Expected artifact to be built",
@@ -63,7 +63,7 @@ class TestBuild:
         """Test method for build."""
         my_test_build.build()
         assert_with_msg(
-            (my_test_build.ARTIFACTS_PATH / f"build.txt-{platform.system()}").exists(),
+            (my_test_build.ARTIFACTS_PATH / f"build-{platform.system()}.txt").exists(),
             "Expected artifact to be built",
         )
 

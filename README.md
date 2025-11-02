@@ -130,13 +130,6 @@ Usually VSCode or other IDEs activates the venv automatically when opening the t
 
 Hooks run in the following order:
 
-- Fetch latest changes (git fetch origin)
-- Stash changes (git stash push -m "WIP: Stashed changes before rebasing")
-- Rebase on main (git rebase origin/main)
-- Pop stashed changes (git stash pop)
-- Add popped stash to git (git add ., bc unstashing unadds the changes and pre-commit fails, be aware that this might add changes you didn't want to commit, so inspect the changes before committing)
-- Patch version (poetry version patch)
-- Add version patch to git (git add pyproject.toml)
 - Update package manager (poetry self update)
 - Install packages (poetry install --with dev)
 - Update packages (poetry update --with dev (winipedia_utils forces all dependencies with * to be updated to latest compatible version))

@@ -13,65 +13,6 @@ from winipedia_utils.projects.poetry.poetry import (
 )
 
 
-def fetch_latest_changes() -> list[str]:
-    """Fetch the latest changes from origin.
-
-    This function returns the input for subprocess.run() to fetch the latest
-    changes from origin.
-    """
-    return ["git", "fetch", "origin"]
-
-
-def stash_changes() -> list[str]:
-    """Stash the changes.
-
-    This function returns the input for subprocess.run() to stash the changes.
-    """
-    return [
-        "git",
-        "stash",
-        "push",
-        "-m",
-        "WIP: Temporarily stashed changes before rebasing",
-    ]
-
-
-def rebase_on_main() -> list[str]:
-    """Rebase the current branch on origin/main.
-
-    This function returns the input for subprocess.run() to rebase the current
-    branch on origin/main.
-    """
-    return ["git", "rebase", "origin/main"]
-
-
-def pop_stashed_changes() -> list[str]:
-    """Pop the stashed changes.
-
-    This function returns the input for subprocess.run() to pop the stashed changes.
-    """
-    return ["git", "stash", "pop"]
-
-
-def add_popped_stash_to_git() -> list[str]:
-    """Add the unstashed changes to git.
-
-    This function returns the input for subprocess.run() to add the unstashed
-    changes to git.
-    We must do git add . because unstashing unadds the changes and pre-commit fails
-    """
-    return ["git", "add", "."]
-
-
-def add_version_patch_to_git() -> list[str]:
-    """Add the version patch to git.
-
-    This function returns the input for subprocess.run() to add the version
-    patch to git, so that the hook does not fail bc the file was changed.
-    """
-    return ["git", "add", "pyproject.toml"]
-
-
 def update_package_manager() -> list[str]:
     """Update the package manager.
 

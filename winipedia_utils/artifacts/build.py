@@ -57,7 +57,7 @@ class Build(ABCLoggingMixin):
                 raise FileNotFoundError(msg)
 
             # rename the files with -platform.system()
-            new_name = f"{artifact.name}-{platform.system()}"
+            new_name = f"{artifact.stem}-{platform.system()}{artifact.suffix}"
             new_path = cls.ARTIFACTS_PATH / new_name
             artifact.rename(new_path)
 

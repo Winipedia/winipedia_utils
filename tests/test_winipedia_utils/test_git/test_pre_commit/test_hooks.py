@@ -5,22 +5,16 @@ tests.test_winipedia_utils.test_git.test_pre_commit.test_hooks
 
 from winipedia_utils.git.pre_commit.hooks import (
     add_lock_file_to_git,
-    add_popped_stash_to_git,
     add_updates_to_git,
-    add_version_patch_to_git,
     check_package_manager_configs,
     check_security,
     check_static_types,
     create_missing_tests,
-    fetch_latest_changes,
     format_code,
     install_dependencies_with_dev,
     lint_code,
     lock_dependencies,
-    pop_stashed_changes,
-    rebase_on_main,
     run_tests,
-    stash_changes,
     update_dependencies_with_dev,
     update_package_manager,
 )
@@ -28,106 +22,6 @@ from winipedia_utils.projects.poetry.poetry import (
     POETRY_ARG,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
-
-
-def test_fetch_latest_changes() -> None:
-    """Test func for fetch_latest_changes."""
-    # Call the function
-    result = fetch_latest_changes()
-
-    # Expected result
-    expected = ["git", "fetch", "origin"]
-
-    # Verify the result
-    assert_with_msg(
-        result == expected,
-        f"Expected {expected}, got {result}",
-    )
-    assert_with_msg(
-        result[0] == "git",
-        f"Expected first element to be 'git', got {result[0]}",
-    )
-
-
-def test_stash_changes() -> None:
-    """Test func for stash_changes."""
-    # Call the function
-    result = stash_changes()
-
-    # Expected result
-    expected = [
-        "git",
-        "stash",
-        "push",
-        "-m",
-        "WIP: Temporarily stashed changes before rebasing",
-    ]
-
-    # Verify the result
-    assert_with_msg(
-        result == expected,
-        f"Expected {expected}, got {result}",
-    )
-
-
-def test_rebase_on_main() -> None:
-    """Test func for rebase_on_main."""
-    # Call the function
-    result = rebase_on_main()
-
-    # Expected result
-    expected = ["git", "rebase", "origin/main"]
-
-    # Verify the result
-    assert_with_msg(
-        result == expected,
-        f"Expected {expected}, got {result}",
-    )
-
-
-def test_pop_stashed_changes() -> None:
-    """Test func for pop_stashed_changes."""
-    # Call the function
-    result = pop_stashed_changes()
-
-    # Expected result
-    expected = ["git", "stash", "pop"]
-
-    # Verify the result
-    assert_with_msg(
-        result == expected,
-        f"Expected {expected}, got {result}",
-    )
-
-
-def test_add_popped_stash_to_git() -> None:
-    """Test func for add_changes_to_git."""
-    # Call the function
-    result = add_popped_stash_to_git()
-
-    # Expected result
-    expected = ["git", "add", "."]
-
-    # Verify the result
-    assert_with_msg(
-        result == expected,
-        f"Expected {expected}, got {result}",
-    )
-
-
-def test_add_version_patch_to_git() -> None:
-    """Test func for add_version_patch_to_git."""
-    # Call the function
-    result = add_version_patch_to_git()
-
-    # Expected result
-    expected = ["git", "add", "pyproject.toml"]
-
-    # Verify the result
-    assert_with_msg(
-        result == expected,
-        f"Expected {expected}, got {result}",
-    )
 
 
 def test_update_package_manager() -> None:
