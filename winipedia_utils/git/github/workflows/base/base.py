@@ -814,7 +814,7 @@ class Workflow(YamlConfigFile):
     @classmethod
     def if_file_exists(cls, file: str | Path) -> str:
         """Insert the if file exists."""
-        return f"${{{{ hashFiles('{file}') }}}}"
+        return f"${{{{ always() && hashFiles('{file}') }}}}"
 
     @classmethod
     def if_build_script_exists(cls) -> str:
