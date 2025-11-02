@@ -67,7 +67,6 @@ class ReleaseWorkflow(HealthCheckWorkflow):
             return [cls.step_no_build_script()]
         return [
             *cls.steps_core_matrix_setup(),
-            cls.step_create_artifacts_folder(),
             cls.step_build_artifacts(),
             cls.step_upload_artifacts(),
         ]
