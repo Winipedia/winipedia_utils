@@ -21,6 +21,7 @@ logger = get_logger(__name__)
 SETUP_STEPS: list[Callable[..., Any]] = [
     GitIgnoreConfigFile,  # must be before create_project_root
     PyprojectConfigFile,  # must be before create_project_root
+    PyprojectConfigFile.update_poetry,  # must be before create_project_root
     PyprojectConfigFile.update_with_dev,  # must be before create_project_root
     create_project_root,
     run_hooks,

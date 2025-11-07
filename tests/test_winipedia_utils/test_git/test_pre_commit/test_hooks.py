@@ -4,84 +4,19 @@ tests.test_winipedia_utils.test_git.test_pre_commit.test_hooks
 """
 
 from winipedia_utils.git.pre_commit.hooks import (
-    add_lock_file_to_git,
     add_updates_to_git,
     check_package_manager_configs,
     check_security,
     check_static_types,
     create_missing_tests,
     format_code,
-    install_dependencies_with_dev,
     lint_code,
-    lock_dependencies,
     run_tests,
-    update_dependencies_with_dev,
-    update_package_manager,
 )
 from winipedia_utils.projects.poetry.poetry import (
     POETRY_ARG,
 )
 from winipedia_utils.testing.assertions import assert_with_msg
-
-
-def test_update_package_manager() -> None:
-    """Test func for update_package_manager."""
-    # Call the function
-    result = update_package_manager()
-
-    # Expected result
-    expected = [POETRY_ARG, "self", "update"]
-
-    # Verify the result
-    assert_with_msg(
-        result == expected,
-        f"Expected {expected}, got {result}",
-    )
-
-
-def test_install_dependencies_with_dev() -> None:
-    """Test func for install_packages."""
-    # Call the function
-    result = install_dependencies_with_dev()
-
-    # Expected result
-    expected = [POETRY_ARG, "install", "--with", "dev"]
-
-    # Verify the result
-    assert_with_msg(
-        result == expected,
-        f"Expected {expected}, got {result}",
-    )
-
-
-def test_update_dependencies_with_dev() -> None:
-    """Test func for update_packages."""
-    # Call the function
-    result = update_dependencies_with_dev()
-
-    # Expected result
-    expected = [POETRY_ARG, "update", "--with", "dev"]
-
-    # Verify the result
-    assert_with_msg(
-        set(expected).issubset(set(result)),
-        f"Expected {expected}, got {result}",
-    )
-
-
-def test_lock_dependencies() -> None:
-    """Test func for lock_dependencies."""
-    # Call the function
-    result = lock_dependencies()
-
-    # Expected result
-    expected = [POETRY_ARG, "lock"]
-
-    # Verify the result
-    assert_with_msg(
-        result == expected,
-        f"Expected {expected}, got {result}",
-    )
 
 
 def test_check_package_manager_configs() -> None:
@@ -194,22 +129,7 @@ def test_add_updates_to_git() -> None:
     result = add_updates_to_git()
 
     # Expected result
-    expected = ["git", "add", "pyproject.toml"]
-
-    # Verify the result
-    assert_with_msg(
-        result == expected,
-        f"Expected {expected}, got {result}",
-    )
-
-
-def test_add_lock_file_to_git() -> None:
-    """Test func for add_lock_file_to_git."""
-    # Call the function
-    result = add_lock_file_to_git()
-
-    # Expected result
-    expected = ["git", "add", "poetry.lock"]
+    expected = ["git", "add", "pyproject.toml", "poetry.lock"]
 
     # Verify the result
     assert_with_msg(

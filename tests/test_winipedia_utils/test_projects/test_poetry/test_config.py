@@ -356,6 +356,20 @@ class TestPyprojectConfigFile:
             "Expected get_first_supported_python_version to return 3.8.1",
         )
 
+    def test_update_poetry(
+        self,
+        my_test_pyproject_config_file: type[PyprojectConfigFile],
+        mocker: MockFixture,
+    ) -> None:
+        """Test method for update_poetry."""
+        my_test_pyproject_config_file()
+        # mock run_subprocess to avoid actually running poetry self update
+        mock_run = mocker.patch(
+            make_obj_importpath(config) + "." + run_subprocess.__name__
+        )
+        my_test_pyproject_config_file.update_poetry()
+        mock_run.assert_called_once()
+
     def test_update_with_dev(
         self,
         my_test_pyproject_config_file: type[PyprojectConfigFile],
