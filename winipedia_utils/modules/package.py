@@ -50,7 +50,7 @@ def get_src_package() -> ModuleType:
         TESTS_PACKAGE_NAME,
     )
 
-    packages = find_packages_as_modules(depth=0)
+    packages = find_packages_as_modules(depth=0, include_namespace_packages=True)
     return next(p for p in packages if p.__name__ != TESTS_PACKAGE_NAME)
 
 

@@ -12,13 +12,16 @@ from typing import Any
 from winipedia_utils.git.gitignore.config import GitIgnoreConfigFile
 from winipedia_utils.git.pre_commit.run_hooks import run_hooks
 from winipedia_utils.logging.logger import get_logger
+from winipedia_utils.projects.poetry.config import PyprojectConfigFile
 from winipedia_utils.projects.project import create_project_root
 
 logger = get_logger(__name__)
 
 
 SETUP_STEPS: list[Callable[..., Any]] = [
-    GitIgnoreConfigFile,  # must be first
+    GitIgnoreConfigFile,  # must be before create_project_root
+    PyprojectConfigFile,  # must be before create_project_root
+    PyprojectConfigFile.install_with_dev,  # must be before create_project_root
     create_project_root,
     run_hooks,
 ]

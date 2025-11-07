@@ -7,7 +7,7 @@ These utilities help with system-level operations and configuration.
 
 import shutil
 import subprocess  # nosec: B404
-from pathlib import Path
+from collections.abc import Sequence
 from typing import Any
 
 
@@ -34,7 +34,7 @@ def which_with_raise(cmd: str, *, raise_error: bool = True) -> str | None:
 
 
 def run_subprocess(
-    args: list[str | Path],
+    args: Sequence[str],
     *,
     input_: str | bytes | None = None,
     capture_output: bool = True,

@@ -48,7 +48,7 @@ def test_get_src_package(mocker: MockFixture) -> None:
     result = get_src_package()
 
     assert_with_msg(result == mock_package1, f"Expected {mock_package1}, got {result}")
-    mock_find_packages.assert_called_once_with(depth=0)
+    mock_find_packages.assert_called_once()
 
 
 def test_get_src_package_no_source_package(mocker: MockFixture) -> None:

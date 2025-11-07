@@ -7,7 +7,10 @@ from typing import Any, cast
 import requests
 from packaging.version import Version
 
+from winipedia_utils.git.pre_commit.hooks import install_dependencies_with_dev
 from winipedia_utils.modules.package import get_src_package
+from winipedia_utils.os.os import run_subprocess
+from winipedia_utils.projects.poetry.dev_deps import DEV_DEPENDENCIES
 from winipedia_utils.projects.poetry.poetry import VersionConstraint
 from winipedia_utils.testing.config import ExperimentConfigFile
 from winipedia_utils.testing.convention import TESTS_PACKAGE_NAME
@@ -57,7 +60,7 @@ class PyprojectConfigFile(TomlConfigFile):
                     "group": {
                         "dev": {
                             "dependencies": dict.fromkeys(
-                                cls.get_dev_dependencies(),
+                                cls.get_dev_dependencies() | DEV_DEPENDENCIES,
                                 "*",
                             )
                         }
@@ -222,6 +225,12 @@ class PyprojectConfigFile(TomlConfigFile):
         return version_constraint.get_version_range(
             level="minor", upper_default=cls.fetch_latest_python_version()
         )
+
+    @classmethod
+    def install_with_dev(cls) -> None:
+        """Install all dependencies with dev."""
+        args = install_dependencies_with_dev()
+        run_subprocess(args)
 
 
 class TypedConfigFile(ConfigFile):

@@ -1,5 +1,8 @@
 """Tests for winipedia_utils.setup module."""
 
+import sys
+from contextlib import chdir
+from pathlib import Path
 from typing import Any
 
 from pytest_mock import MockFixture
@@ -18,7 +21,7 @@ def test_get_setup_steps() -> None:
     )
 
 
-def test_setup(mocker: MockFixture) -> None:
+def test_setup(mocker: MockFixture, tmp_path: Path) -> None:
     """Test func for _setup."""
     # patch _get_setup_steps to return a list of mock functions
     # which we assert are called once
@@ -40,3 +43,55 @@ def test_setup(mocker: MockFixture) -> None:
             mock_setup_step.call_count == 1,
             f"Expected {mock_setup_step} to be called exactly once",
         )
+
+    # remove all mocks
+    mocker.stopall()
+
+    # now test that in an empty folder with a pyproject.toml file
+    # with a folder src that the setup works
+    src_project_dir = tmp_path / "src_project"
+    src_project_dir.mkdir()
+
+    pyproject_toml = src_project_dir / "pyproject.toml"
+    pyproject_toml.write_text(
+        """[project]
+name = "src-project"
+version = "0.1.0"
+description = "A test project"
+authors = [
+    {name = "Winipedia",email = "win.steveker@gmx.de"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "winipedia-utils (>=0.6.7,<0.7.0)"
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+"""
+    )
+
+    pkg_dir = src_project_dir / "src_project"
+    pkg_dir.mkdir()
+
+    # mock subprocess.run to avoid actually calling it
+    mock_run = mocker.patch("subprocess.run")
+    mock_run.return_value.returncode = 0
+
+    # Add src_project_dir to sys.path so the package can be imported
+
+    original_sys_path = sys.path.copy()
+    try:
+        sys.path.insert(0, str(src_project_dir))
+        with chdir(src_project_dir):
+            setup()
+    finally:
+        sys.path = original_sys_path
+
+    assert_with_msg(
+        (pkg_dir / "__init__.py").exists(),
+        f"Expected {pkg_dir / '__init__.py'} to be created",
+    )

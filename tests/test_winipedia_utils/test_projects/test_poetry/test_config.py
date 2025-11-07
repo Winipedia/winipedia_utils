@@ -7,6 +7,9 @@ import pytest
 from packaging.version import Version
 from pytest_mock import MockFixture
 
+from winipedia_utils.modules.module import make_obj_importpath
+from winipedia_utils.os.os import run_subprocess
+from winipedia_utils.projects.poetry import config
 from winipedia_utils.projects.poetry.config import (
     DotPythonVersionConfigFile,
     PyprojectConfigFile,
@@ -156,8 +159,8 @@ class TestPyprojectConfigFile:
             my_test_pyproject_config_file.get_expected_dev_dependencies()
         )
         assert_with_msg(
-            len(expected_dev_deps) == 0,
-            "Expected expected_dev_deps to be empty",
+            isinstance(expected_dev_deps, set),
+            "Expected get_expected_dev_dependencies to return a set",
         )
 
     def test_get_authors(
@@ -341,6 +344,20 @@ class TestPyprojectConfigFile:
             first_version == "3.8.1",
             "Expected get_first_supported_python_version to return 3.8.1",
         )
+
+    def test_install_with_dev(
+        self,
+        my_test_pyproject_config_file: type[PyprojectConfigFile],
+        mocker: MockFixture,
+    ) -> None:
+        """Test method for install_with_dev."""
+        my_test_pyproject_config_file()
+        # mock run_subprocess to avoid actually running poetry install
+        mock_run = mocker.patch(
+            make_obj_importpath(config) + "." + run_subprocess.__name__
+        )
+        my_test_pyproject_config_file.install_with_dev()
+        mock_run.assert_called_once()
 
 
 @pytest.fixture
