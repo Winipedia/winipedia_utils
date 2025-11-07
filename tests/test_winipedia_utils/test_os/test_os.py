@@ -1,7 +1,6 @@
 """Tests for winipedia_utils.os.os module."""
 
 import subprocess  # nosec: B404
-from pathlib import Path
 from typing import Any
 
 import pytest
@@ -57,7 +56,7 @@ def test_run_subprocess(mocker: MockFixture) -> None:
     mock_run = mocker.patch("subprocess.run", return_value=mock_result)
 
     # Test basic execution
-    args: list[str | Path] = ["echo", "hello"]
+    args: list[str] = ["echo", "hello"]
     result = run_subprocess(args)
     assert_with_msg(result is mock_result, "Expected to return the mock result")
     mock_run.assert_called_with(
@@ -103,16 +102,6 @@ def test_run_subprocess(mocker: MockFixture) -> None:
     assert_with_msg(result is mock_result, "Expected to return the mock result")
     mock_run.assert_called_with(
         ["false"], check=False, input=None, capture_output=True, timeout=None
-    )
-
-    # Test with Path objects
-    mock_run.reset_mock()
-    mock_result.returncode = 0
-    path_args: list[str | Path] = [Path("/usr/bin/python"), Path("script.py")]
-    result = run_subprocess(path_args)
-    assert_with_msg(result is mock_result, "Expected to return the mock result")
-    mock_run.assert_called_with(
-        path_args, check=True, input=None, capture_output=True, timeout=None
     )
 
     # Test with kwargs
