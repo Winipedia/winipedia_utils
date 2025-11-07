@@ -74,9 +74,6 @@ build-backend = "poetry.core.masonry.api"
 """
     )
 
-    pkg_dir = src_project_dir / "src_project"
-    pkg_dir.mkdir()
-
     # mock subprocess.run to avoid actually calling it
     mock_run = mocker.patch("subprocess.run")
     mock_run.return_value.returncode = 0
@@ -91,6 +88,7 @@ build-backend = "poetry.core.masonry.api"
     finally:
         sys.path = original_sys_path
 
+    pkg_dir = src_project_dir / "src_project"
     assert_with_msg(
         (pkg_dir / "__init__.py").exists(),
         f"Expected {pkg_dir / '__init__.py'} to be created",

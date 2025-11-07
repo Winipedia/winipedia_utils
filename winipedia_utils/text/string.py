@@ -130,7 +130,7 @@ def split_on_uppercase(string: str) -> list[str]:
 
 
 def make_name_from_obj(
-    package: ModuleType | Callable[..., Any] | type,
+    package: ModuleType | Callable[..., Any] | type | str,
     split_on: str = "_",
     join_on: str = "-",
     *,
@@ -149,7 +149,10 @@ def make_name_from_obj(
     Returns:
         str: _description_
     """
-    package_name = package.__name__.split(".")[-1]
+    if not isinstance(package, str):
+        package_name = package.__name__.split(".")[-1]
+    else:
+        package_name = package
     parts = package_name.split(split_on)
     if capitalize:
         parts = [part.capitalize() for part in parts]

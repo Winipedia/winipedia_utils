@@ -8,7 +8,6 @@ import requests
 from packaging.version import Version
 
 from winipedia_utils.git.pre_commit.hooks import install_dependencies_with_dev
-from winipedia_utils.modules.package import get_src_package
 from winipedia_utils.os.os import run_subprocess
 from winipedia_utils.projects.poetry.dev_deps import DEV_DEPENDENCIES
 from winipedia_utils.projects.poetry.poetry import VersionConstraint
@@ -42,11 +41,21 @@ class PyprojectConfigFile(TomlConfigFile):
         return Path()
 
     @classmethod
+    def get_repository_name(cls) -> str:
+        """Get the repository name.
+
+        Is the parent folder the project ives in and should be the same as the
+        project name.
+        """
+        cwd = Path.cwd()
+        return cwd.name
+
+    @classmethod
     def get_configs(cls) -> dict[str, Any]:
         """Get the config."""
         return {
             "project": {
-                "name": make_name_from_obj(get_src_package(), capitalize=False),
+                "name": make_name_from_obj(cls.get_repository_name(), capitalize=False),
                 "readme": "README.md",
                 "dependencies": list(cls.get_dependencies()),
             },
@@ -56,7 +65,7 @@ class PyprojectConfigFile(TomlConfigFile):
             },
             "tool": {
                 "poetry": {
-                    "packages": [{"include": get_src_package().__name__}],
+                    "packages": [{"include": cls.get_package_name()}],
                     "group": {
                         "dev": {
                             "dependencies": dict.fromkeys(
