@@ -79,6 +79,7 @@ class ReleaseWorkflow(HealthCheckWorkflow):
             cls.step_install_python_dependencies(),
             cls.step_setup_keyring(),
             cls.step_setup_git(),
+            cls.step_add_version_patch(),
             cls.step_run_pre_commit_hooks(),
             cls.step_commit_added_changes(),
             cls.step_push_commits(),

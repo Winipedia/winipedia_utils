@@ -618,8 +618,21 @@ class Workflow(YamlConfigFile):
         """
         return cls.get_step(
             step_func=cls.step_run_pre_commit_hooks,
-            run="poetry version patch && git add pyproject.toml && poetry run pre-commit run --all-files --verbose",  # noqa: E501
+            run="poetry run pre-commit run --all-files --verbose",
             env={"REPO_TOKEN": cls.insert_repo_token()},
+            step=step,
+        )
+
+    @classmethod
+    def step_add_version_patch(
+        cls,
+        *,
+        step: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Get the add version patch step."""
+        return cls.get_step(
+            step_func=cls.step_add_version_patch,
+            run="poetry version patch && git add pyproject.toml",
             step=step,
         )
 

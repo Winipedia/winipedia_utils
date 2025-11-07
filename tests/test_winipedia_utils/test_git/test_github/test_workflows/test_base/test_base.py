@@ -327,6 +327,11 @@ class TestWorkflow:
         result = my_test_workflow.step_run_pre_commit_hooks()
         assert_with_msg("run" in result, "Expected 'run' in step")
 
+    def test_step_add_version_patch(self, my_test_workflow: type[Workflow]) -> None:
+        """Test method for step_add_version_patch."""
+        result = my_test_workflow.step_add_version_patch()
+        assert_with_msg("run" in result, "Expected 'run' in step")
+
     def test_step_commit_added_changes(self, my_test_workflow: type[Workflow]) -> None:
         """Test method for step_commit_added_changes."""
         result = my_test_workflow.step_commit_added_changes()
