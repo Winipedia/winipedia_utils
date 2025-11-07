@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 from packaging.version import Version
+from pytest_mock import MockFixture
 
 from winipedia_utils.projects.poetry.config import (
     DotPythonVersionConfigFile,
@@ -31,6 +32,22 @@ def my_test_pyproject_config_file(
 
 class TestPyprojectConfigFile:
     """Test class for PyprojectConfigFile."""
+
+    def test_dump(
+        self,
+        my_test_pyproject_config_file: type[PyprojectConfigFile],
+        mocker: MockFixture,
+    ) -> None:
+        """Test method for dump."""
+        my_test_pyproject_config_file()
+        # spy on remove_wrong_dependencies
+        spy = mocker.spy(
+            my_test_pyproject_config_file,
+            my_test_pyproject_config_file.remove_wrong_dependencies.__name__,
+        )
+        config = my_test_pyproject_config_file.get_configs()
+        my_test_pyproject_config_file.dump(config)
+        spy.assert_called_once_with(config)
 
     def test_get_parent_path(
         self, my_test_pyproject_config_file: type[PyprojectConfigFile]
@@ -70,6 +87,26 @@ class TestPyprojectConfigFile:
         assert_with_msg(
             len(package_name) > 0,
             "Expected package name to be non-empty",
+        )
+
+    def test_remove_wrong_dependencies(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for remove_wrong_dependencies."""
+        my_test_pyproject_config_file()
+        config = my_test_pyproject_config_file.get_configs()
+        # add wrong dependencies to config
+        config["tool"]["poetry"]["dependencies"] = {"wrong": "*"}
+        config["tool"]["poetry"]["dev-dependencies"] = {"wrong": "*"}
+        cleaned_config = my_test_pyproject_config_file.remove_wrong_dependencies(config)
+        # assert wrong sections are removed
+        assert_with_msg(
+            "dependencies" not in cleaned_config["tool"]["poetry"],
+            "Expected dependencies section to be deleted",
+        )
+        assert_with_msg(
+            "dev-dependencies" not in cleaned_config["tool"]["poetry"],
+            "Expected dev-dependencies section to be deleted",
         )
 
     def test_get_all_dependencies(

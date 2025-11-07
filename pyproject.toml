@@ -5,13 +5,13 @@ version = "0.6.6"
 description = "A package with many utility functions"
 readme = "README.md"
 requires-python = ">=3.12"
-dynamic = [ "dependencies",]
 authors = [
     { name = "Winipedia", email = "win.steveker@gmx.de"}
 ]
 license = "MIT"
+dependencies = ["polars", "pyyaml", "keyring", "pygithub", "pathspec", "networkx", "setuptools", "tqdm", "defusedxml", "cryptography", "tomlkit", "dotenv"]
 
-# Build system section
+# Build system section[build-system]
 [build-system]
 requires = [ "poetry-core>=2.0.0,<3.0.0",]
 build-backend = "poetry.core.masonry.api"
@@ -19,20 +19,6 @@ build-backend = "poetry.core.masonry.api"
 # Poetry section
 [[tool.poetry.packages]]
 include = "winipedia_utils"
-
-[tool.poetry.dependencies]
-tqdm = "*"
-setuptools = "*"
-defusedxml = "*"
-tomlkit = "*"
-pathspec = "*"
-pyyaml = "*"
-keyring = "*"
-cryptography = "*"
-polars = "*"
-pygithub = "*"
-dotenv = "*"
-networkx = "*"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "*"

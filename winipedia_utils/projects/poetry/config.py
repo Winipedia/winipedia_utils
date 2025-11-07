@@ -19,6 +19,21 @@ class PyprojectConfigFile(TomlConfigFile):
     """Config file for pyproject.toml."""
 
     @classmethod
+    def dump(cls, config: dict[str, Any] | list[Any]) -> None:
+        """Dump the config file.
+
+        We remove the wrong dependencies from the config before dumping.
+        So we do not want dependencies under tool.poetry.dependencies but
+        under project.dependencies. And we do not want dev dependencies under
+        tool.poetry.dev-dependencies but under tool.poetry.group.dev.dependencies.
+        """
+        if not isinstance(config, dict):
+            msg = f"Cannot dump {config} to pyproject.toml file."
+            raise TypeError(msg)
+        config = cls.remove_wrong_dependencies(config)
+        super().dump(config)
+
+    @classmethod
     def get_parent_path(cls) -> Path:
         """Get the path to the config file."""
         return Path()
@@ -30,7 +45,7 @@ class PyprojectConfigFile(TomlConfigFile):
             "project": {
                 "name": make_name_from_obj(get_src_package(), capitalize=False),
                 "readme": "README.md",
-                "dynamic": ["dependencies"],
+                "dependencies": list(cls.get_dependencies()),
             },
             "build-system": {
                 "requires": ["poetry-core>=2.0.0,<3.0.0"],
@@ -39,10 +54,6 @@ class PyprojectConfigFile(TomlConfigFile):
             "tool": {
                 "poetry": {
                     "packages": [{"include": get_src_package().__name__}],
-                    "dependencies": dict.fromkeys(
-                        cls.get_dependencies(),
-                        "*",
-                    ),
                     "group": {
                         "dev": {
                             "dependencies": dict.fromkeys(
@@ -82,6 +93,29 @@ class PyprojectConfigFile(TomlConfigFile):
         return package_name.replace("-", "_")
 
     @classmethod
+    def remove_wrong_dependencies(cls, config: dict[str, Any]) -> dict[str, Any]:
+        """Remove the wrong dependencies from the config."""
+        # raise if the right sections do not exist
+        if config.get("project", {}).get("dependencies") is None:
+            msg = "No dependencies section in config"
+            raise ValueError(msg)
+
+        if (
+            config.get("tool", {}).get("poetry", {}).get("group", {}).get("dev", {})
+            is None
+        ):
+            msg = "No dev dependencies section in config"
+            raise ValueError(msg)
+
+        # remove the wrong dependencies sections if they exist
+        if config.get("tool", {}).get("poetry", {}).get("dependencies") is not None:
+            del config["tool"]["poetry"]["dependencies"]
+        if config.get("tool", {}).get("poetry", {}).get("dev-dependencies") is not None:
+            del config["tool"]["poetry"]["dev-dependencies"]
+
+        return config
+
+    @classmethod
     def get_all_dependencies(cls) -> set[str]:
         """Get all dependencies."""
         return cls.get_dependencies() | cls.get_dev_dependencies()
@@ -108,9 +142,17 @@ class PyprojectConfigFile(TomlConfigFile):
     @classmethod
     def get_dependencies(cls) -> set[str]:
         """Get the dependencies."""
-        return set(
-            cls.load().get("tool", {}).get("poetry", {}).get("dependencies", {}).keys()
-        )
+        deps = set(cls.load().get("project", {}).get("dependencies", {}))
+        deps = {d.split("(")[0].strip() for d in deps}
+        if not deps:
+            deps = set(
+                cls.load()
+                .get("tool", {})
+                .get("poetry", {})
+                .get("dependencies", {})
+                .keys()
+            )
+        return deps
 
     @classmethod
     def get_expected_dev_dependencies(cls) -> set[str]:
