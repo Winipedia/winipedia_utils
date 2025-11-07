@@ -11,7 +11,6 @@ from winipedia_utils.text.config import (
 
 def create_project_root() -> None:
     """Create the project root."""
-    ConfigFile.init_config_files()
-
     src_package_name = PyprojectConfigFile.get_package_name()
     create_module(src_package_name, is_package=True)
+    ConfigFile.init_config_files()
