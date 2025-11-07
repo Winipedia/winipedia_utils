@@ -243,7 +243,7 @@ class PyprojectConfigFile(TomlConfigFile):
     @classmethod
     def update_with_dev(cls) -> None:
         """Install all dependencies with dev."""
-        args = [POETRY_ARG, "install", "--with", "dev"]
+        args = [POETRY_ARG, "update", "--with", "dev"]
         run_subprocess(args)
 
 
