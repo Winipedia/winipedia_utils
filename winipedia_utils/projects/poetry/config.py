@@ -7,7 +7,9 @@ from typing import Any, cast
 import requests
 from packaging.version import Version
 
-from winipedia_utils.git.pre_commit.hooks import install_dependencies_with_dev
+from winipedia_utils.git.pre_commit.hooks import (
+    update_dependencies_with_dev,
+)
 from winipedia_utils.os.os import run_subprocess
 from winipedia_utils.projects.poetry.dev_deps import DEV_DEPENDENCIES
 from winipedia_utils.projects.poetry.poetry import VersionConstraint
@@ -236,9 +238,9 @@ class PyprojectConfigFile(TomlConfigFile):
         )
 
     @classmethod
-    def install_with_dev(cls) -> None:
+    def update_with_dev(cls) -> None:
         """Install all dependencies with dev."""
-        args = install_dependencies_with_dev()
+        args = update_dependencies_with_dev()
         run_subprocess(args)
 
 

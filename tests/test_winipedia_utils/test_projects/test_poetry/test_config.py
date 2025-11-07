@@ -356,7 +356,7 @@ class TestPyprojectConfigFile:
             "Expected get_first_supported_python_version to return 3.8.1",
         )
 
-    def test_install_with_dev(
+    def test_update_with_dev(
         self,
         my_test_pyproject_config_file: type[PyprojectConfigFile],
         mocker: MockFixture,
@@ -367,7 +367,7 @@ class TestPyprojectConfigFile:
         mock_run = mocker.patch(
             make_obj_importpath(config) + "." + run_subprocess.__name__
         )
-        my_test_pyproject_config_file.install_with_dev()
+        my_test_pyproject_config_file.update_with_dev()
         mock_run.assert_called_once()
 
 
