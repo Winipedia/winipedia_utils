@@ -81,6 +81,17 @@ class TestPyprojectConfigFile:
             "Expected 'tool' key in configs",
         )
 
+    def test_get_repository_name(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for get_repository_name."""
+        my_test_pyproject_config_file()
+        repository_name = my_test_pyproject_config_file.get_repository_name()
+        assert_with_msg(
+            len(repository_name) > 0,
+            "Expected repository name to be non-empty",
+        )
+
     def test_get_package_name(
         self, my_test_pyproject_config_file: type[PyprojectConfigFile]
     ) -> None:

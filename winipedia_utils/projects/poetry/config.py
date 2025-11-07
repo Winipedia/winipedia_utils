@@ -65,7 +65,7 @@ class PyprojectConfigFile(TomlConfigFile):
             },
             "tool": {
                 "poetry": {
-                    "packages": [{"include": cls.get_package_name()}],
+                    "packages": [{"include": cls.get_repository_name()}],
                     "group": {
                         "dev": {
                             "dependencies": dict.fromkeys(

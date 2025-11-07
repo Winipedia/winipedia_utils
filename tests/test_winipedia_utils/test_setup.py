@@ -79,13 +79,14 @@ build-backend = "poetry.core.masonry.api"
     mock_run.return_value.returncode = 0
 
     # Add src_project_dir to sys.path so the package can be imported
-
+    # and clean up sys.modules after to avoid polluting other tests
     original_sys_path = sys.path.copy()
     try:
         sys.path.insert(0, str(src_project_dir))
         with chdir(src_project_dir):
             setup()
     finally:
+        # Restore original state to avoid affecting other tests
         sys.path = original_sys_path
 
     pkg_dir = src_project_dir / "src_project"
