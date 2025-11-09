@@ -36,6 +36,17 @@ def my_test_pyproject_config_file(
 class TestPyprojectConfigFile:
     """Test class for PyprojectConfigFile."""
 
+    def test_is_correct(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for is_correct."""
+        my_test_pyproject_config_file()
+        is_correct = my_test_pyproject_config_file.is_correct()
+        assert_with_msg(
+            is_correct,
+            "Expected config to be correct after initialization",
+        )
+
     def test_dump(
         self,
         my_test_pyproject_config_file: type[PyprojectConfigFile],

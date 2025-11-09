@@ -9,7 +9,7 @@ authors = [
     { name = "Winipedia", email = "win.steveker@gmx.de"}
 ]
 license = "MIT"
-dependencies = ["polars", "pyyaml", "keyring", "pygithub", "pathspec", "networkx", "setuptools", "tqdm", "defusedxml", "cryptography", "tomlkit", "dotenv"]
+dependencies = ["polars", "pyyaml", "keyring", "pygithub", "pathspec", "networkx", "setuptools", "tqdm", "defusedxml", "packaging", "cryptography", "tomlkit", "dotenv"]
 
 # Build system section[build-system]
 [build-system]
