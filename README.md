@@ -135,7 +135,7 @@ Hooks run in the following order:
 - Update packages (poetry update --with dev (winipedia_utils forces all dependencies with * to be updated to latest compatible version))
 - Lock dependencies (poetry lock)
 - Check package manager configs (poetry check --strict)
-- Create tests (python -m winipedia_utils.testing.create_tests)
+- Create tests (python -m winipedia_utils.dev.testing.create_tests)
 - Lint code (ruff check --fix)
 - Format code (ruff format)
 - Check static types (mypy)
@@ -176,7 +176,7 @@ Configuration files are managed automatically by the setup system:
 
 ## Branch Protection
 
-As soon as you push to `main` on GitHub (provided the `REPO_TOKEN` secret is set up correctly), the `health_check.yaml` workflow will run and execute `winipedia_utils.git.github.repo.protect`, which uses PyGithub to protect the repository.
+As soon as you push to `main` on GitHub (provided the `REPO_TOKEN` secret is set up correctly), the `health_check.yaml` workflow will run and execute `winipedia_utils.dev.git.github.repo.protect`, which uses PyGithub to protect the repository.
 
 ### Repository Settings
 
@@ -222,8 +222,8 @@ Winipedia Utils provides comprehensive utility modules for common development ta
 Unified interface for multiprocessing and multithreading:
 
 ```python
-from winipedia_utils.concurrent.multiprocessing import multiprocess_loop
-from winipedia_utils.concurrent.multithreading import multithread_loop
+from winipedia_utils.utils.iterating.concurrent.multiprocessing import multiprocess_loop
+from winipedia_utils.utils.iterating.concurrent.multithreading import multithread_loop
 ```
 
 ### Data Cleaning & Handling
@@ -231,7 +231,7 @@ from winipedia_utils.concurrent.multithreading import multithread_loop
 Build data cleaning pipelines using Polars:
 
 ```python
-from winipedia_utils.data.dataframe.cleaning import CleaningDF
+from winipedia_utils.utils.data.dataframe.cleaning import CleaningDF
 import polars as pl
 ```
 
@@ -240,7 +240,7 @@ import polars as pl
 Simple, standardized logging setup with automatic method instrumentation:
 
 ```python
-from winipedia_utils.logging.logger import get_logger
+from winipedia_utils.utils.logging.logger import get_logger
 
 logger = get_logger(__name__)
 logger.info("Application started")
@@ -258,7 +258,7 @@ logger.error("An error occurred")
 Advanced metaclasses and mixins for class composition and behavior extension:
 
 ```python
-from winipedia_utils.oop.mixins.mixin import ABCLoggingMixin, StrictABCLoggingMixin
+from winipedia_utils.utils.oop.mixins.mixin import ABCLoggingMixin, StrictABCLoggingMixin
 ```
 
 ### Security Utilities
@@ -266,7 +266,7 @@ from winipedia_utils.oop.mixins.mixin import ABCLoggingMixin, StrictABCLoggingMi
 Encryption and secure credential storage using keyring:
 
 ```python
-from winipedia_utils.security.keyring import (
+from winipedia_utils.utils.security.keyring import (
     get_or_create_fernet,
     get_or_create_aes_gcm
 )
@@ -277,8 +277,8 @@ from winipedia_utils.security.keyring import (
 Comprehensive testing framework with automatic test generation:
 
 ```python
-from winipedia_utils.testing.assertions import assert_with_msg
-from winipedia_utils.testing.convention import (
+from winipedia_utils.utils.testing.assertions import assert_with_msg
+from winipedia_utils.dev.testing.convention import (
     make_test_obj_name,
     get_test_obj_from_obj,
     make_test_obj_importpath_from_obj
@@ -308,10 +308,10 @@ test_path = make_test_obj_importpath_from_obj(my_function)
 Tools for working with Python modules, packages, classes, and functions:
 
 ```python
-from winipedia_utils.modules.package import find_packages, walk_package
-from winipedia_utils.modules.module import create_module, import_obj_from_importpath
-from winipedia_utils.modules.class_ import get_all_cls_from_module, get_all_methods_from_cls
-from winipedia_utils.modules.function import get_all_functions_from_module
+from winipedia_utils.utils.modules.package import find_packages, walk_package
+from winipedia_utils.utils.modules.module import create_module, import_obj_from_importpath
+from winipedia_utils.utils.modules.class_ import get_all_cls_from_module, get_all_methods_from_cls
+from winipedia_utils.utils.modules.function import get_all_functions_from_module
 ```
 
 ### Text and String Utilities
@@ -319,7 +319,7 @@ from winipedia_utils.modules.function import get_all_functions_from_module
 String manipulation and configuration file handling:
 
 ```python
-from winipedia_utils.text.string import value_to_truncated_string
+from winipedia_utils.utils.data.structures.text.string import value_to_truncated_string
 ```
 
 ### OS and System Utilities
@@ -327,7 +327,7 @@ from winipedia_utils.text.string import value_to_truncated_string
 Operating system and subprocess utilities:
 
 ```python
-from winipedia_utils.os.os import run_subprocess
+from winipedia_utils.utils.os.os import run_subprocess
 ```
 
 ### Iteration Utilities
@@ -335,7 +335,7 @@ from winipedia_utils.os.os import run_subprocess
 Utilities for working with iterables and nested structures:
 
 ```python
-from winipedia_utils.iterating.iterate import get_len_with_default, nested_structure_is_subset
+from winipedia_utils.utils.iterating.iterate import get_len_with_default, nested_structure_is_subset
 ```
 
 ### Philosophy
