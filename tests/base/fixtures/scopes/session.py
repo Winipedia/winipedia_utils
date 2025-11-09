@@ -5,11 +5,11 @@ tests.base.scopes.session
 
 import re
 
-from winipedia_utils.modules.module import to_path
-from winipedia_utils.projects.poetry import dev_deps
-from winipedia_utils.projects.poetry.config import PyprojectConfigFile
-from winipedia_utils.projects.poetry.dev_deps import DEV_DEPENDENCIES
-from winipedia_utils.testing.fixtures import autouse_session_fixture
+from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
+from winipedia_utils.dev.projects.poetry import dev_deps
+from winipedia_utils.dev.projects.poetry.dev_deps import DEV_DEPENDENCIES
+from winipedia_utils.utils.modules.module import to_path
+from winipedia_utils.utils.testing.fixtures import autouse_session_fixture
 
 
 @autouse_session_fixture

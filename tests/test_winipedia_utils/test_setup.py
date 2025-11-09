@@ -7,9 +7,9 @@ from typing import Any
 
 from pytest_mock import MockFixture
 
-from winipedia_utils.modules.module import make_obj_importpath
 from winipedia_utils.setup import SETUP_STEPS, get_setup_steps, setup
-from winipedia_utils.testing.assertions import assert_with_msg
+from winipedia_utils.utils.modules.module import make_obj_importpath
+from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 
 def test_get_setup_steps() -> None:

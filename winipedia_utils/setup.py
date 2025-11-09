@@ -9,11 +9,11 @@ This script is intended to be called once at the beginning of a project.
 from collections.abc import Callable
 from typing import Any
 
-from winipedia_utils.git.gitignore.config import GitIgnoreConfigFile
-from winipedia_utils.git.pre_commit.run_hooks import run_hooks
-from winipedia_utils.logging.logger import get_logger
-from winipedia_utils.projects.poetry.config import PyprojectConfigFile
-from winipedia_utils.projects.project import create_project_root
+from winipedia_utils.dev.configs.gitignore import GitIgnoreConfigFile
+from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
+from winipedia_utils.dev.git.pre_commit.run_hooks import run_hooks
+from winipedia_utils.dev.projects.project import create_project_root
+from winipedia_utils.utils.logging.logger import get_logger
 
 logger = get_logger(__name__)
 
