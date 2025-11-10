@@ -5,6 +5,8 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, ClassVar
 
+from winipedia_utils.dev.artifacts import build
+from winipedia_utils.dev.artifacts.build import Builder
 from winipedia_utils.dev.configs.base.config import YamlConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.utils.data.structures.text.string import (
@@ -22,8 +24,7 @@ class Workflow(YamlConfigFile):
     WINDOWS_LATEST = "windows-latest"
     MACOS_LATEST = "macos-latest"
 
-    ARTIFACTS_FOLDER = "artifacts"
-    ARTIFACTS_PATH = Path(f"{ARTIFACTS_FOLDER}")
+    ARTIFACTS_PATH = Builder.ARTIFACTS_PATH
     ARTIFACTS_PATTERN = f"{ARTIFACTS_PATH}/*"
 
     EMPTY_CONFIG: ClassVar[dict[str, Any]] = {
@@ -694,7 +695,7 @@ class Workflow(YamlConfigFile):
     def step_create_artifacts_folder(
         cls,
         *,
-        folder: str = ARTIFACTS_FOLDER,
+        folder: str = Builder.ARTIFACTS_DIR_NAME,
         step: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Get the create artifacts folder step."""
@@ -721,10 +722,6 @@ class Workflow(YamlConfigFile):
     @classmethod
     def step_build_artifacts(cls) -> dict[str, Any]:
         """Get the build artifacts step."""
-        from winipedia_utils.dev.artifacts import (  # noqa: PLC0415
-            build,  # avoid circular import
-        )
-
         return cls.get_step(
             step_func=cls.step_build_artifacts,
             run=f"poetry run python -m {build.__name__}",
@@ -794,7 +791,7 @@ class Workflow(YamlConfigFile):
                 "tag": version,
                 "name": f"{cls.insert_repository_name()} {version}",
                 "body": cls.insert_changelog(),
-                cls.ARTIFACTS_FOLDER: artifacts_pattern,
+                Builder.ARTIFACTS_DIR_NAME: artifacts_pattern,
             },
             step=step,
         )

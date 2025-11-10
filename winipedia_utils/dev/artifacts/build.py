@@ -12,7 +12,6 @@ from importlib import import_module
 from pathlib import Path
 
 from winipedia_utils.dev.configs.build import BuildConfigFile
-from winipedia_utils.dev.configs.workflows.base.base import Workflow
 from winipedia_utils.utils.modules.class_ import (
     get_all_nonabstract_subclasses,
 )
@@ -30,7 +29,8 @@ class Builder(ABCLoggingMixin):
         YourBuildClass()
     """
 
-    ARTIFACTS_PATH = Workflow.ARTIFACTS_PATH
+    ARTIFACTS_DIR_NAME = "artifacts"
+    ARTIFACTS_PATH = Path(ARTIFACTS_DIR_NAME)
 
     @classmethod
     @abstractmethod
