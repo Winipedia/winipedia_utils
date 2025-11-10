@@ -1,7 +1,7 @@
 # Project section
 [project]
 name = "winipedia-utils"
-version = "0.7.7"
+version = "0.7.8"
 description = "A package with many utility functions"
 readme = "README.md"
 requires-python = ">=3.12"
