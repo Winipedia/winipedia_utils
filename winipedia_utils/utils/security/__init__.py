@@ -1,1 +1,1 @@
-"""__init__ module for winipedia_utils.security."""
+"""__init__ module."""

@@ -1,1 +1,1 @@
-"""__init__ module for winipedia_utils.projects.poetry."""
+"""__init__ module."""

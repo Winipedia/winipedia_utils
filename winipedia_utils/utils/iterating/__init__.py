@@ -1,1 +1,1 @@
-"""__init__ module for winipedia_utils.iterating."""
+"""__init__ module."""

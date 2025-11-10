@@ -1,1 +1,1 @@
-"""__init__ module for winipedia_utils.data."""
+"""__init__ module."""

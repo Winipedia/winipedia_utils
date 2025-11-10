@@ -1,1 +1,1 @@
-"""__init__ module for winipedia_utils.git."""
+"""__init__ module."""

@@ -1,1 +1,1 @@
-"""__init__ module for winipedia_utils.concurrent."""
+"""__init__ module."""
