@@ -171,7 +171,7 @@ class ConfigFile(ABC):
     @staticmethod
     def get_poetry_run_setup_script() -> str:
         """Get the poetry run setup script."""
-        from winipedia_utils import setup  # noqa: PLC0415  # avoid circular import
+        from winipedia_utils.dev import setup  # noqa: PLC0415  # avoid circular import
 
         return get_poetry_run_module_script(setup)
 

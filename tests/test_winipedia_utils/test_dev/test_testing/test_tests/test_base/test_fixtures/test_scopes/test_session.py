@@ -46,3 +46,9 @@ def test_assert_project_structure_mirrored() -> None:
 def test_assert_no_unit_test_package_usage() -> None:
     """Test func for assert_no_unit_test_package_usage."""
     raise NotImplementedError
+
+
+@skip_fixture_test
+def test_assert_no_dev_usage_in_non_dev_files() -> None:
+    """Test func for assert_no_dev_usage_in_non_dev_files."""
+    raise NotImplementedError

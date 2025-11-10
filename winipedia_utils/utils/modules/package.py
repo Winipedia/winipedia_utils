@@ -189,7 +189,6 @@ def find_packages(
     )
 
     if exclude is None:
-        # must init GitIgnoreConfigFile to create .gitignore if it does not exist
         exclude = GitIgnoreConfigFile.load()
         exclude = [
             p.replace("/", ".").removesuffix(".") for p in exclude if p.endswith("/")

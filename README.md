@@ -59,10 +59,11 @@ poetry init # or poetry new
 poetry add winipedia-utils
 
 # 6: Run the automated setup
-poetry run python -m winipedia_utils.setup
+poetry run python -m winipedia_utils.dev.setup
 ```
 
 The setup script will automatically configure your project with all necessary files and standards.
+If you wish to use winipedia_utils without its dev framework then just skip the setup step and you can access the utils via `winipedia_utils.utils`
 
 ## Setup Process
 
@@ -124,7 +125,7 @@ The health check workflow consists of two jobs:
    - Provides a single status check that can be marked as required in branch protection rules
 
 The release workflow extends the health check workflow and adds a release job that runs after all health checks pass.
-A build job is added before the release job if a src/dev/artifacts/builds exists with Builder subclasses. This script is created by the setup command and can be modified to create build artifacts for your project. Winipedia Utils automatically discovers all subclasses of Builder (dev.artifacts.builder) and calls them if the artifacts folder contains any files.
+A build job is added before the release job if a src/dev/artifacts/builder exists with Builder subclasses. This script is created by the setup command and can be modified to create build artifacts for your project. Winipedia Utils automatically discovers all subclasses of Builder (dev.artifacts.builder.base.base) and calls them if the artifacts folder contains any files.
 
 ### Pre-commit Hook Workflow
 

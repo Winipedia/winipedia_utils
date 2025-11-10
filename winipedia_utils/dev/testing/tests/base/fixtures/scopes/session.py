@@ -18,6 +18,8 @@ from winipedia_utils.dev.testing.convention import (
     TESTS_PACKAGE_NAME,
     make_test_obj_importpath_from_obj,
 )
+from winipedia_utils.utils.logging.logger import get_logger
+from winipedia_utils.utils.modules.module import to_path
 from winipedia_utils.utils.modules.package import (
     find_packages,
     get_src_package,
@@ -25,6 +27,8 @@ from winipedia_utils.utils.modules.package import (
 )
 from winipedia_utils.utils.testing.assertions import assert_with_msg
 from winipedia_utils.utils.testing.fixtures import autouse_session_fixture
+
+logger = get_logger(__name__)
 
 
 @autouse_session_fixture
@@ -178,4 +182,38 @@ def assert_no_unit_test_package_usage() -> None:
         assert_with_msg(
             "UnitTest".lower() not in path.read_text(encoding="utf-8"),
             f"Found unit test package usage in {path}. Use pytest instead.",
+        )
+
+
+@autouse_session_fixture
+def assert_no_dev_usage_in_non_dev_files() -> None:
+    """Verify that any utils from the dev folder are not used in non-dev files.
+
+    E.g. winipedia_utils.utils can be used anywhere, winipedia_utils.dev not.
+
+    This fixture runs once per test session and checks that any utils from the
+    dev folder are not used in non-dev files.
+
+    Raises:
+        AssertionError: If any utils from the dev folder are used in non-dev files
+
+    """
+    src_pkg = get_src_package().__name__
+    dev_pkg = src_pkg + ".dev"
+    dev_path = to_path(dev_pkg, is_package=True)
+    usages: list[Path] = []
+    for path in Path(src_pkg).rglob("*.py"):
+        # check if any part of the path contains dev_path
+        if dev_path in path.parents:
+            continue
+
+        if dev_pkg in path.read_text(encoding="utf-8"):
+            usages.append(path)
+
+    # log a warning for each usage
+    for path in usages:
+        logger.warning(
+            "Found %s usage in %s. This is not recommended in non-dev files.",
+            dev_pkg,
+            path,
         )
