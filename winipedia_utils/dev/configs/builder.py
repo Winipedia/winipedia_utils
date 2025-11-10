@@ -9,7 +9,7 @@ from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.utils.modules.module import to_path
 
 
-class BuildConfigFile(PythonConfigFile):
+class BuilderConfigFile(PythonConfigFile):
     """Config File subclass that creates the dirs folder."""
 
     @classmethod

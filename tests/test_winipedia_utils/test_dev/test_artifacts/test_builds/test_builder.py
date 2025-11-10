@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from winipedia_utils.dev.artifacts.builds.build import WinipediaUtilsBuilder
+from winipedia_utils.dev.artifacts.builds.builder import WinipediaUtilsBuilder
 from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 

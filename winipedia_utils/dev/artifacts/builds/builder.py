@@ -3,7 +3,7 @@
 All subclasses of Builder in the builds package are automatically called.
 """
 
-from winipedia_utils.dev.artifacts.build import Builder
+from winipedia_utils.dev.artifacts.builder import Builder
 
 
 class WinipediaUtilsBuilder(Builder):

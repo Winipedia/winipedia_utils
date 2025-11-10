@@ -2,24 +2,24 @@
 
 from pathlib import Path
 
-from winipedia_utils.dev.configs.build import BuildConfigFile
+from winipedia_utils.dev.configs.builder import BuilderConfigFile
 from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 
-class TestBuildConfigFile:
+class TestBuilderConfigFile:
     """Test class for BuildConfigFile."""
 
     def test_get_parent_path(self) -> None:
         """Test method for get_parent_path."""
         # just assert it returns a path
         assert_with_msg(
-            isinstance(BuildConfigFile.get_parent_path(), Path),
+            isinstance(BuilderConfigFile.get_parent_path(), Path),
             "Expected Path",
         )
 
     def test_get_content_str(self) -> None:
         """Test method for get_content_str."""
-        content_str = BuildConfigFile.get_content_str()
+        content_str = BuilderConfigFile.get_content_str()
         assert_with_msg(
             len(content_str) > 0,
             "Expected non-empty string",
