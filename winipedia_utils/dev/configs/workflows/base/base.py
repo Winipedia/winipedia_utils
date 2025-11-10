@@ -5,7 +5,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, ClassVar
 
-from winipedia_utils.dev.artifacts import builder
+from winipedia_utils.dev.artifacts import build
 from winipedia_utils.dev.artifacts.builder import Builder
 from winipedia_utils.dev.configs.base.config import YamlConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
@@ -724,7 +724,7 @@ class Workflow(YamlConfigFile):
         """Get the build artifacts step."""
         return cls.get_step(
             step_func=cls.step_build_artifacts,
-            run=f"poetry run python -m {builder.__name__}",
+            run=f"poetry run python -m {build.__name__}",
         )
 
     @classmethod
