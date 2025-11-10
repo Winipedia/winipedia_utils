@@ -1,4 +1,1 @@
-"""__init__ module for the following package path (maybe truncated).
-
-tests.test_winipedia_utils.test_git.test_pre_commit
-"""
+"""__init__ module."""

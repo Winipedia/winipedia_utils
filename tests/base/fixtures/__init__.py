@@ -1,1 +1,1 @@
-"""__init__ module for fixtures."""
+"""__init__ module."""

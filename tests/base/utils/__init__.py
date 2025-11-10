@@ -1,4 +1,1 @@
-"""__init__ module for the following package path (maybe truncated).
-
-tests.base.utils
-"""
+"""__init__ module."""

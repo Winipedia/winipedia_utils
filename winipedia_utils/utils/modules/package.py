@@ -330,6 +330,9 @@ def make_init_module(path: str | Path) -> None:
     if path.name != "__init__.py":
         path = path / "__init__.py"
 
+    if path.exists():
+        return
+
     content = get_default_init_module_content()
 
     path.parent.mkdir(parents=True, exist_ok=True)
