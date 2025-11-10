@@ -8,13 +8,19 @@ distribution of project code.
 
 import platform
 from abc import abstractmethod
+from importlib import import_module
 from pathlib import Path
 
+from winipedia_utils.dev.configs.build import BuildConfigFile
 from winipedia_utils.dev.configs.workflows.base.base import Workflow
+from winipedia_utils.utils.modules.class_ import (
+    get_all_nonabstract_subclasses,
+)
+from winipedia_utils.utils.modules.module import to_module_name, to_path
 from winipedia_utils.utils.oop.mixins.mixin import ABCLoggingMixin
 
 
-class Build(ABCLoggingMixin):
+class Builder(ABCLoggingMixin):
     """Base class for build scripts.
 
     Subclass this class and implement the get_artifacts method to create
@@ -28,11 +34,13 @@ class Build(ABCLoggingMixin):
 
     @classmethod
     @abstractmethod
-    def get_artifacts(cls) -> list[Path]:
+    def create_artifacts(cls) -> None:
         """Build the project.
 
+        This method should create all artifacts in the ARTIFACTS_PATH folder.
+
         Returns:
-            list[Path]: List of paths to the built artifacts
+            None
         """
 
     @classmethod
@@ -49,6 +57,7 @@ class Build(ABCLoggingMixin):
         and puts them in the artifacts folder.
         """
         cls.ARTIFACTS_PATH.mkdir(parents=True, exist_ok=True)
+        cls.create_artifacts()
         artifacts = cls.get_artifacts()
         for artifact in artifacts:
             parent = artifact.parent
@@ -60,3 +69,32 @@ class Build(ABCLoggingMixin):
             new_name = f"{artifact.stem}-{platform.system()}{artifact.suffix}"
             new_path = cls.ARTIFACTS_PATH / new_name
             artifact.rename(new_path)
+
+    @classmethod
+    def get_artifacts(cls) -> list[Path]:
+        """Get the built artifacts."""
+        paths = list(cls.ARTIFACTS_PATH.glob("*"))
+        if not paths:
+            msg = f"Expected {cls.ARTIFACTS_PATH} to contain files"
+            raise FileNotFoundError(msg)
+        return paths
+
+    @classmethod
+    def get_non_abstract_subclasses(cls) -> set[type["Builder"]]:
+        """Get all non-abstract subclasses of Builder."""
+        path = BuildConfigFile.get_parent_path()
+        module_name = to_module_name(path)
+        if not to_path(module_name, is_package=True).exists():
+            return set()
+        builds_pkg = import_module(module_name)
+        return get_all_nonabstract_subclasses(cls, load_package_before=builds_pkg)
+
+    @classmethod
+    def init_all_non_abstract_subclasses(cls) -> None:
+        """Build all artifacts."""
+        for builder in cls.get_non_abstract_subclasses():
+            builder()
+
+
+if __name__ == "__main__":
+    Builder.init_all_non_abstract_subclasses()

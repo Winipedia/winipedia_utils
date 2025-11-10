@@ -3,12 +3,13 @@
 import inspect
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import tomlkit
 import yaml
 from dotenv import dotenv_values
 
+from winipedia_utils.dev import configs
 from winipedia_utils.dev.projects.poetry.poetry import (
     get_poetry_run_module_script,
 )
@@ -16,6 +17,9 @@ from winipedia_utils.utils.data.structures.text.string import split_on_uppercase
 from winipedia_utils.utils.iterating.iterate import nested_structure_is_subset
 from winipedia_utils.utils.modules.class_ import init_all_nonabstract_subclasses
 from winipedia_utils.utils.modules.package import DependencyGraph, get_src_package
+
+if TYPE_CHECKING:
+    from types import ModuleType
 
 
 class ConfigFile(ABC):
@@ -153,9 +157,16 @@ class ConfigFile(ABC):
                 include_winipedia_utils=True
             )
         )
+        modules_to_configs = configs.__name__.split(".")[1:]
+
         pkgs_depending_on_winipedia_utils.add(get_src_package())
         for pkg in pkgs_depending_on_winipedia_utils:
-            init_all_nonabstract_subclasses(cls, load_package_before=pkg)
+            configs_pkg: ModuleType | None = pkg
+            for module in modules_to_configs:
+                configs_pkg = getattr(configs_pkg, module, None)
+                if configs_pkg is None:
+                    break
+            init_all_nonabstract_subclasses(cls, load_package_before=configs_pkg)
 
     @staticmethod
     def get_poetry_run_setup_script() -> str:
@@ -248,3 +259,53 @@ class DotEnvConfigFile(ConfigFile):
     def is_correct(cls) -> bool:
         """Check if the config is correct."""
         return super().is_correct() or cls.get_path().exists()
+
+
+class PythonConfigFile(ConfigFile):
+    """Base class for python config files."""
+
+    CONTENT_KEY = "content"
+
+    @classmethod
+    @abstractmethod
+    def get_content_str(cls) -> str:
+        """Get the content."""
+
+    @classmethod
+    def load(cls) -> dict[str, str]:
+        """Load the config file."""
+        return {cls.CONTENT_KEY: cls.get_path().read_text()}
+
+    @classmethod
+    def dump(cls, config: dict[str, Any] | list[Any]) -> None:
+        """Dump the config file."""
+        if not isinstance(config, dict):
+            msg = f"Cannot dump {config} to python file."
+            raise TypeError(msg)
+        cls.get_path().write_text(config[cls.CONTENT_KEY])
+
+    @classmethod
+    def get_file_extension(cls) -> str:
+        """Get the file extension of the config file."""
+        return "py"
+
+    @classmethod
+    def get_configs(cls) -> dict[str, Any]:
+        """Get the config."""
+        return {cls.CONTENT_KEY: cls.get_content_str()}
+
+    @classmethod
+    def get_file_content(cls) -> str:
+        """Get the file content."""
+        return cls.load()[cls.CONTENT_KEY]
+
+    @classmethod
+    def is_correct(cls) -> bool:
+        """Check if the config is correct.
+
+        Python files are correct if they exist and contain the correct content.
+        """
+        return (
+            super().is_correct()
+            or cls.get_content_str().strip() in cls.load()[cls.CONTENT_KEY]
+        )

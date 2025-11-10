@@ -10,6 +10,7 @@ from pytest_mock import MockFixture
 from winipedia_utils.dev.configs.base.config import (
     ConfigFile,
     DotEnvConfigFile,
+    PythonConfigFile,
     TomlConfigFile,
     YamlConfigFile,
 )
@@ -511,4 +512,104 @@ class TestDotEnvConfigFile:
         assert_with_msg(
             my_test_dotenv_config_file.is_correct(),
             "Expected .env file to be correct even when doesn't exist (empty)",
+        )
+
+
+@pytest.fixture
+def my_test_python_config_file(
+    config_file_factory: Callable[[type[PythonConfigFile]], type[PythonConfigFile]],
+) -> type[PythonConfigFile]:
+    """Create a test python config file class with tmp_path."""
+
+    class MyTestPythonConfigFile(config_file_factory(PythonConfigFile)):  # type: ignore [misc]
+        """Test python config file with tmp_path override."""
+
+        @classmethod
+        def get_parent_path(cls) -> Path:
+            """Get the parent path."""
+            return Path()
+
+        @classmethod
+        def get_content_str(cls) -> str:
+            """Get the content string."""
+            return '"""Test content."""\n'
+
+    return MyTestPythonConfigFile
+
+
+class TestPythonConfigFile:
+    """Test class for PythonConfigFile."""
+
+    def test_load(self, my_test_python_config_file: type[PythonConfigFile]) -> None:
+        """Test method for load."""
+        my_test_python_config_file()
+        loaded = my_test_python_config_file.load()
+        assert_with_msg(
+            PythonConfigFile.CONTENT_KEY in loaded,
+            f"Expected '{PythonConfigFile.CONTENT_KEY}' key in loaded config",
+        )
+
+    def test_dump(self, my_test_python_config_file: type[PythonConfigFile]) -> None:
+        """Test method for dump."""
+        my_test_python_config_file()
+        # Test successful dump
+        content = '"""New content."""\n'
+        my_test_python_config_file.dump({PythonConfigFile.CONTENT_KEY: content})
+        loaded = my_test_python_config_file.load()
+        assert_with_msg(
+            loaded[PythonConfigFile.CONTENT_KEY] == content,
+            "Expected dumped content to match loaded content",
+        )
+        # Test error when dumping non-dict
+        with pytest.raises(TypeError, match=r"Cannot dump .* to python file"):
+            my_test_python_config_file.dump([])
+
+    def test_get_file_extension(
+        self, my_test_python_config_file: type[PythonConfigFile]
+    ) -> None:
+        """Test method for get_file_extension."""
+        expected = "py"
+        actual = my_test_python_config_file.get_file_extension()
+        assert_with_msg(actual == expected, f"Expected {expected}, got {actual}")
+
+    def test_get_configs(
+        self, my_test_python_config_file: type[PythonConfigFile]
+    ) -> None:
+        """Test method for get_configs."""
+        configs = my_test_python_config_file.get_configs()
+        assert_with_msg(
+            PythonConfigFile.CONTENT_KEY in configs,
+            f"Expected '{PythonConfigFile.CONTENT_KEY}' key in configs",
+        )
+
+    def test_get_file_content(
+        self, my_test_python_config_file: type[PythonConfigFile]
+    ) -> None:
+        """Test method for get_file_content."""
+        my_test_python_config_file()
+        content = my_test_python_config_file.get_file_content()
+        assert_with_msg(
+            len(content) > 0,
+            "Expected file content to be non-empty",
+        )
+
+    def test_get_content_str(
+        self, my_test_python_config_file: type[PythonConfigFile]
+    ) -> None:
+        """Test method for get_content_str."""
+        content_str = my_test_python_config_file.get_content_str()
+        assert_with_msg(
+            len(content_str) > 0,
+            "Expected content string to be non-empty",
+        )
+
+    def test_is_correct(
+        self, my_test_python_config_file: type[PythonConfigFile]
+    ) -> None:
+        """Test method for is_correct."""
+        my_test_python_config_file()
+        is_correct = my_test_python_config_file.is_correct()
+        assert_with_msg(
+            is_correct,
+            "Expected config to be correct after initialization",
         )

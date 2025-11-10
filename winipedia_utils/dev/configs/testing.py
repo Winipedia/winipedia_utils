@@ -1,62 +1,10 @@
 """Config utilities for testing."""
 
-from abc import abstractmethod
 from pathlib import Path
-from typing import Any
 
-from winipedia_utils.dev.configs.base.config import ConfigFile
+from winipedia_utils.dev.configs.base.config import PythonConfigFile
 from winipedia_utils.dev.testing.convention import TESTS_PACKAGE_NAME
 from winipedia_utils.utils.modules.module import make_obj_importpath
-
-
-class PythonConfigFile(ConfigFile):
-    """Base class for python config files."""
-
-    CONTENT_KEY = "content"
-
-    @classmethod
-    def load(cls) -> dict[str, str]:
-        """Load the config file."""
-        return {cls.CONTENT_KEY: cls.get_path().read_text()}
-
-    @classmethod
-    def dump(cls, config: dict[str, Any] | list[Any]) -> None:
-        """Dump the config file."""
-        if not isinstance(config, dict):
-            msg = f"Cannot dump {config} to python file."
-            raise TypeError(msg)
-        cls.get_path().write_text(config[cls.CONTENT_KEY])
-
-    @classmethod
-    def get_file_extension(cls) -> str:
-        """Get the file extension of the config file."""
-        return "py"
-
-    @classmethod
-    def get_configs(cls) -> dict[str, Any]:
-        """Get the config."""
-        return {cls.CONTENT_KEY: cls.get_content_str()}
-
-    @classmethod
-    def get_file_content(cls) -> str:
-        """Get the file content."""
-        return cls.load()[cls.CONTENT_KEY]
-
-    @classmethod
-    @abstractmethod
-    def get_content_str(cls) -> str:
-        """Get the content."""
-
-    @classmethod
-    def is_correct(cls) -> bool:
-        """Check if the config is correct.
-
-        Python files are correct if they exist and contain the correct content.
-        """
-        return (
-            super().is_correct()
-            or cls.get_content_str().strip() in cls.load()[cls.CONTENT_KEY]
-        )
 
 
 class PythonTestsConfigFile(PythonConfigFile):

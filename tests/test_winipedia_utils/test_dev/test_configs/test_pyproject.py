@@ -121,13 +121,13 @@ class TestPyprojectConfigFile:
         my_test_pyproject_config_file()
         config = my_test_pyproject_config_file.get_configs()
         # add wrong dependencies to config
-        config["tool"]["poetry"]["dependencies"] = {"wrong": "*"}
+        config["project"]["dependencies"] = ["wrong (>=1.0.0,<2.0.0)"]
         config["tool"]["poetry"]["dev-dependencies"] = {"wrong": "*"}
         cleaned_config = my_test_pyproject_config_file.remove_wrong_dependencies(config)
         # assert wrong sections are removed
         assert_with_msg(
-            "dependencies" not in cleaned_config["tool"]["poetry"],
-            "Expected dependencies section to be deleted",
+            "dependencies" not in cleaned_config["project"],
+            "Expected dev-dependencies section to be deleted",
         )
         assert_with_msg(
             "dev-dependencies" not in cleaned_config["tool"]["poetry"],

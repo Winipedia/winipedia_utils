@@ -20,18 +20,6 @@ class PyprojectConfigFile(TomlConfigFile):
     """Config file for pyproject.toml."""
 
     @classmethod
-    def is_correct(cls) -> bool:
-        """Check if the config is correct.
-
-        We need to check if the dependencies are correct.
-        No version constraints are allowed in dev dependencies.
-        """
-        any_constraint_in_deps = any(
-            " (" in d for d in cls.load()["project"]["dependencies"]
-        )
-        return super().is_correct() and not any_constraint_in_deps
-
-    @classmethod
     def dump(cls, config: dict[str, Any] | list[Any]) -> None:
         """Dump the config file.
 
@@ -68,7 +56,7 @@ class PyprojectConfigFile(TomlConfigFile):
             "project": {
                 "name": make_name_from_obj(cls.get_repository_name(), capitalize=False),
                 "readme": "README.md",
-                "dependencies": list(cls.get_dependencies()),
+                "dynamic": ["dependencies"],
             },
             "build-system": {
                 "requires": ["poetry-core>=2.0.0,<3.0.0"],
@@ -77,6 +65,7 @@ class PyprojectConfigFile(TomlConfigFile):
             "tool": {
                 "poetry": {
                     "packages": [{"include": cls.get_repository_name()}],
+                    "dependencies": dict.fromkeys(cls.get_dependencies(), "*"),
                     "group": {
                         "dev": {
                             "dependencies": dict.fromkeys(
@@ -119,13 +108,9 @@ class PyprojectConfigFile(TomlConfigFile):
     def remove_wrong_dependencies(cls, config: dict[str, Any]) -> dict[str, Any]:
         """Remove the wrong dependencies from the config."""
         # raise if the right sections do not exist
-        if config.get("project", {}).get("dependencies") is None:
+        if config.get("tool", {}).get("poetry", {}).get("dependencies") is None:
             msg = "No dependencies section in config"
             raise ValueError(msg)
-        # remove all deps that have a version constraint
-        config["project"]["dependencies"] = [
-            d for d in config["project"]["dependencies"] if " (" not in d
-        ]
 
         if (
             config.get("tool", {}).get("poetry", {}).get("group", {}).get("dev", {})
@@ -135,8 +120,8 @@ class PyprojectConfigFile(TomlConfigFile):
             raise ValueError(msg)
 
         # remove the wrong dependencies sections if they exist
-        if config.get("tool", {}).get("poetry", {}).get("dependencies") is not None:
-            del config["tool"]["poetry"]["dependencies"]
+        if config.get("project", {}).get("dependencies") is not None:
+            del config["project"]["dependencies"]
         if config.get("tool", {}).get("poetry", {}).get("dev-dependencies") is not None:
             del config["tool"]["poetry"]["dev-dependencies"]
 

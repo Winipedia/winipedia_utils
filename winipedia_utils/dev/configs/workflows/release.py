@@ -5,6 +5,7 @@ This workflow is used to create a release on GitHub.
 
 from typing import Any
 
+from winipedia_utils.dev.artifacts.build import Builder
 from winipedia_utils.dev.configs.workflows.health_check import HealthCheckWorkflow
 
 
@@ -63,7 +64,8 @@ class ReleaseWorkflow(HealthCheckWorkflow):
     @classmethod
     def steps_build(cls) -> list[dict[str, Any]]:
         """Get the build steps."""
-        if not cls.BUILD_SCRIPT_PATH.exists():
+        non_abstract_builders = Builder.get_non_abstract_subclasses()
+        if not non_abstract_builders:
             return [cls.step_no_build_script()]
         return [
             *cls.steps_core_matrix_setup(),

@@ -108,7 +108,7 @@ jobs:
         from keyrings.alt.file import PlaintextKeyring; keyring.set_keyring(PlaintextKeyring());"
     - name: Build Artifacts
       id: build_artifacts
-      run: poetry run python -m winipedia_utils.artifacts.build
+      run: poetry run python -m winipedia_utils.dev.artifacts.build
     - name: Upload Artifacts
       id: upload_artifacts
       uses: actions/upload-artifact@main

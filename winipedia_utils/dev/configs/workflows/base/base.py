@@ -11,7 +11,7 @@ from winipedia_utils.utils.data.structures.text.string import (
     make_name_from_obj,
     split_on_uppercase,
 )
-from winipedia_utils.utils.modules.module import make_obj_importpath, to_module_name
+from winipedia_utils.utils.modules.module import make_obj_importpath
 from winipedia_utils.utils.modules.package import get_src_package
 
 
@@ -25,11 +25,6 @@ class Workflow(YamlConfigFile):
     ARTIFACTS_FOLDER = "artifacts"
     ARTIFACTS_PATH = Path(f"{ARTIFACTS_FOLDER}")
     ARTIFACTS_PATTERN = f"{ARTIFACTS_PATH}/*"
-
-    BUILD_SCRIPT_PATH = Path(
-        f"{get_src_package().__name__}/{ARTIFACTS_FOLDER}/build.py"
-    )
-    BUILD_SCRIPT_MODULE = to_module_name(BUILD_SCRIPT_PATH)
 
     EMPTY_CONFIG: ClassVar[dict[str, Any]] = {
         "on": {
@@ -726,9 +721,13 @@ class Workflow(YamlConfigFile):
     @classmethod
     def step_build_artifacts(cls) -> dict[str, Any]:
         """Get the build artifacts step."""
+        from winipedia_utils.dev.artifacts import (  # noqa: PLC0415
+            build,  # avoid circular import
+        )
+
         return cls.get_step(
             step_func=cls.step_build_artifacts,
-            run=f"poetry run python -m {cls.BUILD_SCRIPT_MODULE}",
+            run=f"poetry run python -m {build.__name__}",
         )
 
     @classmethod
