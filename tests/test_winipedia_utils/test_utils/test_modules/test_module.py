@@ -21,6 +21,7 @@ from winipedia_utils.utils.modules.module import (
     get_module_content_as_str,
     get_module_of_obj,
     get_objs_from_obj,
+    import_module_with_default,
     import_obj_from_importpath,
     make_obj_importpath,
     to_module_name,
@@ -515,3 +516,14 @@ def test_get_executing_module() -> None:
         executing_module.__name__ == "__main__",
         f"Expected module name to be '__main__', got {executing_module.__name__}",
     )
+
+
+def test_import_module_with_default() -> None:
+    """Test func for import_module_with_default."""
+    # Test importing a valid module
+    result = import_module_with_default("sys")
+    assert_with_msg(result.__name__ == "sys", f"Expected sys module, got {result}")
+
+    # Test importing a non-existent module with a default
+    result = import_module_with_default("nonexistent", default="default")
+    assert_with_msg(result == "default", f"Expected default, got {result}")

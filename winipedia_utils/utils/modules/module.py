@@ -374,3 +374,25 @@ def get_executing_module() -> ModuleType:
         msg = "No __main__ module found"
         raise ValueError(msg)
     return main
+
+
+def import_module_with_default(
+    module_name: str, default: Any = None
+) -> ModuleType | Any:
+    """Import a module, returning a default if the module cannot be imported.
+
+    Args:
+        module_name: Name of the module to import
+        default: Default module to return if the module cannot be imported
+
+    Returns:
+        The imported module, or the default module if the module cannot be imported
+
+    Raises:
+        ValueError: If the module cannot be imported
+
+    """
+    try:
+        return import_module(module_name)
+    except ImportError:
+        return default

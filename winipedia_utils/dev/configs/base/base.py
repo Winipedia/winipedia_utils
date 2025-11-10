@@ -3,12 +3,14 @@
 import inspect
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from types import ModuleType
+from typing import Any
 
 import tomlkit
 import yaml
 from dotenv import dotenv_values
 
+import winipedia_utils
 from winipedia_utils.dev import configs
 from winipedia_utils.dev.projects.poetry.poetry import (
     get_poetry_run_module_script,
@@ -16,10 +18,8 @@ from winipedia_utils.dev.projects.poetry.poetry import (
 from winipedia_utils.utils.data.structures.text.string import split_on_uppercase
 from winipedia_utils.utils.iterating.iterate import nested_structure_is_subset
 from winipedia_utils.utils.modules.class_ import init_all_nonabstract_subclasses
+from winipedia_utils.utils.modules.module import import_module_with_default
 from winipedia_utils.utils.modules.package import DependencyGraph, get_src_package
-
-if TYPE_CHECKING:
-    from types import ModuleType
 
 
 class ConfigFile(ABC):
@@ -157,15 +157,15 @@ class ConfigFile(ABC):
                 include_winipedia_utils=True
             )
         )
-        modules_to_configs = configs.__name__.split(".")[1:]
 
         pkgs_depending_on_winipedia_utils.add(get_src_package())
         for pkg in pkgs_depending_on_winipedia_utils:
-            configs_pkg: ModuleType | None = pkg
-            for module in modules_to_configs:
-                configs_pkg = getattr(configs_pkg, module, None)
-                if configs_pkg is None:
-                    break
+            configs_pkg_name = configs.__name__.replace(
+                winipedia_utils.__name__, pkg.__name__, 1
+            )
+            configs_pkg = import_module_with_default(configs_pkg_name)
+            if not isinstance(configs_pkg, ModuleType):
+                continue
             init_all_nonabstract_subclasses(cls, load_package_before=configs_pkg)
 
     @staticmethod
