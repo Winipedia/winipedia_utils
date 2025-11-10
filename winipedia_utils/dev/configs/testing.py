@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from winipedia_utils.dev.configs.base.config import PythonConfigFile
+from winipedia_utils.dev.configs.base.base import PythonConfigFile
 from winipedia_utils.dev.testing.convention import TESTS_PACKAGE_NAME
 from winipedia_utils.utils.modules.module import make_obj_importpath
 

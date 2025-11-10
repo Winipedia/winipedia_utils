@@ -7,7 +7,7 @@ from typing import Any, cast
 import requests
 from packaging.version import Version
 
-from winipedia_utils.dev.configs.base.config import ConfigFile, TomlConfigFile
+from winipedia_utils.dev.configs.base.base import ConfigFile, TomlConfigFile
 from winipedia_utils.dev.configs.testing import ExperimentConfigFile
 from winipedia_utils.dev.projects.poetry.dev_deps import DEV_DEPENDENCIES
 from winipedia_utils.dev.projects.poetry.poetry import POETRY_ARG, VersionConstraint

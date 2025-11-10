@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from winipedia_utils.dev.configs.base.config import ConfigFile
+from winipedia_utils.dev.configs.base.base import ConfigFile
 from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 

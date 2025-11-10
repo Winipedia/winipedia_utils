@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 import winipedia_utils
-from winipedia_utils.dev.configs.base.config import YamlConfigFile
+from winipedia_utils.dev.configs.base.base import YamlConfigFile
 from winipedia_utils.utils.data.structures.text.string import make_name_from_obj
 from winipedia_utils.utils.logging.logger import get_logger
 from winipedia_utils.utils.os.os import run_subprocess

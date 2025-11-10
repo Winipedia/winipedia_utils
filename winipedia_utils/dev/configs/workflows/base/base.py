@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any, ClassVar
 
 from winipedia_utils.dev.artifacts import build
-from winipedia_utils.dev.artifacts.builder import Builder
-from winipedia_utils.dev.configs.base.config import YamlConfigFile
+from winipedia_utils.dev.artifacts.builder.base.base import Builder
+from winipedia_utils.dev.configs.base.base import YamlConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.utils.data.structures.text.string import (
     make_name_from_obj,

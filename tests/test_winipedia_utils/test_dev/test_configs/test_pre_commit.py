@@ -7,7 +7,7 @@ import pytest
 from pytest_mock import MockFixture
 
 from winipedia_utils.dev.configs import pre_commit
-from winipedia_utils.dev.configs.base.config import YamlConfigFile
+from winipedia_utils.dev.configs.base.base import YamlConfigFile
 from winipedia_utils.dev.configs.pre_commit import PreCommitConfigConfigFile
 from winipedia_utils.utils.modules.module import make_obj_importpath
 from winipedia_utils.utils.testing.assertions import assert_with_msg

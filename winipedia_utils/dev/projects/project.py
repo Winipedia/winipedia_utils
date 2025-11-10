@@ -1,6 +1,6 @@
 """Utilities for working with Python projects."""
 
-from winipedia_utils.dev.configs.base.config import ConfigFile
+from winipedia_utils.dev.configs.base.base import ConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.dev.testing.convention import TESTS_PACKAGE_NAME
 from winipedia_utils.utils.modules.module import create_module

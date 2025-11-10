@@ -10,7 +10,7 @@ from importlib import import_module
 from pathlib import Path
 
 import winipedia_utils
-from winipedia_utils.dev.configs.base.config import ConfigFile
+from winipedia_utils.dev.configs.base.base import ConfigFile
 from winipedia_utils.dev.configs.pyproject import (
     PyprojectConfigFile,
 )

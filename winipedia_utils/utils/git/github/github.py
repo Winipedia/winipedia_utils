@@ -2,7 +2,7 @@
 
 import os
 
-from winipedia_utils.dev.configs.base.config import DotEnvConfigFile
+from winipedia_utils.dev.configs.base.base import DotEnvConfigFile
 
 
 def get_github_repo_token() -> str:

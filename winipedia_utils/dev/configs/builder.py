@@ -3,8 +3,8 @@
 from pathlib import Path
 
 import winipedia_utils
-from winipedia_utils.dev.artifacts import builds
-from winipedia_utils.dev.configs.base.config import PythonConfigFile
+from winipedia_utils.dev.artifacts import builder
+from winipedia_utils.dev.configs.base.base import PythonConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.utils.modules.module import to_path
 
@@ -16,7 +16,7 @@ class BuilderConfigFile(PythonConfigFile):
     def get_parent_path(cls) -> Path:
         """Get the path to the config file."""
         src_package = PyprojectConfigFile.get_package_name()
-        builds_package = builds.__name__.replace(
+        builds_package = builder.__name__.replace(
             winipedia_utils.__name__, src_package, 1
         )
         return to_path(builds_package, is_package=True)

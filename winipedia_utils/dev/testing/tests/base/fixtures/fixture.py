@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from winipedia_utils.dev.configs.base.config import ConfigFile
+from winipedia_utils.dev.configs.base.base import ConfigFile
 
 
 @pytest.fixture

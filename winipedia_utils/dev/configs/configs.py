@@ -7,7 +7,7 @@ from pathlib import Path
 
 import winipedia_utils
 from winipedia_utils.dev import configs
-from winipedia_utils.dev.configs.base.config import PythonConfigFile
+from winipedia_utils.dev.configs.base.base import PythonConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.utils.modules.module import to_path
 

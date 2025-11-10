@@ -5,7 +5,7 @@ This workflow is used to create a release on GitHub.
 
 from typing import Any
 
-from winipedia_utils.dev.artifacts.builder import Builder
+from winipedia_utils.dev.artifacts.builder.base.base import Builder
 from winipedia_utils.dev.configs.workflows.health_check import HealthCheckWorkflow
 
 

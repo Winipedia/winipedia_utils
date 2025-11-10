@@ -5,7 +5,7 @@ from typing import Any
 
 import requests
 
-from winipedia_utils.dev.configs.base.config import ConfigFile, DotEnvConfigFile
+from winipedia_utils.dev.configs.base.base import ConfigFile, DotEnvConfigFile
 from winipedia_utils.dev.configs.testing import ExperimentConfigFile
 
 
