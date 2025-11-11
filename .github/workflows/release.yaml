@@ -64,7 +64,7 @@ jobs:
       run: poetry run pre-commit run --all-files --verbose
     - name: Run Tests
       id: run_tests
-      run: poetry run pytest
+      run: poetry run pytest --log-cli-level=INFO
       env:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
   health_check:

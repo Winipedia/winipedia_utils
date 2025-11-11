@@ -455,7 +455,7 @@ class Workflow(YamlConfigFile):
             step.setdefault("env", {})["REPO_TOKEN"] = cls.insert_repo_token()
         return cls.get_step(
             step_func=cls.step_run_tests,
-            run="poetry run pytest",
+            run="poetry run pytest --log-cli-level=INFO",
             step=step,
         )
 
