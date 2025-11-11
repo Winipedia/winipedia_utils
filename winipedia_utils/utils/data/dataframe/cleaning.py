@@ -12,6 +12,7 @@ from typing import Any
 import polars as pl
 from polars.datatypes.classes import FloatType
 
+from winipedia_utils.utils.data.structures.dicts import reverse_dict
 from winipedia_utils.utils.oop.mixins.mixin import ABCLoggingMixin
 
 
@@ -273,7 +274,11 @@ class CleaningDF(ABCLoggingMixin):
             }
         """
 
-    def __init__(self, data: dict[str, list[Any]], **kwargs: Any) -> None:
+    def __init__(
+        self,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         """Initialize the CleaningDF and execute the cleaning pipeline.
 
         Creates a Polars DataFrame with NaN values automatically converted to null,
@@ -282,14 +287,19 @@ class CleaningDF(ABCLoggingMixin):
         schema is set to the dtype map to always have the correct dtypes
 
         Args:
-            data: Dictionary mapping column names to lists of values
+            *args: Positional arguments passed to pl.DataFrame constructor
             **kwargs: Additional keyword arguments passed to pl.DataFrame constructor
         """
-        self.rename_cols(data)
-        self.drop_cols(data)
+        # create a temp df for standardization and accepting all ploars arg and kwargs
+        temp_df = pl.DataFrame(*args, **kwargs)
+        temp_df = self.rename_cols(temp_df)
+        temp_df = self.drop_cols(temp_df)
+
+        # enforce standard kwargs and create the final df
+        kwargs["data"] = temp_df.to_dict(as_series=True)
         kwargs["nan_to_null"] = True
         kwargs["schema"] = self.get_col_dtype_map()
-        self.df = pl.DataFrame(data=data, **kwargs)
+        self.df = pl.DataFrame(**kwargs)
         self.clean()
 
     @classmethod
@@ -329,7 +339,6 @@ class CleaningDF(ABCLoggingMixin):
     def raise_on_missing_cols(
         cls,
         map_func: Callable[..., dict[str, Any]],
-        col_names: tuple[str, ...] | None = None,
     ) -> None:
         """Validate that all required columns are present in a configuration map.
 
@@ -338,19 +347,17 @@ class CleaningDF(ABCLoggingMixin):
 
         Args:
             map_func: A callable that returns a dict with column names as keys
-            col_names: Tuple of column names to check. If None, uses get_col_names()
 
         Raises:
             KeyError: If any required columns are missing from the map
         """
-        if col_names is None:
-            col_names = cls.get_col_names()
+        col_names = cls.get_col_names()
         missing_cols = set(col_names) - set(map_func().keys())
         if missing_cols:
             msg = f"Missing columns in {map_func.__name__}: {missing_cols}"
             raise KeyError(msg)
 
-    def rename_cols(self, data: dict[str, list[Any]]) -> None:
+    def rename_cols(self, temp_df: pl.DataFrame) -> pl.DataFrame:
         """Rename columns from raw names to standardized names.
 
         Applies the reverse of get_rename_map() to rename columns from their raw
@@ -358,17 +365,15 @@ class CleaningDF(ABCLoggingMixin):
         present in the rename map.
         """
         self.raise_on_missing_cols(self.get_rename_map)
-        for std_name, raw_name in self.get_rename_map().items():
-            data[std_name] = data.pop(raw_name)
+        return temp_df.rename(reverse_dict(self.get_rename_map()))
 
-    def drop_cols(self, data: dict[str, list[Any]]) -> None:
+    def drop_cols(self, temp_df: pl.DataFrame) -> pl.DataFrame:
         """Drop columns not in the schema.
 
         Selects only the columns defined in get_col_names(), removing any extra
         columns that may have been in the input data.
         """
-        for col in set(data.keys()) - set(self.get_col_names()):
-            del data[col]
+        return temp_df.select(self.get_col_names())
 
     def fill_nulls(self) -> None:
         """Fill null values with defaults from the fill null map.

@@ -6,6 +6,7 @@ from typing import Any
 
 import polars as pl
 import pytest
+from polars.exceptions import ColumnNotFoundError
 from pytest_mock import MockerFixture
 
 from winipedia_utils.utils.data.dataframe.cleaning import CleaningDF
@@ -139,7 +140,7 @@ class TestCleaningDF:
 
         # assert raises when data is missing a column
         data.popitem()
-        with pytest.raises(KeyError):
+        with pytest.raises(ColumnNotFoundError):
             MyCleaningDF(data)
 
     def test_get_rename_map(self) -> None:
