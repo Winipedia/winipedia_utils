@@ -3,6 +3,7 @@
 from contextlib import chdir
 from pathlib import Path
 
+from winipedia_utils.dev import setup
 from winipedia_utils.dev.setup import SETUP_STEPS, get_setup_steps
 from winipedia_utils.utils.os.os import run_subprocess, which_with_raise
 from winipedia_utils.utils.testing.assertions import assert_with_msg
@@ -60,7 +61,7 @@ build-backend = "poetry.core.masonry.api"
                 "run",
                 "python",
                 "-m",
-                "winipedia_utils.dev.setup",
+                setup.__name__,
             ]
         )
 
