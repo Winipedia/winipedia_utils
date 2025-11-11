@@ -16,9 +16,6 @@ from winipedia_utils.utils.git.github.repo.repo import (
 )
 from winipedia_utils.utils.testing.assertions import assert_with_msg
 
-OWNER = PyprojectConfigFile.get_main_author_name()
-TOKEN = get_github_repo_token()
-
 
 def test_get_rules_payload() -> None:
     """Test func for get_rules_payload."""
@@ -70,7 +67,11 @@ def test_get_rules_payload() -> None:
 
 def test_get_repo() -> None:
     """Test func for get_repo."""
-    repo = get_repo(TOKEN, OWNER, winipedia_utils.__name__)
+    repo = get_repo(
+        get_github_repo_token(),
+        PyprojectConfigFile.get_main_author_name(),
+        winipedia_utils.__name__,
+    )
     assert_with_msg(
         isinstance(repo, Repository),
         "Expected Repository object",
@@ -83,7 +84,11 @@ def test_get_repo() -> None:
 
 def test_get_all_rulesets() -> None:
     """Test func for get_all_rulesets."""
-    rulesets = get_all_rulesets(TOKEN, OWNER, winipedia_utils.__name__)
+    rulesets = get_all_rulesets(
+        get_github_repo_token(),
+        PyprojectConfigFile.get_main_author_name(),
+        winipedia_utils.__name__,
+    )
     assert_with_msg(
         isinstance(rulesets, list),
         "Expected rulesets to be a list",
@@ -93,7 +98,10 @@ def test_get_all_rulesets() -> None:
 def test_ruleset_exists() -> None:
     """Test func for ruleset_exists."""
     ruleset_id = ruleset_exists(
-        TOKEN, OWNER, winipedia_utils.__name__, DEFAULT_RULESET_NAME
+        get_github_repo_token(),
+        PyprojectConfigFile.get_main_author_name(),
+        winipedia_utils.__name__,
+        DEFAULT_RULESET_NAME,
     )
     assert_with_msg(
         ruleset_id > 0,
