@@ -5,6 +5,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, ClassVar
 
+import winipedia_utils
 from winipedia_utils.dev.artifacts import build
 from winipedia_utils.dev.artifacts.builder.base.base import Builder
 from winipedia_utils.dev.configs.base.base import YamlConfigFile
@@ -448,6 +449,10 @@ class Workflow(YamlConfigFile):
         step: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Get the run tests step."""
+        if step is None:
+            step = {}
+        if get_src_package().__name__ == winipedia_utils.__name__:
+            step.setdefault("env", {})["REPO_TOKEN"] = cls.insert_repo_token()
         return cls.get_step(
             step_func=cls.step_run_tests,
             run="poetry run pytest",
@@ -633,7 +638,6 @@ class Workflow(YamlConfigFile):
         return cls.get_step(
             step_func=cls.step_run_pre_commit_hooks,
             run="poetry run pre-commit run --all-files --verbose",
-            env={"REPO_TOKEN": cls.insert_repo_token()},
             step=step,
         )
 
