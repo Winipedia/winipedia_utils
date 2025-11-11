@@ -13,6 +13,23 @@ from winipedia_utils.dev.projects.poetry.poetry import (
 )
 
 
+def update_package_manager() -> list[str]:
+    """Update the package manager.
+
+    This function returns the input for subprocess.run() to update the package
+    manager.
+    """
+    return [POETRY_ARG, "self", "update"]
+
+
+def update_dependencies() -> list[str]:
+    """Update the dependencies.
+
+    This function returns the input for subprocess.run() to update the dependencies.
+    """
+    return [POETRY_ARG, "update", "--with", "dev"]
+
+
 def add_updates_to_git() -> list[str]:
     """Add the updated dependencies to git.
 
@@ -29,6 +46,18 @@ def check_package_manager_configs() -> list[str]:
     is up to date.
     """
     return [POETRY_ARG, "check", "--strict"]
+
+
+def create_project_root() -> list[str]:
+    """Create the project root.
+
+    This function returns the input for subprocess.run() to create the project root.
+    """
+    from winipedia_utils.dev.projects import (  # noqa: PLC0415  # avoid circular import
+        create_root,
+    )
+
+    return get_poetry_run_module_args(create_root)
 
 
 def create_missing_tests() -> list[str]:
@@ -75,11 +104,3 @@ def check_security() -> list[str]:
     the code.
     """
     return ["bandit", "-c", "pyproject.toml", "-r", "."]
-
-
-def run_tests() -> list[str]:
-    """Run the tests.
-
-    This function returns the input for subprocess.run() to run all tests.
-    """
-    return ["pytest"]

@@ -16,3 +16,7 @@ def create_project_root() -> None:
     ConfigFile.init_config_files()
     create_init_files_for_package_and_subpackages(src_package)
     create_init_files_for_package_and_subpackages(TESTS_PACKAGE_NAME)
+
+
+if __name__ == "__main__":
+    create_project_root()

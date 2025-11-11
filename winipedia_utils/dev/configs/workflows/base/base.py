@@ -442,6 +442,19 @@ class Workflow(YamlConfigFile):
         )
 
     @classmethod
+    def step_run_tests(
+        cls,
+        *,
+        step: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Get the run tests step."""
+        return cls.get_step(
+            step_func=cls.step_run_tests,
+            run="poetry run pytest",
+            step=step,
+        )
+
+    @classmethod
     def step_patch_version(
         cls,
         *,

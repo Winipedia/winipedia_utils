@@ -322,6 +322,11 @@ class TestWorkflow:
         result = my_test_workflow.step_protect_repository()
         assert_with_msg("env" in result, "Expected 'env' in step")
 
+    def test_step_run_tests(self, my_test_workflow: type[Workflow]) -> None:
+        """Test method for step_run_tests."""
+        result = my_test_workflow.step_run_tests()
+        assert_with_msg("run" in result, "Expected 'run' in step")
+
     def test_step_run_pre_commit_hooks(self, my_test_workflow: type[Workflow]) -> None:
         """Test method for step_run_pre_commit_hooks."""
         result = my_test_workflow.step_run_pre_commit_hooks()

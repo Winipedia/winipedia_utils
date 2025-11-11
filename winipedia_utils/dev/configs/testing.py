@@ -1,10 +1,12 @@
 """Config utilities for testing."""
 
 from pathlib import Path
+from subprocess import CompletedProcess  # nosec: B404
 
 from winipedia_utils.dev.configs.base.base import PythonConfigFile
 from winipedia_utils.dev.testing.convention import TESTS_PACKAGE_NAME
 from winipedia_utils.utils.modules.module import make_obj_importpath
+from winipedia_utils.utils.os.os import run_subprocess
 
 
 class PythonTestsConfigFile(PythonConfigFile):
@@ -35,6 +37,11 @@ This file should not be modified manually.
 
 pytest_plugins = ["{make_obj_importpath(conftest)}"]
 '''
+
+    @classmethod
+    def run_tests(cls) -> CompletedProcess[str]:
+        """Run the tests."""
+        return run_subprocess(["pytest"])
 
 
 class ZeroTestConfigFile(PythonTestsConfigFile):

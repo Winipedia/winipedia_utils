@@ -169,11 +169,13 @@ class ConfigFile(ABC):
             init_all_nonabstract_subclasses(cls, load_package_before=configs_pkg)
 
     @staticmethod
-    def get_poetry_run_setup_script() -> str:
+    def get_poetry_run_hooks_script() -> str:
         """Get the poetry run setup script."""
-        from winipedia_utils.dev import setup  # noqa: PLC0415  # avoid circular import
+        from winipedia_utils.dev.git.pre_commit import (  # noqa: PLC0415
+            run_hooks,  # avoid circular import
+        )
 
-        return get_poetry_run_module_script(setup)
+        return get_poetry_run_module_script(run_hooks)
 
 
 class YamlConfigFile(ConfigFile):

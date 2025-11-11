@@ -22,7 +22,10 @@ def run_hooks() -> None:
     for hook_func in hook_funcs:
         subprocess_args = hook_func()
         result = run_subprocess(
-            subprocess_args, check=False, capture_output=True, text=True
+            subprocess_args,
+            check=False,
+            capture_output=True,
+            text=True,
         )
         passed = result.returncode == 0
 
@@ -54,3 +57,7 @@ Stderr:
         )
         if not passed:
             sys.exit(1)
+
+
+if __name__ == "__main__":
+    run_hooks()

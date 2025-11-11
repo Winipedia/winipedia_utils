@@ -10,10 +10,12 @@ from packaging.version import Version
 from winipedia_utils.dev.configs.base.base import ConfigFile, TomlConfigFile
 from winipedia_utils.dev.configs.testing import ExperimentConfigFile
 from winipedia_utils.dev.projects.poetry.dev_deps import DEV_DEPENDENCIES
-from winipedia_utils.dev.projects.poetry.poetry import POETRY_ARG, VersionConstraint
+from winipedia_utils.dev.projects.poetry.poetry import VersionConstraint
 from winipedia_utils.dev.testing.convention import TESTS_PACKAGE_NAME
 from winipedia_utils.utils.data.structures.text.string import make_name_from_obj
-from winipedia_utils.utils.os.os import run_subprocess
+from winipedia_utils.utils.logging.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class PyprojectConfigFile(TomlConfigFile):
@@ -234,18 +236,6 @@ class PyprojectConfigFile(TomlConfigFile):
         return version_constraint.get_version_range(
             level="minor", upper_default=cls.fetch_latest_python_version()
         )
-
-    @classmethod
-    def update_poetry(cls) -> None:
-        """Update poetry."""
-        args = [POETRY_ARG, "self", "update"]
-        run_subprocess(args)
-
-    @classmethod
-    def update_with_dev(cls) -> None:
-        """Install all dependencies with dev."""
-        args = [POETRY_ARG, "update", "--with", "dev"]
-        run_subprocess(args)
 
 
 class TypedConfigFile(ConfigFile):

@@ -59,6 +59,7 @@ class HealthCheckWorkflow(Workflow):
             ),
             cls.step_protect_repository(),
             cls.step_run_pre_commit_hooks(),
+            cls.step_run_tests(),
         ]
 
     @classmethod

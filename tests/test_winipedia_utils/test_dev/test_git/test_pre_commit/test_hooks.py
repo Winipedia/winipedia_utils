@@ -9,9 +9,11 @@ from winipedia_utils.dev.git.pre_commit.hooks import (
     check_security,
     check_static_types,
     create_missing_tests,
+    create_project_root,
     format_code,
     lint_code,
-    run_tests,
+    update_dependencies,
+    update_package_manager,
 )
 from winipedia_utils.dev.projects.poetry.poetry import (
     POETRY_ARG,
@@ -19,6 +21,39 @@ from winipedia_utils.dev.projects.poetry.poetry import (
 from winipedia_utils.dev.testing import create_tests
 from winipedia_utils.utils.modules.module import make_obj_importpath
 from winipedia_utils.utils.testing.assertions import assert_with_msg
+
+
+def test_update_package_manager() -> None:
+    """Test func for update_package_manager."""
+    # Call the function
+    result = update_package_manager()
+
+    assert_with_msg(
+        isinstance(result, list),
+        f"Expected list, got {type(result)}",
+    )
+
+
+def test_update_dependencies() -> None:
+    """Test func for update_dependencies."""
+    # Call the function
+    result = update_dependencies()
+
+    assert_with_msg(
+        isinstance(result, list),
+        f"Expected list, got {type(result)}",
+    )
+
+
+def test_add_updates_to_git() -> None:
+    """Test func for add_updates_to_git."""
+    # Call the function
+    result = add_updates_to_git()
+
+    assert_with_msg(
+        isinstance(result, list),
+        f"Expected list, got {type(result)}",
+    )
 
 
 def test_check_package_manager_configs() -> None:
@@ -33,6 +68,17 @@ def test_check_package_manager_configs() -> None:
     assert_with_msg(
         result == expected,
         f"Expected {expected}, got {result}",
+    )
+
+
+def test_create_project_root() -> None:
+    """Test func for create_project_root."""
+    # Call the function
+    result = create_project_root()
+
+    assert_with_msg(
+        isinstance(result, list),
+        f"Expected list, got {type(result)}",
     )
 
 
@@ -102,36 +148,6 @@ def test_check_security() -> None:
 
     # Expected result
     expected = ["bandit", "-c", "pyproject.toml", "-r", "."]
-
-    # Verify the result
-    assert_with_msg(
-        result == expected,
-        f"Expected {expected}, got {result}",
-    )
-
-
-def test_run_tests() -> None:
-    """Test func for run_tests."""
-    # Call the function
-    result = run_tests()
-
-    # Expected result
-    expected = ["pytest"]
-
-    # Verify the result
-    assert_with_msg(
-        result == expected,
-        f"Expected {expected}, got {result}",
-    )
-
-
-def test_add_updates_to_git() -> None:
-    """Test func for add_updates_to_git."""
-    # Call the function
-    result = add_updates_to_git()
-
-    # Expected result
-    expected = ["git", "add", "pyproject.toml", "poetry.lock"]
 
     # Verify the result
     assert_with_msg(

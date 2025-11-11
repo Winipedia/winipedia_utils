@@ -4,7 +4,9 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
+from pytest_mock import MockFixture
 
+from winipedia_utils.dev.configs import testing
 from winipedia_utils.dev.configs.testing import (
     ConftestConfigFile,
     ExperimentConfigFile,
@@ -12,6 +14,7 @@ from winipedia_utils.dev.configs.testing import (
     ZeroTestConfigFile,
 )
 from winipedia_utils.dev.testing.convention import TESTS_PACKAGE_NAME
+from winipedia_utils.utils.modules.module import make_obj_importpath
 from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 
@@ -70,6 +73,19 @@ class TestConftestConfigFile:
             "pytest_plugins" in content_str,
             "Expected 'pytest_plugins' in conftest content",
         )
+
+    def test_run_tests(
+        self,
+        my_test_conftest_config_file: type[ConftestConfigFile],
+        mocker: MockFixture,
+    ) -> None:
+        """Test method for run_tests."""
+        mock_run = mocker.patch(
+            make_obj_importpath(testing) + ".run_subprocess",
+            return_value=0,
+        )
+        my_test_conftest_config_file.run_tests()
+        mock_run.assert_called_once_with(["pytest"])
 
 
 @pytest.fixture

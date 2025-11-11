@@ -4,14 +4,15 @@ name = "winipedia-utils"
 version = "0.7.10"
 description = "A package with many utility functions"
 readme = "README.md"
+license-files = ["LICENSE"]
+license = "MIT"
+
 requires-python = ">=3.12"
 authors = [
     { name = "Winipedia", email = "win.steveker@gmx.de"}
 ]
-license = "MIT"
 dynamic = ["dependencies"]
 
-# Build system section[build-system]
 [build-system]
 requires = [ "poetry-core>=2.0.0,<3.0.0",]
 build-backend = "poetry.core.masonry.api"

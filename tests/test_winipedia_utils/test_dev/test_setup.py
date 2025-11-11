@@ -1,14 +1,10 @@
 """Tests for winipedia_utils.setup module."""
 
-import sys
 from contextlib import chdir
 from pathlib import Path
-from typing import Any
 
-from pytest_mock import MockFixture
-
-from winipedia_utils.dev.setup import SETUP_STEPS, get_setup_steps, setup
-from winipedia_utils.utils.modules.module import make_obj_importpath
+from winipedia_utils.dev.setup import SETUP_STEPS, get_setup_steps
+from winipedia_utils.utils.os.os import run_subprocess, which_with_raise
 from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 
@@ -21,32 +17,8 @@ def test_get_setup_steps() -> None:
     )
 
 
-def test_setup(mocker: MockFixture, tmp_path: Path) -> None:
+def test_setup(tmp_path: Path) -> None:
     """Test func for _setup."""
-    # patch _get_setup_steps to return a list of mock functions
-    # which we assert are called once
-    mock_setup_steps: list[Any] = []
-    for i, step in enumerate(SETUP_STEPS):
-        mock_step = mocker.MagicMock()
-        mock_step.__name__ = f"mock_step_{step.__name__}_{i}"
-        mock_setup_steps.append(mock_step)
-
-    mocker.patch(
-        make_obj_importpath(get_setup_steps),
-        return_value=mock_setup_steps,
-    )
-
-    # assert all mock setup steps are called once
-    setup()
-    for mock_setup_step in mock_setup_steps:
-        assert_with_msg(
-            mock_setup_step.call_count == 1,
-            f"Expected {mock_setup_step} to be called exactly once",
-        )
-
-    # remove all mocks
-    mocker.stopall()
-
     # now test that in an empty folder with a pyproject.toml file
     # with a folder src that the setup works
     src_project_dir = tmp_path / "src_project"
@@ -61,7 +33,6 @@ description = "A test project"
 authors = [
     {name = "Winipedia",email = "win.steveker@gmx.de"}
 ]
-license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -74,20 +45,24 @@ build-backend = "poetry.core.masonry.api"
 """
     )
 
-    # mock subprocess.run to avoid actually calling it
-    mock_run = mocker.patch("subprocess.run")
-    mock_run.return_value.returncode = 0
+    # Initialize git repo in the test project directory
+    with chdir(src_project_dir):
+        run_subprocess(["git", "init"])
+        run_subprocess(["git", "config", "user.email", "test@example.com"])
+        run_subprocess(["git", "config", "user.name", "Test User"])
 
-    # Add src_project_dir to sys.path so the package can be imported
-    # and clean up sys.modules after to avoid polluting other tests
-    original_sys_path = sys.path.copy()
-    try:
-        sys.path.insert(0, str(src_project_dir))
-        with chdir(src_project_dir):
-            setup()
-    finally:
-        # Restore original state to avoid affecting other tests
-        sys.path = original_sys_path
+    # Run setup from current poetry env in test project directory
+    poetry_path = which_with_raise("poetry")
+    with chdir(src_project_dir):
+        run_subprocess(
+            [
+                str(poetry_path),
+                "run",
+                "python",
+                "-m",
+                "winipedia_utils.dev.setup",
+            ]
+        )
 
     pkg_dir = src_project_dir / "src_project"
     assert_with_msg(
