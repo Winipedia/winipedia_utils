@@ -9,9 +9,10 @@ This script is intended to be called once at the beginning of a project.
 from collections.abc import Callable
 from typing import Any
 
+from winipedia_utils.dev.configs.conftest import ConftestConfigFile
 from winipedia_utils.dev.configs.gitignore import GitIgnoreConfigFile
+from winipedia_utils.dev.configs.py_typed import PyTypedConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
-from winipedia_utils.dev.configs.testing import ConftestConfigFile
 from winipedia_utils.dev.git.pre_commit.run_hooks import run_hooks
 from winipedia_utils.utils.logging.logger import get_logger
 
@@ -21,6 +22,7 @@ logger = get_logger(__name__)
 SETUP_STEPS: list[Callable[..., Any]] = [
     GitIgnoreConfigFile,  # must be before create_project_root
     PyprojectConfigFile,  # must be before create_project_root
+    PyTypedConfigFile,  # must be before create_project_root
     run_hooks,
     ConftestConfigFile.run_tests,
 ]

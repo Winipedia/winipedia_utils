@@ -48,9 +48,6 @@ def test_setup(tmp_path: Path) -> None:
     local_winipedia_utils_path = to_path(
         winipedia_utils.__name__, is_package=True
     ).parent.absolute()
-    local_winipedia_utils_path_relative = Path(
-        os.path.relpath(local_winipedia_utils_path, start=src_project_dir)
-    )
     with chdir(src_project_dir):
         # Create a clean environment dict without VIRTUAL_ENV to force poetry
         # to create a new virtual environment instead of reusing the current one
@@ -73,7 +70,8 @@ def test_setup(tmp_path: Path) -> None:
             [
                 "poetry",
                 "add",
-                local_winipedia_utils_path_relative.as_posix(),
+                local_winipedia_utils_path.as_posix(),
+                "--editable",
             ],
             env=clean_env,
         )

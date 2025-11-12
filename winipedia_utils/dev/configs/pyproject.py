@@ -7,8 +7,8 @@ from typing import Any, cast
 import requests
 from packaging.version import Version
 
-from winipedia_utils.dev.configs.base.base import ConfigFile, TomlConfigFile
-from winipedia_utils.dev.configs.testing import ExperimentConfigFile
+from winipedia_utils.dev.configs.base.base import TomlConfigFile
+from winipedia_utils.dev.configs.experiment import ExperimentConfigFile
 from winipedia_utils.dev.projects.poetry.dev_deps import DEV_DEPENDENCIES
 from winipedia_utils.dev.projects.poetry.poetry import VersionConstraint
 from winipedia_utils.dev.testing.convention import TESTS_PACKAGE_NAME
@@ -262,81 +262,3 @@ class PyprojectConfigFile(TomlConfigFile):
         return version_constraint.get_version_range(
             level="minor", upper_default=cls.fetch_latest_python_version()
         )
-
-
-class TypedConfigFile(ConfigFile):
-    """Config file for py.typed."""
-
-    @classmethod
-    def get_file_extension(cls) -> str:
-        """Get the file extension of the config file."""
-        return "typed"
-
-    @classmethod
-    def load(cls) -> dict[str, Any] | list[Any]:
-        """Load the config file."""
-        return {}
-
-    @classmethod
-    def dump(cls, config: dict[str, Any] | list[Any]) -> None:
-        """Dump the config file."""
-        if config:
-            msg = "Cannot dump to py.typed file."
-            raise ValueError(msg)
-
-    @classmethod
-    def get_configs(cls) -> dict[str, Any] | list[Any]:
-        """Get the config."""
-        return {}
-
-
-class PyTypedConfigFile(ConfigFile):
-    """Config file for py.typed."""
-
-    @classmethod
-    def get_parent_path(cls) -> Path:
-        """Get the path to the config file."""
-        return Path(PyprojectConfigFile.get_package_name())
-
-
-class DotPythonVersionConfigFile(ConfigFile):
-    """Config file for .python-version."""
-
-    VERSION_KEY = "version"
-
-    @classmethod
-    def get_filename(cls) -> str:
-        """Get the filename of the config file."""
-        return ""  # so it builds the path .python-version
-
-    @classmethod
-    def get_file_extension(cls) -> str:
-        """Get the file extension of the config file."""
-        return "python-version"
-
-    @classmethod
-    def get_parent_path(cls) -> Path:
-        """Get the path to the config file."""
-        return Path()
-
-    @classmethod
-    def get_configs(cls) -> dict[str, Any]:
-        """Get the config."""
-        return {
-            cls.VERSION_KEY: str(
-                PyprojectConfigFile.get_first_supported_python_version()
-            )
-        }
-
-    @classmethod
-    def load(cls) -> dict[str, Any]:
-        """Load the config file."""
-        return {cls.VERSION_KEY: cls.get_path().read_text(encoding="utf-8")}
-
-    @classmethod
-    def dump(cls, config: dict[str, Any] | list[Any]) -> None:
-        """Dump the config file."""
-        if not isinstance(config, dict):
-            msg = f"Cannot dump {config} to .python-version file."
-            raise TypeError(msg)
-        cls.get_path().write_text(config[cls.VERSION_KEY], encoding="utf-8")

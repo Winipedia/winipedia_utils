@@ -4,7 +4,6 @@ tests.test_winipedia_utils.test_modules.test_package
 """
 
 import importlib.metadata
-from contextlib import chdir
 from pathlib import Path
 from types import ModuleType
 from typing import Any
@@ -27,7 +26,6 @@ from winipedia_utils.utils.modules.module import (
 from winipedia_utils.utils.modules.package import (
     DependencyGraph,
     copy_package,
-    create_init_files_for_package_and_subpackages,
     find_packages,
     find_packages_as_modules,
     get_main_package,
@@ -866,33 +864,3 @@ class TestDependencyGraph:
             winipedia_utils in result,
             f"Expected winipedia_utils in result when include=True, got {result}",
         )
-
-
-def test_create_init_files_for_package_and_subpackages(tmp_path: Path) -> None:
-    """Test method for create_init_files_for_package_and_subpackages."""
-    # Create a temporary package structure
-    (pkg_path := tmp_path / "test_package").mkdir()
-    (subpkg_path := pkg_path / "sub_package").mkdir()
-    (subsubpkg_path := subpkg_path / "sub_sub_package").mkdir()
-
-    # Create a module in the sub-sub-package
-    (subsubpkg_path / "module.py").touch()
-    # make a gitignore
-    (tmp_path / ".gitignore").write_text("*.pyc\n__pycache__/\n")
-    with chdir(tmp_path):
-        # Call the function
-        create_init_files_for_package_and_subpackages(pkg_path)
-
-    # Verify __init__.py files were created
-    assert_with_msg(
-        (pkg_path / "__init__.py").exists(),
-        f"Expected __init__.py in {pkg_path}",
-    )
-    assert_with_msg(
-        (subpkg_path / "__init__.py").exists(),
-        f"Expected __init__.py in {subpkg_path}",
-    )
-    assert_with_msg(
-        (subsubpkg_path / "__init__.py").exists(),
-        f"Expected __init__.py in {subsubpkg_path}",
-    )

@@ -14,7 +14,7 @@ from winipedia_utils.dev.testing.create_tests import (
     create_test_package,
     create_tests,
     create_tests_base,
-    create_tests_for_src_package,
+    create_tests_for_package,
     get_test_classes_content,
     get_test_functions_content,
     get_test_module_content,
@@ -31,7 +31,7 @@ def test_create_tests(mocker: MockFixture) -> None:
         make_obj_importpath(create_tests_module) + ".create_tests_base"
     )
     mock_create_tests_for_src_package = mocker.patch(
-        make_obj_importpath(create_tests_module) + ".create_tests_for_src_package"
+        make_obj_importpath(create_tests_module) + ".create_tests_for_package"
     )
 
     # Call the function
@@ -77,35 +77,13 @@ def test_create_tests_base(tmp_path: Path, mocker: MockFixture) -> None:
             "Expected copy_package to be called",
         )
 
-        # Verify conftest.py was created
-        conftest_file = tests_dir / "conftest.py"
-        assert_with_msg(
-            conftest_file.exists(),
-            f"Expected conftest.py to be created at {conftest_file}",
-        )
-
-        # Verify conftest.py has correct content
-        conftest_content = conftest_file.read_text()
-        assert_with_msg(
-            "pytest_plugins" in conftest_content,
-            "Expected conftest.py to contain pytest_plugins",
-        )
-
-        assert_with_msg(
-            "conftest" in conftest_content,
-            "Expected conftest.py to reference winipedia_utils plugin",
-        )
-
     finally:
         os.chdir(original_cwd)
 
 
-def test_create_tests_for_src_package(mocker: MockFixture) -> None:
+def test_create_tests_for_package(mocker: MockFixture) -> None:
     """Test func for create_tests_for_src_package."""
     # Mock the dependencies
-    mock_get_src_package = mocker.patch(
-        make_obj_importpath(create_tests_module) + ".get_src_package"
-    )
     mock_walk_package = mocker.patch(
         make_obj_importpath(create_tests_module) + ".walk_package"
     )
@@ -122,17 +100,10 @@ def test_create_tests_for_src_package(mocker: MockFixture) -> None:
     mock_module2 = mocker.MagicMock(spec=ModuleType)
 
     # Set up mock return values
-    mock_get_src_package.return_value = mock_package
     mock_walk_package.return_value = [(mock_package, [mock_module1, mock_module2])]
 
     # Call the function
-    create_tests_for_src_package()
-
-    # Verify get_src_package was called
-    assert_with_msg(
-        mock_get_src_package.called,
-        "Expected get_src_package to be called",
-    )
+    create_tests_for_package(package=mock_package)
 
     # Verify walk_package was called with the source package
     mock_walk_package.assert_called_once_with(mock_package)

@@ -496,19 +496,3 @@ class DependencyGraph(nx.DiGraph):  # type: ignore [type-arg]
         if include_winipedia_utils:
             deps.add(winipedia_utils)
         return deps
-
-
-def create_init_files_for_package_and_subpackages(
-    package: ModuleType | str | Path,
-) -> None:
-    """Create __init__.py files for a package and all its subpackages."""
-    from winipedia_utils.utils.modules.module import (  # noqa: PLC0415
-        to_path,  # avoid circular import
-    )
-
-    pkg_path = to_path(package, is_package=True)
-    make_init_modules_for_package(pkg_path)
-    for path in pkg_path.rglob("*"):
-        if path.is_file():
-            continue
-        make_init_module(path)

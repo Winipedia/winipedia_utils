@@ -37,8 +37,8 @@ def test_assert_src_package_correctly_named() -> None:
 
 
 @skip_fixture_test
-def test_assert_project_structure_mirrored() -> None:
-    """Test func for assert_project_structure_mirrored."""
+def test_assert_all_modules_tested() -> None:
+    """Test func for assert_all_modules_tested."""
     raise NotImplementedError
 
 

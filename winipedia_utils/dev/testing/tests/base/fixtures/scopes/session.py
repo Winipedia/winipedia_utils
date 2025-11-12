@@ -6,8 +6,8 @@ structure is correct. These fixtures are automatically applied to the test sessi
 through pytest's autouse mechanism.
 """
 
-from importlib import import_module
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import winipedia_utils
 from winipedia_utils.dev.configs.base.base import ConfigFile
@@ -17,9 +17,11 @@ from winipedia_utils.dev.configs.pyproject import (
 from winipedia_utils.dev.testing.convention import (
     TESTS_PACKAGE_NAME,
     make_test_obj_importpath_from_obj,
+    make_untested_summary_error_msg,
 )
+from winipedia_utils.dev.testing.create_tests import create_tests
 from winipedia_utils.utils.logging.logger import get_logger
-from winipedia_utils.utils.modules.module import to_path
+from winipedia_utils.utils.modules.module import import_module_with_default, to_path
 from winipedia_utils.utils.modules.package import (
     find_packages,
     get_src_package,
@@ -27,6 +29,9 @@ from winipedia_utils.utils.modules.package import (
 )
 from winipedia_utils.utils.testing.assertions import assert_with_msg
 from winipedia_utils.utils.testing.fixtures import autouse_session_fixture
+
+if TYPE_CHECKING:
+    from types import ModuleType
 
 logger = get_logger(__name__)
 
@@ -136,7 +141,7 @@ def assert_src_package_correctly_named() -> None:
 
 
 @autouse_session_fixture
-def assert_project_structure_mirrored() -> None:
+def assert_all_modules_tested() -> None:
     """Verify that the project structure is mirrored in tests.
 
     This fixture runs once per test session and checks that for every package and
@@ -150,21 +155,29 @@ def assert_project_structure_mirrored() -> None:
 
     # we will now go through all the modules in the src package and check
     # that there is a corresponding test module
+    missing_tests_to_module: dict[str, ModuleType] = {}
     for package, modules in walk_package(src_package):
         test_package_name = make_test_obj_importpath_from_obj(package)
-        test_package = import_module(test_package_name)
-        assert_with_msg(
-            bool(test_package),
-            f"Expected test package {test_package_name} to be a module",
-        )
+        test_package = import_module_with_default(test_package_name)
+        if not test_package:
+            missing_tests_to_module[test_package_name] = package
 
         for module in modules:
             test_module_name = make_test_obj_importpath_from_obj(module)
-            test_module = import_module(test_module_name)
-            assert_with_msg(
-                bool(test_module),
-                f"Expected test module {test_module_name} to be a module",
-            )
+            test_module = import_module_with_default(test_module_name)
+            if not test_module:
+                missing_tests_to_module[test_module_name] = module
+
+    if missing_tests_to_module:
+        create_tests()
+
+    msg = f"""Found missing tests. Tests skeletons were automatically created for:
+    {make_untested_summary_error_msg(missing_tests_to_module.keys())}
+"""
+    assert_with_msg(
+        not missing_tests_to_module,
+        msg,
+    )
 
 
 @autouse_session_fixture

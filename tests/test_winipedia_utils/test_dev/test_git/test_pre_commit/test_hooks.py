@@ -8,7 +8,6 @@ from winipedia_utils.dev.git.pre_commit.hooks import (
     check_package_manager_configs,
     check_security,
     check_static_types,
-    create_missing_tests,
     create_project_root,
     format_code,
     lint_code,
@@ -18,8 +17,6 @@ from winipedia_utils.dev.git.pre_commit.hooks import (
 from winipedia_utils.dev.projects.poetry.poetry import (
     POETRY_ARG,
 )
-from winipedia_utils.dev.testing import create_tests
-from winipedia_utils.utils.modules.module import make_obj_importpath
 from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 
@@ -79,20 +76,6 @@ def test_create_project_root() -> None:
     assert_with_msg(
         isinstance(result, list),
         f"Expected list, got {type(result)}",
-    )
-
-
-def test_create_missing_tests() -> None:
-    """Test func for create_tests."""
-    # Call the function
-    result = create_missing_tests()
-
-    expected = ["poetry", "run", "python", "-m", f"{make_obj_importpath(create_tests)}"]
-
-    # Verify the result
-    assert_with_msg(
-        result == expected,
-        f"Expected {expected}, got {result}",
     )
 
 

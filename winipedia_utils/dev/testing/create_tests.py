@@ -9,7 +9,6 @@ NotImplementedError to indicate tests that need to be written.
 from types import ModuleType
 from typing import cast
 
-from winipedia_utils.dev.configs.testing import ConftestConfigFile, ZeroTestConfigFile
 from winipedia_utils.dev.testing import tests
 from winipedia_utils.dev.testing.convention import (
     get_test_obj_from_obj,
@@ -43,7 +42,7 @@ def create_tests() -> None:
     test structure and then creating test files for all source packages.
     """
     create_tests_base()
-    create_tests_for_src_package()
+    create_tests_for_package(get_src_package())
 
 
 def create_tests_base() -> None:
@@ -61,20 +60,16 @@ def create_tests_base() -> None:
         dst=".",
         with_file_content=False,
     )
-    # write the config files
-    _ = ConftestConfigFile()
-    _ = ZeroTestConfigFile()
 
 
-def create_tests_for_src_package() -> None:
+def create_tests_for_package(package: ModuleType) -> None:
     """Create test files for all modules in the source package.
 
     This function walks through the source package hierarchy and creates corresponding
     test packages and modules for each package and module found in the source.
     """
-    src_package = get_src_package()
-    for package, modules in walk_package(src_package):
-        create_test_package(package)
+    for pkg, modules in walk_package(package):
+        create_test_package(pkg)
         for module in modules:
             create_test_module(module)
 

@@ -18,6 +18,7 @@ from winipedia_utils.dev.testing.convention import (
     make_test_obj_importpath_from_obj,
     make_untested_summary_error_msg,
 )
+from winipedia_utils.dev.testing.create_tests import create_tests
 from winipedia_utils.utils.logging.logger import get_logger
 from winipedia_utils.utils.modules.module import (
     get_objs_from_obj,
@@ -45,7 +46,7 @@ def assert_no_untested_objs(
 
     """
     test_objs = get_objs_from_obj(test_obj)
-    test_objs_paths = {make_obj_importpath(o) for o in test_objs}
+    test_objs_paths = {make_obj_importpath(obj) for obj in test_objs}
 
     try:
         obj = get_obj_from_test_obj(test_obj)
@@ -57,8 +58,23 @@ def assert_no_untested_objs(
             return
         raise
     objs = get_objs_from_obj(obj)
-    supposed_test_objs_paths = {make_test_obj_importpath_from_obj(o) for o in objs}
+    test_obj_path_to_obj = {make_test_obj_importpath_from_obj(obj): obj for obj in objs}
 
-    untested_objs = supposed_test_objs_paths - test_objs_paths
+    missing_test_obj_path_to_obj = {
+        test_path: obj
+        for test_path, obj in test_obj_path_to_obj.items()
+        if test_path not in test_objs_paths
+    }
 
-    assert_with_msg(not untested_objs, make_untested_summary_error_msg(untested_objs))
+    # get the modules of these obj
+    if missing_test_obj_path_to_obj:
+        create_tests()
+
+    msg = f"""Found missing tests. Tests skeletons were automatically created for:
+    {make_untested_summary_error_msg(missing_test_obj_path_to_obj.keys())}
+"""
+
+    assert_with_msg(
+        not missing_test_obj_path_to_obj,
+        msg,
+    )

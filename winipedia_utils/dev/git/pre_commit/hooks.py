@@ -60,18 +60,6 @@ def create_project_root() -> list[str]:
     return get_poetry_run_module_args(create_root)
 
 
-def create_missing_tests() -> list[str]:
-    """Create all tests for the project.
-
-    This function returns the input for subprocess.run() to create all tests.
-    """
-    from winipedia_utils.dev.testing import (  # noqa: PLC0415  # avoid circular import
-        create_tests,
-    )
-
-    return get_poetry_run_module_args(create_tests)
-
-
 def lint_code() -> list[str]:
     """Check the code.
 

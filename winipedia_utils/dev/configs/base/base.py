@@ -8,13 +8,13 @@ from typing import Any
 
 import tomlkit
 import yaml
-from dotenv import dotenv_values
 
 import winipedia_utils
 from winipedia_utils.dev import configs
 from winipedia_utils.dev.projects.poetry.poetry import (
     get_poetry_run_module_script,
 )
+from winipedia_utils.dev.testing.convention import TESTS_PACKAGE_NAME
 from winipedia_utils.utils.data.structures.text.string import split_on_uppercase
 from winipedia_utils.utils.iterating.iterate import nested_structure_is_subset
 from winipedia_utils.utils.modules.class_ import init_all_nonabstract_subclasses
@@ -223,48 +223,6 @@ class TomlConfigFile(ConfigFile):
         return "toml"
 
 
-class DotEnvConfigFile(ConfigFile):
-    """config class for .env config files."""
-
-    @classmethod
-    def load(cls) -> dict[str, str | None]:
-        """Load the config file."""
-        return dotenv_values(cls.get_path())
-
-    @classmethod
-    def dump(cls, config: dict[str, Any] | list[Any]) -> None:
-        """Dump the config file."""
-        # is not supposed to be dumped to, so just raise error
-        if config:
-            msg = f"Cannot dump {config} to .env file."
-            raise ValueError(msg)
-
-    @classmethod
-    def get_file_extension(cls) -> str:
-        """Get the file extension of the config file."""
-        return "env"
-
-    @classmethod
-    def get_filename(cls) -> str:
-        """Get the filename of the config file."""
-        return ""  # so it builds the path .env and not env.env
-
-    @classmethod
-    def get_parent_path(cls) -> Path:
-        """Get the path to the config file."""
-        return Path()
-
-    @classmethod
-    def get_configs(cls) -> dict[str, Any]:
-        """Get the config."""
-        return {}
-
-    @classmethod
-    def is_correct(cls) -> bool:
-        """Check if the config is correct."""
-        return super().is_correct() or cls.get_path().exists()
-
-
 class TextConfigFile(ConfigFile):
     """Base class for text config files.
 
@@ -323,3 +281,38 @@ class PythonConfigFile(TextConfigFile):
     def get_file_extension(cls) -> str:
         """Get the file extension of the config file."""
         return "py"
+
+
+class TypedConfigFile(ConfigFile):
+    """Config file for py.typed."""
+
+    @classmethod
+    def get_file_extension(cls) -> str:
+        """Get the file extension of the config file."""
+        return "typed"
+
+    @classmethod
+    def load(cls) -> dict[str, Any] | list[Any]:
+        """Load the config file."""
+        return {}
+
+    @classmethod
+    def dump(cls, config: dict[str, Any] | list[Any]) -> None:
+        """Dump the config file."""
+        if config:
+            msg = "Cannot dump to py.typed file."
+            raise ValueError(msg)
+
+    @classmethod
+    def get_configs(cls) -> dict[str, Any] | list[Any]:
+        """Get the config."""
+        return {}
+
+
+class PythonTestsConfigFile(PythonConfigFile):
+    """Base class for python config files in the tests directory."""
+
+    @classmethod
+    def get_parent_path(cls) -> Path:
+        """Get the path to the config file."""
+        return Path(TESTS_PACKAGE_NAME)

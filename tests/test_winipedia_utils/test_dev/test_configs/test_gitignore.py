@@ -6,7 +6,8 @@ from pathlib import Path
 import pytest
 from pytest_mock import MockFixture
 
-from winipedia_utils.dev.configs.base.base import ConfigFile, DotEnvConfigFile
+from winipedia_utils.dev.configs.base.base import ConfigFile
+from winipedia_utils.dev.configs.dot_env import DotEnvConfigFile
 from winipedia_utils.dev.configs.gitignore import GitIgnoreConfigFile
 from winipedia_utils.utils.testing.assertions import assert_with_msg
 

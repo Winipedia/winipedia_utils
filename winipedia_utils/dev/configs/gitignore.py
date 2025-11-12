@@ -5,8 +5,9 @@ from typing import Any
 
 import requests
 
-from winipedia_utils.dev.configs.base.base import ConfigFile, DotEnvConfigFile
-from winipedia_utils.dev.configs.testing import ExperimentConfigFile
+from winipedia_utils.dev.configs.base.base import ConfigFile
+from winipedia_utils.dev.configs.dot_env import DotEnvConfigFile
+from winipedia_utils.dev.configs.experiment import ExperimentConfigFile
 
 
 class GitIgnoreConfigFile(ConfigFile):
@@ -53,7 +54,7 @@ class GitIgnoreConfigFile(ConfigFile):
             "# for walk_os_skipping_gitignore_patterns func",
             ".git/",
             "# for executing experimental code",
-            ExperimentConfigFile.get_path().as_posix(),
+            "/" + ExperimentConfigFile.get_path().as_posix(),
         ]
 
         dotenv_path = DotEnvConfigFile.get_path().as_posix()
