@@ -59,7 +59,7 @@ def test_setup() -> None:
                 ["poetry", "env", "use", sys.executable], check=False, env=clean_env
             )
             run_subprocess(
-                ["poetry", "add", local_winipedia_utils_path_relative.as_posix()],
+                ["poetry", "add", str(local_winipedia_utils_path_relative)],
                 env=clean_env,
             )
             setup.setup()
