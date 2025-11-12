@@ -1,7 +1,7 @@
 # Project section
 [project]
 name = "winipedia-utils"
-version = "0.7.10"
+version = "0.7.11"
 description = "A package with many utility functions"
 readme = "README.md"
 license-files = ["LICENSE"]
