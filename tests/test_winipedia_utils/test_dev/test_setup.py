@@ -57,7 +57,14 @@ def test_setup(tmp_path: Path) -> None:
         clean_env = os.environ.copy()
         clean_env.pop("VIRTUAL_ENV", None)
 
-        run_subprocess(["poetry", "init", "-n"], check=False, env=clean_env)
+        # Get the current Python version in major.minor format
+        python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+
+        run_subprocess(
+            ["poetry", "init", "-n", f"--python=>={python_version}"],
+            check=False,
+            env=clean_env,
+        )
         # Explicitly create a new virtual environment using the current Python
         run_subprocess(
             ["poetry", "env", "use", sys.executable], check=False, env=clean_env
