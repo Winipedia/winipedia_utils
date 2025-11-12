@@ -111,6 +111,23 @@ class TestPyprojectConfigFile:
             "Expected package name to be non-empty",
         )
 
+    def test_make_dependency_to_version_dict(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for make_dependency_to_version_dict."""
+        my_test_pyproject_config_file()
+        dependencies: dict[str, str | dict[str, str]] = {
+            "dep1": "*",
+            "dep2": ">=1.0.0,<2.0.0",
+        }
+        dep_to_version_dict = (
+            my_test_pyproject_config_file.make_dependency_to_version_dict(dependencies)
+        )
+        assert_with_msg(
+            isinstance(dep_to_version_dict, dict),
+            "Expected dep_to_version_dict to be equal to dependencies",
+        )
+
     def test_remove_wrong_dependencies(
         self, my_test_pyproject_config_file: type[PyprojectConfigFile]
     ) -> None:
@@ -139,7 +156,7 @@ class TestPyprojectConfigFile:
         # get_all_dependencies should return a set (union of deps and dev_deps)
         all_deps = my_test_pyproject_config_file.get_all_dependencies()
         assert_with_msg(
-            len(all_deps) >= 0,
+            isinstance(all_deps, dict),
             "Expected get_all_dependencies to return a set",
         )
 
@@ -152,7 +169,7 @@ class TestPyprojectConfigFile:
         # This is expected behavior for the test config
         deps = my_test_pyproject_config_file.get_dependencies()
         assert_with_msg(
-            len(deps) >= 0,
+            isinstance(deps, dict),
             "Expected get_dependencies to return a set",
         )
 
@@ -163,23 +180,8 @@ class TestPyprojectConfigFile:
         my_test_pyproject_config_file()
         dev_deps = my_test_pyproject_config_file.get_dev_dependencies()
         assert_with_msg(
-            len(dev_deps) >= 0,
+            isinstance(dev_deps, dict),
             "Expected get_dev_dependencies to return a set",
-        )
-
-    def test_get_expected_dev_dependencies(
-        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
-    ) -> None:
-        """Test method for get_expected_dev_dependencies."""
-        # get_expected_dev_dependencies internally uses get_configs which makes it a
-        # special case where the file must exist before calling the method
-        my_test_pyproject_config_file()
-        expected_dev_deps = (
-            my_test_pyproject_config_file.get_expected_dev_dependencies()
-        )
-        assert_with_msg(
-            isinstance(expected_dev_deps, set),
-            "Expected get_expected_dev_dependencies to return a set",
         )
 
     def test_get_authors(

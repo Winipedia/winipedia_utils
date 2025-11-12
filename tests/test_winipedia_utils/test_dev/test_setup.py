@@ -1,11 +1,15 @@
 """Tests for winipedia_utils.setup module."""
 
+import os
+import sys
 from contextlib import chdir
 from pathlib import Path
 
+import winipedia_utils
 from winipedia_utils.dev import setup
 from winipedia_utils.dev.setup import SETUP_STEPS, get_setup_steps
-from winipedia_utils.utils.os.os import run_subprocess, which_with_raise
+from winipedia_utils.utils.modules.module import to_path
+from winipedia_utils.utils.os.os import run_subprocess
 from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 
@@ -25,27 +29,6 @@ def test_setup(tmp_path: Path) -> None:
     src_project_dir = tmp_path / "src_project"
     src_project_dir.mkdir()
 
-    pyproject_toml = src_project_dir / "pyproject.toml"
-    pyproject_toml.write_text(
-        """[project]
-name = "src-project"
-version = "0.1.0"
-description = "A test project"
-authors = [
-    {name = "Winipedia",email = "win.steveker@gmx.de"}
-]
-readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-    "winipedia-utils (>=0.6.7,<0.7.0)"
-]
-
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
-"""
-    )
-
     # Initialize git repo in the test project directory
     with chdir(src_project_dir):
         run_subprocess(["git", "init"])
@@ -53,17 +36,25 @@ build-backend = "poetry.core.masonry.api"
         run_subprocess(["git", "config", "user.name", "Test User"])
 
     # Run setup from current poetry env in test project directory
-    poetry_path = which_with_raise("poetry")
+    local_winipedia_utils_path = to_path(
+        winipedia_utils.__name__, is_package=True
+    ).parent.absolute()
     with chdir(src_project_dir):
+        # Create a clean environment dict without VIRTUAL_ENV to force poetry
+        # to create a new virtual environment instead of reusing the current one
+        clean_env = os.environ.copy()
+        clean_env.pop("VIRTUAL_ENV", None)
+
+        run_subprocess(["poetry", "init", "-n"], check=False, env=clean_env)
+        # Explicitly create a new virtual environment using the current Python
         run_subprocess(
-            [
-                str(poetry_path),
-                "run",
-                "python",
-                "-m",
-                setup.__name__,
-            ]
+            ["poetry", "env", "use", sys.executable], check=False, env=clean_env
         )
+        run_subprocess(
+            ["poetry", "add", str(local_winipedia_utils_path)],
+            env=clean_env,
+        )
+        setup.setup()
 
     pkg_dir = src_project_dir / "src_project"
     assert_with_msg(

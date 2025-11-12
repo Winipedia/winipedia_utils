@@ -28,8 +28,8 @@ def assert_dev_dependencies_config_is_correct() -> None:
     content = path.read_text()
     # replace DEV_DEPENDENCIES = {.*} with the correct value with re
     new_content = re.sub(
-        r"DEV_DEPENDENCIES: set\[str\] = \{.*\}",
-        f"DEV_DEPENDENCIES: set[str] = {expected_dev_deps}",
+        r"DEV_DEPENDENCIES: dict\[str, str | dict\[str, str\]\] = \{.*\}",
+        f"DEV_DEPENDENCIES: dict[str, str | dict[str, str]] = {expected_dev_deps}",
         content,
         flags=re.DOTALL,
     )

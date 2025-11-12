@@ -67,12 +67,14 @@ class PyprojectConfigFile(TomlConfigFile):
             "tool": {
                 "poetry": {
                     "packages": [{"include": cls.get_repository_name()}],
-                    "dependencies": dict.fromkeys(cls.get_dependencies(), "*"),
+                    "dependencies": cls.make_dependency_to_version_dict(
+                        cls.get_dependencies()
+                    ),
                     "group": {
                         "dev": {
-                            "dependencies": dict.fromkeys(
-                                cls.get_dev_dependencies() | DEV_DEPENDENCIES,
-                                "*",
+                            "dependencies": cls.make_dependency_to_version_dict(
+                                cls.get_dev_dependencies(),
+                                additional=DEV_DEPENDENCIES,
                             )
                         }
                     },
@@ -98,6 +100,37 @@ class PyprojectConfigFile(TomlConfigFile):
                 },
             },
         }
+
+    @classmethod
+    def make_dependency_to_version_dict(
+        cls,
+        dependencies: dict[str, str | dict[str, str]],
+        additional: dict[str, str | dict[str, str]] | None = None,
+    ) -> dict[str, str | dict[str, str]]:
+        """Make a dependency to version dict.
+
+        Args:
+            dependencies: Dependencies to add
+            additional: Additional dependencies to add
+
+        Returns:
+            Dependency to version dict
+        """
+        if additional is None:
+            additional = {}
+        dependencies.update(additional)
+        dep_to_version_dict: dict[str, str | dict[str, str]] = {}
+        for dep, version in dependencies.items():
+            at_file_dep = " @ file://"
+            if at_file_dep in dep:
+                dep_new, path = dep.split(at_file_dep)
+                dep_to_version_dict[dep_new] = {"path": path}
+                continue
+            if isinstance(version, dict):
+                dep_to_version_dict[dep] = version
+                continue
+            dep_to_version_dict[dep] = "*"
+        return dep_to_version_dict
 
     @classmethod
     def get_package_name(cls) -> str:
@@ -130,50 +163,43 @@ class PyprojectConfigFile(TomlConfigFile):
         return config
 
     @classmethod
-    def get_all_dependencies(cls) -> set[str]:
+    def get_all_dependencies(cls) -> dict[str, str | dict[str, str]]:
         """Get all dependencies."""
-        return cls.get_dependencies() | cls.get_dev_dependencies()
+        all_deps = cls.get_dependencies()
+        all_deps.update(cls.get_dev_dependencies())
+        return all_deps
 
     @classmethod
-    def get_dev_dependencies(cls) -> set[str]:
+    def get_dev_dependencies(cls) -> dict[str, str | dict[str, str]]:
         """Get the dev dependencies."""
-        dev_dependencies = set(
+        dev_deps: dict[str, str | dict[str, str]] = (
+            cls.load().get("tool", {}).get("poetry", {}).get("dev-dependencies", {})
+        )
+        tool_dev_deps = (
             cls.load()
             .get("tool", {})
             .get("poetry", {})
             .get("group", {})
             .get("dev", {})
             .get("dependencies", {})
-            .keys()
         )
-        if not dev_dependencies:
-            dev_dependencies = set(
-                cls.load().get("dependency-groups", {}).get("dev", [])
-            )
-            dev_dependencies = {d.split("(")[0].strip() for d in dev_dependencies}
-        return dev_dependencies
+        dev_deps.update(tool_dev_deps)
+        return dev_deps
 
     @classmethod
-    def get_dependencies(cls) -> set[str]:
+    def get_dependencies(cls) -> dict[str, str | dict[str, str]]:
         """Get the dependencies."""
-        deps = set(cls.load().get("project", {}).get("dependencies", {}))
-        deps = {d.split("(")[0].strip() for d in deps}
-        if not deps:
-            deps = set(
-                cls.load()
-                .get("tool", {})
-                .get("poetry", {})
-                .get("dependencies", {})
-                .keys()
-            )
-        return deps
+        deps_raw = set(cls.load().get("project", {}).get("dependencies", {}))
+        deps = {
+            d.split("(")[0].strip(): d.split("(")[1].split(")")[0].strip()
+            if "(" in d
+            else "*"
+            for d in deps_raw
+        }
 
-    @classmethod
-    def get_expected_dev_dependencies(cls) -> set[str]:
-        """Get the expected dev dependencies."""
-        return set(
-            cls.get_configs()["tool"]["poetry"]["group"]["dev"]["dependencies"].keys()
-        )
+        tool_deps = cls.load().get("tool", {}).get("poetry", {}).get("dependencies", {})
+        deps.update(tool_deps)
+        return deps
 
     @classmethod
     def get_authors(cls) -> list[dict[str, str]]:

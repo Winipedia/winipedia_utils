@@ -6,16 +6,16 @@ winipedia utils PyprojectConfigFile will auto dump the config here so it can acc
 when being a dependency in another project.
 """
 
-DEV_DEPENDENCIES: set[str] = {
-    "ruff",
-    "types-networkx",
-    "types-defusedxml",
-    "types-pyyaml",
-    "pytest",
-    "types-setuptools",
-    "pytest-mock",
-    "bandit",
-    "pre-commit",
-    "mypy",
-    "types-tqdm",
+DEV_DEPENDENCIES: dict[str, str | dict[str, str]] = {
+    "ruff": "*",
+    "types-networkx": "*",
+    "types-defusedxml": "*",
+    "types-pyyaml": "*",
+    "pytest": "*",
+    "types-setuptools": "*",
+    "pytest-mock": "*",
+    "bandit": "*",
+    "pre-commit": "*",
+    "mypy": "*",
+    "types-tqdm": "*",
 }
