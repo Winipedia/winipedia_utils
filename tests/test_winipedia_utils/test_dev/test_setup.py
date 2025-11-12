@@ -27,7 +27,6 @@ def test_setup() -> None:
     """Test func for _setup."""
     # on Actions windows-latest temp path is on another drive so poetry add path fails
     # so we use a tmp dir in the current dir
-    # make the dir the first parent of cwd and /tmp
     with tempfile.TemporaryDirectory(dir=Path.cwd()) as tmp_dir:
         tmp_path = Path(tmp_dir)
         # now test that in an empty folder with a pyproject.toml file
