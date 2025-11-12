@@ -30,7 +30,7 @@ class GitIgnoreConfigFile(ConfigFile):
     @classmethod
     def load(cls) -> list[str]:
         """Load the config file."""
-        return cls.get_path().read_text().splitlines()
+        return cls.get_path().read_text(encoding="utf-8").splitlines()
 
     @classmethod
     def dump(cls, config: list[str] | dict[str, Any]) -> None:
@@ -38,7 +38,7 @@ class GitIgnoreConfigFile(ConfigFile):
         if not isinstance(config, list):
             msg = f"Cannot dump {config} to .gitignore file."
             raise TypeError(msg)
-        cls.get_path().write_text("\n".join(config))
+        cls.get_path().write_text("\n".join(config), encoding="utf-8")
 
     @classmethod
     def get_configs(cls) -> list[str]:

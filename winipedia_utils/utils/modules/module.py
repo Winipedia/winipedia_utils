@@ -54,7 +54,7 @@ def get_module_content_as_str(module: ModuleType) -> str:
 
     """
     path = to_path(module, is_package=False)
-    return path.read_text()
+    return path.read_text(encoding="utf-8")
 
 
 def to_module_name(path: str | Path | ModuleType) -> str:

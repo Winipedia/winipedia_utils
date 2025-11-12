@@ -70,7 +70,7 @@ class Workflow(YamlConfigFile):
         We need a workflow that will never trigger and even if doesnt do anything.
         """
         correct = super().is_correct()
-        if cls.get_path().read_text() == "":
+        if cls.get_path().read_text(encoding="utf-8") == "":
             # dump a dispatch in there for on and an empty job for jobs
             cls.dump(cls.EMPTY_CONFIG)
 

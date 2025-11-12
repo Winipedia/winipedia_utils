@@ -331,7 +331,7 @@ class DotPythonVersionConfigFile(ConfigFile):
     @classmethod
     def load(cls) -> dict[str, Any]:
         """Load the config file."""
-        return {cls.VERSION_KEY: cls.get_path().read_text()}
+        return {cls.VERSION_KEY: cls.get_path().read_text(encoding="utf-8")}
 
     @classmethod
     def dump(cls, config: dict[str, Any] | list[Any]) -> None:
@@ -339,4 +339,4 @@ class DotPythonVersionConfigFile(ConfigFile):
         if not isinstance(config, dict):
             msg = f"Cannot dump {config} to .python-version file."
             raise TypeError(msg)
-        cls.get_path().write_text(config[cls.VERSION_KEY])
+        cls.get_path().write_text(config[cls.VERSION_KEY], encoding="utf-8")

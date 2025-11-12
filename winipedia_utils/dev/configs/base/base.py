@@ -128,7 +128,9 @@ class ConfigFile(ABC):
 
         If the file is empty, it is considered unwanted.
         """
-        return cls.get_path().exists() and cls.get_path().read_text() == ""
+        return (
+            cls.get_path().exists() and cls.get_path().read_text(encoding="utf-8") == ""
+        )
 
     @staticmethod
     def is_correct_recursively(
@@ -184,7 +186,7 @@ class YamlConfigFile(ConfigFile):
     @classmethod
     def load(cls) -> dict[str, Any] | list[Any]:
         """Load the config file."""
-        return yaml.safe_load(cls.get_path().read_text()) or {}
+        return yaml.safe_load(cls.get_path().read_text(encoding="utf-8")) or {}
 
     @classmethod
     def dump(cls, config: dict[str, Any] | list[Any]) -> None:
@@ -204,7 +206,7 @@ class TomlConfigFile(ConfigFile):
     @classmethod
     def load(cls) -> dict[str, Any]:
         """Load the config file."""
-        return tomlkit.parse(cls.get_path().read_text())
+        return tomlkit.parse(cls.get_path().read_text(encoding="utf-8"))
 
     @classmethod
     def dump(cls, config: dict[str, Any] | list[Any]) -> None:
@@ -280,7 +282,7 @@ class TextConfigFile(ConfigFile):
     @classmethod
     def load(cls) -> dict[str, str]:
         """Load the config file."""
-        return {cls.CONTENT_KEY: cls.get_path().read_text()}
+        return {cls.CONTENT_KEY: cls.get_path().read_text(encoding="utf-8")}
 
     @classmethod
     def dump(cls, config: dict[str, Any] | list[Any]) -> None:
@@ -288,7 +290,7 @@ class TextConfigFile(ConfigFile):
         if not isinstance(config, dict):
             msg = f"Cannot dump {config} to text file."
             raise TypeError(msg)
-        cls.get_path().write_text(config[cls.CONTENT_KEY])
+        cls.get_path().write_text(config[cls.CONTENT_KEY], encoding="utf-8")
 
     @classmethod
     def get_configs(cls) -> dict[str, Any]:
