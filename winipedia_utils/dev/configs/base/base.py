@@ -263,8 +263,12 @@ class DotEnvConfigFile(ConfigFile):
         return super().is_correct() or cls.get_path().exists()
 
 
-class PythonConfigFile(ConfigFile):
-    """Base class for python config files."""
+class TextConfigFile(ConfigFile):
+    """Base class for text config files.
+
+    Those files just have a starting text
+    and then can be added to. Like python files or README.md
+    """
 
     CONTENT_KEY = "content"
 
@@ -282,14 +286,9 @@ class PythonConfigFile(ConfigFile):
     def dump(cls, config: dict[str, Any] | list[Any]) -> None:
         """Dump the config file."""
         if not isinstance(config, dict):
-            msg = f"Cannot dump {config} to python file."
+            msg = f"Cannot dump {config} to text file."
             raise TypeError(msg)
         cls.get_path().write_text(config[cls.CONTENT_KEY])
-
-    @classmethod
-    def get_file_extension(cls) -> str:
-        """Get the file extension of the config file."""
-        return "py"
 
     @classmethod
     def get_configs(cls) -> dict[str, Any]:
@@ -297,17 +296,28 @@ class PythonConfigFile(ConfigFile):
         return {cls.CONTENT_KEY: cls.get_content_str()}
 
     @classmethod
-    def get_file_content(cls) -> str:
-        """Get the file content."""
-        return cls.load()[cls.CONTENT_KEY]
-
-    @classmethod
     def is_correct(cls) -> bool:
         """Check if the config is correct.
 
-        Python files are correct if they exist and contain the correct content.
+        Text files are correct if they exist and contain the correct content.
         """
         return (
             super().is_correct()
             or cls.get_content_str().strip() in cls.load()[cls.CONTENT_KEY]
         )
+
+    @classmethod
+    def get_file_content(cls) -> str:
+        """Get the file content."""
+        return cls.load()[cls.CONTENT_KEY]
+
+
+class PythonConfigFile(TextConfigFile):
+    """Base class for python config files."""
+
+    CONTENT_KEY = "content"
+
+    @classmethod
+    def get_file_extension(cls) -> str:
+        """Get the file extension of the config file."""
+        return "py"
