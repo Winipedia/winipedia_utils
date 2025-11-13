@@ -8,14 +8,16 @@ when being a dependency in another project.
 
 DEV_DEPENDENCIES: dict[str, str | dict[str, str]] = {
     "ruff": "*",
-    "types-networkx": "*",
-    "types-defusedxml": "*",
-    "types-pyyaml": "*",
-    "pytest": "*",
-    "types-setuptools": "*",
-    "pytest-mock": "*",
-    "bandit": "*",
     "pre-commit": "*",
     "mypy": "*",
+    "pytest": "*",
+    "bandit": "*",
+    "types-setuptools": "*",
     "types-tqdm": "*",
+    "types-defusedxml": "*",
+    "types-pyyaml": "*",
+    "pytest-mock": "*",
+    "types-networkx": "*",
+    "types-pyinstaller": "*",
+    "pyinstaller": {"version": "*", "python": "<3.15"},
 }

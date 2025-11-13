@@ -27,10 +27,11 @@ def assert_dev_dependencies_config_is_correct() -> None:
     path = to_path(module_name=dev_deps, is_package=False)
     content = path.read_text()
     # replace DEV_DEPENDENCIES = {.*} with the correct value with re
-    new_content = re.sub(
-        r"DEV_DEPENDENCIES: dict\[str, str | dict\[str, str\]\] = \{.*\}",
-        f"DEV_DEPENDENCIES: dict[str, str | dict[str, str]] = {expected_dev_deps}",
-        content,
-        flags=re.DOTALL,
+    pattern = r"DEV_DEPENDENCIES: dict\[str, str \| dict\[str, str\]\] = \{.*?\}"
+
+    replacement = (
+        f"DEV_DEPENDENCIES: dict[str, str | dict[str, str]] = {expected_dev_deps}"
     )
+
+    new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
     path.write_text(new_content)
