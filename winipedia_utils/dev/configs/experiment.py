@@ -1,11 +1,8 @@
 """Config utilities for experiment.py."""
 
-import subprocess
 from pathlib import Path
 
 from winipedia_utils.dev.configs.base.base import PythonConfigFile
-
-print(subprocess.run(["ls", "-l"], check=False))  # noqa: S607, T201
 
 
 class ExperimentConfigFile(PythonConfigFile):
