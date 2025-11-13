@@ -2,7 +2,7 @@
 
 import os
 import platform
-import sys
+import shutil
 from contextlib import chdir
 from pathlib import Path
 
@@ -10,6 +10,7 @@ import pytest
 
 import winipedia_utils
 from winipedia_utils.dev import setup
+from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.dev.setup import SETUP_STEPS, get_setup_steps
 from winipedia_utils.utils.modules.module import to_path
 from winipedia_utils.utils.os.os import run_subprocess
@@ -35,8 +36,26 @@ def test_setup(tmp_path: Path) -> None:
     # so we use a tmp dir in the current dir
     # now test that in an empty folder with a pyproject.toml file
     # with a folder src that the setup works
+
+    # copy the winipedia_utils package to tmp_path/winipedia_utils with shutil
+    winipedia_utils_temp_path = tmp_path / winipedia_utils.__name__
+    shutil.copytree(
+        to_path(winipedia_utils.__name__, is_package=True).parent,
+        winipedia_utils_temp_path,
+    )
+    winipedia_utils_temp_path = winipedia_utils_temp_path.resolve()
+    with chdir(winipedia_utils_temp_path):
+        # build the package
+        run_subprocess(["poetry", "build"])
+
+    dist_files = list((winipedia_utils_temp_path / "dist").glob("*.whl"))
+    wheel_path = dist_files[-1].as_posix()
+
     src_project_dir = tmp_path / "src_project"
     src_project_dir.mkdir()
+
+    # Get the current Python version in major.minor format
+    python_version = str(PyprojectConfigFile.get_first_supported_python_version())
 
     # Initialize git repo in the test project directory
     with chdir(src_project_dir):
@@ -44,37 +63,29 @@ def test_setup(tmp_path: Path) -> None:
         run_subprocess(["git", "config", "user.email", "test@example.com"])
         run_subprocess(["git", "config", "user.name", "Test User"])
 
-    # Run setup from current poetry env in test project directory
-    local_winipedia_utils_path = to_path(
-        winipedia_utils.__name__, is_package=True
-    ).parent.absolute()
     with chdir(src_project_dir):
         # Create a clean environment dict without VIRTUAL_ENV to force poetry
         # to create a new virtual environment instead of reusing the current one
         clean_env = os.environ.copy()
         clean_env.pop("VIRTUAL_ENV", None)
 
-        # Get the current Python version in major.minor format
-        python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
-
         run_subprocess(
-            ["poetry", "init", "-n", f"--python=>={python_version}"],
-            check=False,
+            ["poetry", "init", "--no-interaction", f"--python=>={python_version}"],
             env=clean_env,
         )
         # Explicitly create a new virtual environment using the current Python
-        run_subprocess(
-            ["poetry", "env", "use", sys.executable], check=False, env=clean_env
-        )
+        run_subprocess(["poetry", "env", "use", python_version], env=clean_env)
+
         run_subprocess(
             [
                 "poetry",
                 "add",
-                local_winipedia_utils_path.as_posix(),
-                "--editable",
+                wheel_path,
             ],
             env=clean_env,
         )
+        # Run setup via poetry run to ensure it uses the new virtual environment
+        # with the editable install of the current state of winipedia_utils
         setup.setup()
 
     pkg_dir = src_project_dir / "src_project"

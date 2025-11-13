@@ -1,6 +1,9 @@
 """Config utilities for test_zero.py."""
 
 from winipedia_utils.dev.configs.base.base import PythonTestsConfigFile
+from winipedia_utils.dev.projects.poetry.poetry import get_poetry_run_module_args
+from winipedia_utils.dev.testing import create_tests
+from winipedia_utils.utils.os.os import run_subprocess
 
 
 class ZeroTestConfigFile(PythonTestsConfigFile):
@@ -24,3 +27,8 @@ def test_zero() -> None:
     Exists so that when no tests are written yet the base fixtures are executed.
     """
 '''
+
+    @classmethod
+    def create_tests(cls) -> None:
+        """Create the tests."""
+        run_subprocess(get_poetry_run_module_args(create_tests))

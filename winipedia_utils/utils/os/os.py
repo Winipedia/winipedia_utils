@@ -8,6 +8,7 @@ These utilities help with system-level operations and configuration.
 import shutil
 import subprocess  # nosec: B404
 from collections.abc import Sequence
+from pathlib import Path
 from typing import Any
 
 
@@ -33,13 +34,14 @@ def which_with_raise(cmd: str, *, raise_error: bool = True) -> str | None:
     return path
 
 
-def run_subprocess(
+def run_subprocess(  # noqa: PLR0913
     args: Sequence[str],
     *,
     input_: str | bytes | None = None,
     capture_output: bool = True,
     timeout: int | None = None,
     check: bool = True,
+    cwd: str | Path | None = None,
     **kwargs: Any,
 ) -> subprocess.CompletedProcess[Any]:
     """Run a subprocess.
@@ -50,14 +52,18 @@ def run_subprocess(
         capture_output: Whether to capture the output of the subprocess
         timeout: The timeout for the subprocess
         check: to raise an exception if the subprocess returns a non-zero exit code
+        cwd: The working directory to run the subprocess in
         kwargs: Any other arguments to pass to subprocess.run()
 
     """
+    if cwd is None:
+        cwd = Path.cwd()
     return subprocess.run(  # noqa: S603  # nosec: B603
         args,
         check=check,
         input=input_,
         capture_output=capture_output,
         timeout=timeout,
+        cwd=cwd,
         **kwargs,
     )

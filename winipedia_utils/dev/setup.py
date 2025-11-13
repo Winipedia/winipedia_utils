@@ -13,6 +13,7 @@ from winipedia_utils.dev.configs.conftest import ConftestConfigFile
 from winipedia_utils.dev.configs.gitignore import GitIgnoreConfigFile
 from winipedia_utils.dev.configs.py_typed import PyTypedConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
+from winipedia_utils.dev.configs.zero_test import ZeroTestConfigFile
 from winipedia_utils.dev.git.pre_commit.run_hooks import run_hooks
 from winipedia_utils.utils.logging.logger import get_logger
 
@@ -24,6 +25,7 @@ SETUP_STEPS: list[Callable[..., Any]] = [
     PyprojectConfigFile,  # must be before create_project_root
     PyTypedConfigFile,  # must be before create_project_root
     run_hooks,
+    ZeroTestConfigFile.create_tests,
     ConftestConfigFile.run_tests,
 ]
 
