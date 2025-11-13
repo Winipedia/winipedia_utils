@@ -21,9 +21,9 @@ logger = get_logger(__name__)
 
 
 SETUP_STEPS: list[Callable[..., Any]] = [
-    GitIgnoreConfigFile,  # must be before create_project_root
-    PyprojectConfigFile,  # must be before create_project_root
-    PyTypedConfigFile,  # must be before create_project_root
+    GitIgnoreConfigFile,  # must be there at the beginning to have gitignore
+    PyprojectConfigFile,  # must be there at the beginning to make dev group
+    PyTypedConfigFile,  # must be there at the beginning to have src pkg
     run_hooks,
     ZeroTestConfigFile.create_tests,
     ConftestConfigFile.run_tests,

@@ -17,7 +17,9 @@ from winipedia_utils.dev.projects.poetry.poetry import (
 from winipedia_utils.dev.testing.convention import TESTS_PACKAGE_NAME
 from winipedia_utils.utils.data.structures.text.string import split_on_uppercase
 from winipedia_utils.utils.iterating.iterate import nested_structure_is_subset
-from winipedia_utils.utils.modules.class_ import init_all_nonabstract_subclasses
+from winipedia_utils.utils.modules.class_ import (
+    get_all_nonabstract_subclasses,
+)
 from winipedia_utils.utils.modules.module import import_module_with_default
 from winipedia_utils.utils.modules.package import DependencyGraph, get_src_package
 
@@ -152,14 +154,15 @@ class ConfigFile(ABC):
         return nested_structure_is_subset(expected_config, actual_config)
 
     @classmethod
-    def init_config_files(cls) -> None:
-        """Initialize all subclasses."""
+    def get_all_subclasses(cls) -> list[type["ConfigFile"]]:
+        """Get all subclasses of ConfigFile."""
         pkgs_depending_on_winipedia_utils = (
             DependencyGraph().get_all_depending_on_winipedia_utils(
                 include_winipedia_utils=True
             )
         )
 
+        subclasses: set[type[ConfigFile]] = set()
         pkgs_depending_on_winipedia_utils.add(get_src_package())
         for pkg in pkgs_depending_on_winipedia_utils:
             configs_pkg_name = configs.__name__.replace(
@@ -168,7 +171,36 @@ class ConfigFile(ABC):
             configs_pkg = import_module_with_default(configs_pkg_name)
             if not isinstance(configs_pkg, ModuleType):
                 continue
-            init_all_nonabstract_subclasses(cls, load_package_before=configs_pkg)
+            subclasses.update(
+                get_all_nonabstract_subclasses(cls, load_package_before=configs_pkg)
+            )
+        # Some must be first:
+        from winipedia_utils.dev.configs.gitignore import (  # noqa: PLC0415
+            GitIgnoreConfigFile,
+        )
+        from winipedia_utils.dev.configs.py_typed import (  # noqa: PLC0415
+            PyTypedConfigFile,
+        )
+        from winipedia_utils.dev.configs.pyproject import (  # noqa: PLC0415
+            PyprojectConfigFile,
+        )
+
+        priorities: list[type[ConfigFile]] = [
+            GitIgnoreConfigFile,
+            PyprojectConfigFile,
+            PyTypedConfigFile,
+        ]
+        # remove prioritized from subclasses
+        for priority in priorities:
+            subclasses.discard(priority)
+        # add them to the beginning
+        return priorities + list(subclasses)
+
+    @classmethod
+    def init_config_files(cls) -> None:
+        """Initialize all subclasses."""
+        for subclass in cls.get_all_subclasses():
+            subclass()
 
     @staticmethod
     def get_poetry_run_hooks_script() -> str:

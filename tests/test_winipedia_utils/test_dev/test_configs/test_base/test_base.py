@@ -18,7 +18,6 @@ from winipedia_utils.dev.configs.base.base import (
 )
 from winipedia_utils.dev.testing.convention import TESTS_PACKAGE_NAME
 from winipedia_utils.utils.modules.class_ import get_all_nonabstract_subclasses
-from winipedia_utils.utils.modules.module import make_obj_importpath
 from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 
@@ -283,13 +282,28 @@ class TestConfigFile:
             "Expected config to be correct",
         )
 
+    def test_get_all_subclasses(
+        self, my_test_config_file: type[ConfigFile], mocker: MockFixture
+    ) -> None:
+        """Test method for get_all_subclasses."""
+        # mock get_all_nonabstract_subclasses to return my_test_config_file
+        mocker.patch(
+            ConfigFile.__module__ + "." + get_all_nonabstract_subclasses.__name__,
+            return_value={my_test_config_file},
+        )
+        actual = my_test_config_file.get_all_subclasses()
+        assert_with_msg(
+            my_test_config_file in actual,
+            "Expected my_test_config_file to be in actual",
+        )
+
     def test_init_config_files(
         self, my_test_config_file: type[ConfigFile], mocker: MockFixture
     ) -> None:
         """Test method for init_config_files."""
         # mock get_all_nonabstract_subclasses to return my_test_config_file
         mocker.patch(
-            make_obj_importpath(get_all_nonabstract_subclasses),
+            ConfigFile.__module__ + "." + get_all_nonabstract_subclasses.__name__,
             return_value={my_test_config_file},
         )
         my_test_config_file.init_config_files()
@@ -297,7 +311,6 @@ class TestConfigFile:
             my_test_config_file.load() == my_test_config_file.get_configs(),
             "Expected config to be correct",
         )
-        # other files were also created
 
         tmp_path = Path(
             my_test_config_file.get_path()
