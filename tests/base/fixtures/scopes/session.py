@@ -9,6 +9,7 @@ from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.dev.projects.poetry import dev_deps
 from winipedia_utils.dev.projects.poetry.dev_deps import DEV_DEPENDENCIES
 from winipedia_utils.utils.modules.module import to_path
+from winipedia_utils.utils.testing.assertions import assert_with_msg
 from winipedia_utils.utils.testing.fixtures import autouse_session_fixture
 
 
@@ -21,7 +22,8 @@ def assert_dev_dependencies_config_is_correct() -> None:
     expected_dev_deps = PyprojectConfigFile.get_dev_dependencies()
     actual_dev_deps = DEV_DEPENDENCIES
 
-    if expected_dev_deps == actual_dev_deps:
+    correct = expected_dev_deps == actual_dev_deps
+    if correct:
         return
 
     path = to_path(module_name=dev_deps, is_package=False)
@@ -35,3 +37,9 @@ def assert_dev_dependencies_config_is_correct() -> None:
 
     new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
     path.write_text(new_content)
+
+    assert_with_msg(
+        correct,
+        "Dev dependencies in consts.py are not correct. "
+        "Corrected the file. Please verify the changes.",
+    )
