@@ -96,7 +96,7 @@ class PyprojectConfigFile(TomlConfigFile):
                 },
                 "pytest": {"ini_options": {"testpaths": [TESTS_PACKAGE_NAME]}},
                 "bandit": {
-                    "exclude_dirs": [ExperimentConfigFile.get_path().as_posix()],
+                    "exclude_dirs": ["/" + ExperimentConfigFile.get_path().as_posix()],
                 },
             },
         }
