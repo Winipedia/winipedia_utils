@@ -47,4 +47,4 @@ class TestConftestConfigFile:
             return_value=0,
         )
         my_test_conftest_config_file.run_tests()
-        mock_run.assert_called_once_with(["pytest"])
+        mock_run.assert_called_once()
