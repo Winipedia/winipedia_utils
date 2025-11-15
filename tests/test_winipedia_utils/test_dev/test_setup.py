@@ -88,6 +88,19 @@ def test_setup(tmp_path: Path) -> None:
         # with the editable install of the current state of winipedia_utils
         setup.setup()
 
+        # test the cli can be called
+        res = run_subprocess(["poetry", "run", "winipedia-utils", "--help"])
+        stdout = res.stdout.decode("utf-8")
+        assert_with_msg(
+            "winipedia-utils" in stdout,
+            f"Expected winipedia-utils in stdout, got {stdout}",
+        )
+        # assert setup command is in stdout
+        assert_with_msg(
+            "setup" in stdout,
+            f"Expected setup in stdout, got {stdout}",
+        )
+
     pkg_dir = src_project_dir / "src_project"
     assert_with_msg(
         (pkg_dir / "__init__.py").exists(),

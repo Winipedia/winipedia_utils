@@ -12,7 +12,7 @@ authors = [
 dynamic = ["dependencies"]
 
 [project.scripts]
-winipedia-utils = "winipedia_utils.dev.cli.cli:main"
+winipedia-utils = "winipedia_utils.dev.cli.winipedia_utils_cli:main"
 
 
 [build-system]

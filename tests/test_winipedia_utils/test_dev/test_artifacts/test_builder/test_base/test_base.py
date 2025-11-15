@@ -3,10 +3,10 @@
 import platform
 from pathlib import Path
 
+import PyInstaller
 import pytest
 from pytest_mock import MockFixture
 
-from winipedia_utils.dev.artifacts.builder.base import base
 from winipedia_utils.dev.artifacts.builder.base.base import Builder, PyInstallerBuilder
 from winipedia_utils.utils.modules.module import make_obj_importpath
 from winipedia_utils.utils.testing.assertions import assert_with_msg
@@ -194,6 +194,6 @@ class TestPyInstallerBuilder:
         self, my_test_pyinstaller_builder: type[PyInstallerBuilder], mocker: MockFixture
     ) -> None:
         """Test method for create_artifacts."""
-        mock_run = mocker.patch(make_obj_importpath(base) + ".run")
+        mock_run = mocker.patch(make_obj_importpath(PyInstaller) + ".run")
         my_test_pyinstaller_builder.create_artifacts()
         mock_run.assert_called_once()

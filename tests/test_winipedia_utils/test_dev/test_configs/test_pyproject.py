@@ -130,6 +130,17 @@ class TestPyprojectConfigFile:
             "Expected package name to be non-empty",
         )
 
+    def test_get_pkg_name_from_cwd(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for get_pkg_name_from_cwd."""
+        my_test_pyproject_config_file()
+        pkg_name = my_test_pyproject_config_file.get_pkg_name_from_cwd()
+        assert_with_msg(
+            len(pkg_name) > 0,
+            "Expected package name to be non-empty",
+        )
+
     def test_get_project_name(
         self, my_test_pyproject_config_file: type[PyprojectConfigFile]
     ) -> None:

@@ -7,6 +7,7 @@ from typing import Any, cast
 import requests
 from packaging.version import Version
 
+import winipedia_utils
 from winipedia_utils.dev.configs.base.base import TomlConfigFile
 from winipedia_utils.dev.configs.experiment import ExperimentConfigFile
 from winipedia_utils.dev.projects.poetry.dev_deps import DEV_DEPENDENCIES
@@ -52,6 +53,11 @@ class PyprojectConfigFile(TomlConfigFile):
         return cwd.name
 
     @classmethod
+    def get_pkg_name_from_cwd(cls) -> str:
+        """Get the package name from the cwd."""
+        return cls.get_pkg_name_from_project_name(cls.get_project_name_from_cwd())
+
+    @classmethod
     def get_project_description(cls) -> str:
         """Get the project description."""
         return str(cls.load().get("project", {}).get("description", ""))
@@ -59,7 +65,16 @@ class PyprojectConfigFile(TomlConfigFile):
     @classmethod
     def get_configs(cls) -> dict[str, Any]:
         """Get the config."""
-        from winipedia_utils.dev.cli import cli  # noqa: PLC0415
+        from winipedia_utils.dev.cli import (  # noqa: PLC0415
+            cli,
+            winipedia_utils_cli,
+        )
+
+        cli_module = (
+            cli
+            if cls.get_pkg_name_from_cwd() != winipedia_utils.__name__
+            else winipedia_utils_cli
+        )
 
         return {
             "project": {
@@ -67,7 +82,7 @@ class PyprojectConfigFile(TomlConfigFile):
                 "readme": "README.md",
                 "dynamic": ["dependencies"],
                 "scripts": {
-                    cls.get_project_name(): f"{cli.__name__}:{cli.main.__name__}"
+                    cls.get_project_name(): f"{cli_module.__name__}:{cli_module.main.__name__}"  # noqa: E501
                 },
             },
             "build-system": {
@@ -78,9 +93,7 @@ class PyprojectConfigFile(TomlConfigFile):
                 "poetry": {
                     "packages": [
                         {
-                            "include": cls.get_pkg_name_from_project_name(
-                                cls.get_project_name_from_cwd()
-                            )
+                            "include": cls.get_pkg_name_from_cwd(),
                         }
                     ],
                     "dependencies": cls.make_dependency_to_version_dict(

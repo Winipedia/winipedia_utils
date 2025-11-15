@@ -2,15 +2,13 @@
 
 import typer
 
-from winipedia_utils.dev.configs.subcommands import SubcommandsConfigFile
+from winipedia_utils.dev.cli import subcommands
 from winipedia_utils.utils.modules.function import get_all_functions_from_module
-from winipedia_utils.utils.modules.module import import_module_from_path
 
 app = typer.Typer()
 
-subcommands_module = import_module_from_path(SubcommandsConfigFile.get_path())
 
-sub_cmds = get_all_functions_from_module(subcommands_module)
+sub_cmds = get_all_functions_from_module(subcommands)
 
 for sub_cmd in sub_cmds:
     app.command()(sub_cmd)
