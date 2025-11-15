@@ -5,6 +5,7 @@ IMPORTANT: All funcs in this file will be added as subcommands.
 So best to define the logic elsewhere and just call it here in a wrapper.
 """
 
+from winipedia_utils.dev.artifacts.build import build as build_cmd
 from winipedia_utils.dev.projects.create_root import create_root as create_root_cmd
 from winipedia_utils.dev.setup import setup as setup_cmd
 from winipedia_utils.dev.testing.create_tests import create_tests as create_tests_cmd
@@ -38,3 +39,11 @@ def setup() -> None:
     all pre-commit hooks and tests.
     """
     setup_cmd()
+
+
+def build() -> None:
+    """Build all artifacts.
+
+    Invokes every subclass of Builder in the builder package.
+    """
+    build_cmd()

@@ -6,10 +6,13 @@ from pathlib import Path
 from typing import Any, ClassVar
 
 import winipedia_utils
-from winipedia_utils.dev.artifacts import build
 from winipedia_utils.dev.artifacts.builder.base.base import Builder
+from winipedia_utils.dev.cli.subcommands import build
 from winipedia_utils.dev.configs.base.base import YamlConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
+from winipedia_utils.dev.projects.poetry.poetry import (
+    get_poetry_run_winipedia_utils_cli_cmd_script,
+)
 from winipedia_utils.utils.data.structures.text.string import (
     make_name_from_obj,
     split_on_uppercase,
@@ -764,11 +767,16 @@ class Workflow(YamlConfigFile):
         )
 
     @classmethod
-    def step_build_artifacts(cls) -> dict[str, Any]:
+    def step_build_artifacts(
+        cls,
+        *,
+        step: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Get the build artifacts step."""
         return cls.get_step(
             step_func=cls.step_build_artifacts,
-            run=f"poetry run python -m {build.__name__}",
+            run=get_poetry_run_winipedia_utils_cli_cmd_script(build),
+            step=step,
         )
 
     @classmethod
