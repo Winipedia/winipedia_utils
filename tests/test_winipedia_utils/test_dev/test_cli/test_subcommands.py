@@ -32,3 +32,11 @@ def test_setup(mocker: MockFixture) -> None:
 
     subcommands.setup()
     mock_setup.assert_called_once()
+
+
+def test_build(mocker: MockFixture) -> None:
+    """Test func for build."""
+    mock_build = mocker.patch(make_obj_importpath(subcommands) + ".build_cmd")
+
+    subcommands.build()
+    mock_build.assert_called_once()
