@@ -199,7 +199,7 @@ class ConfigFile(ABC):
         return priorities + list(subclasses)
 
     @classmethod
-    def init_config_files(cls, *, only_winipedia_utils: bool = True) -> None:
+    def init_config_files(cls, *, only_winipedia_utils: bool = False) -> None:
         """Initialize all subclasses."""
         for subclass in cls.get_all_subclasses(
             only_winipedia_utils=only_winipedia_utils
