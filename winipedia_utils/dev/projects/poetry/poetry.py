@@ -11,6 +11,7 @@ import winipedia_utils
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.utils.data.structures.text.string import make_name_from_obj
 from winipedia_utils.utils.logging.logger import get_logger
+from winipedia_utils.utils.modules.package import get_src_package
 
 logger = get_logger(__name__)
 
@@ -41,20 +42,32 @@ def get_poetry_run_module_args(module: ModuleType) -> list[str]:
     return [*POETRY_RUN_ARGS, *get_run_python_module_args(module)]
 
 
-def get_poetry_run_cli_cmd_args(cmd: Callable[[], Any]) -> list[str]:
-    """Get the args to run winipedia_utils."""
-    name = make_name_from_obj(cmd, capitalize=False)
-    src_pkg_name = PyprojectConfigFile.get_project_name()
-    return [*POETRY_RUN_ARGS, src_pkg_name, name]
+def get_poetry_run_cli_cmd_args(
+    cmd: Callable[[], Any] | None = None, extra_args: list[str] | None = None
+) -> list[str]:
+    """Get the args to run the cli of the current project."""
+    args = [
+        *POETRY_RUN_ARGS,
+        PyprojectConfigFile.get_project_name_from_pkg_name(get_src_package().__name__),
+    ]
+    if cmd is not None:
+        name = make_name_from_obj(cmd, capitalize=False)
+        args.append(name)
+    if extra_args is not None:
+        args.extend(extra_args)
+    return args
 
 
-def get_poetry_run_winipedia_utils_cli_cmd_args(cmd: Callable[[], Any]) -> list[str]:
+def get_poetry_run_winipedia_utils_cli_cmd_args(
+    cmd: Callable[[], Any] | None = None,
+    extra_args: list[str] | None = None,
+) -> list[str]:
     """Get the args to run winipedia_utils."""
-    name = make_name_from_obj(cmd, capitalize=False)
-    winipedia_utils_name = PyprojectConfigFile.get_project_name_from_pkg_name(
+    args = get_poetry_run_cli_cmd_args(cmd, extra_args)
+    args[len(POETRY_RUN_ARGS)] = PyprojectConfigFile.get_project_name_from_pkg_name(
         winipedia_utils.__name__
     )
-    return [*POETRY_RUN_ARGS, winipedia_utils_name, name]
+    return args
 
 
 def get_poetry_run_cli_cmd_script(cmd: Callable[[], Any]) -> str:

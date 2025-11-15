@@ -13,7 +13,6 @@ import importlib.util
 import inspect
 import os
 import sys
-import time
 from collections.abc import Callable, Sequence
 from importlib import import_module
 from pathlib import Path
@@ -163,7 +162,6 @@ def create_module(
     if not path.exists() and not is_package:
         path.write_text(get_default_module_content())
 
-    time.sleep(0.1)
     # use spec and importlib to import the module
     if is_package:
         return import_pkg_from_path(path)

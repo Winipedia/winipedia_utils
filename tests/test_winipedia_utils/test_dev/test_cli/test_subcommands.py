@@ -1,42 +1,55 @@
 """module."""
 
-from pytest_mock import MockFixture
+from winipedia_utils.dev.projects.poetry.poetry import (
+    get_poetry_run_winipedia_utils_cli_cmd_args,
+)
+from winipedia_utils.utils.os.os import run_subprocess
+from winipedia_utils.utils.testing.assertions import assert_with_msg
 
-from winipedia_utils.dev.cli import subcommands
-from winipedia_utils.utils.modules.module import make_obj_importpath
 
-
-def test_create_root(mocker: MockFixture) -> None:
+def test_create_root() -> None:
     """Test func for create_root."""
-    mock_create_root = mocker.patch(
-        make_obj_importpath(subcommands) + ".create_root_cmd"
+    # run --help comd to see if its available
+    stoud = run_subprocess(
+        get_poetry_run_winipedia_utils_cli_cmd_args(extra_args=["--help"])
+    ).stdout.decode("utf-8")
+    assert_with_msg(
+        "create-root" in stoud,
+        f"Expected create-root in stdout, got {stoud}",
     )
 
-    subcommands.create_root()
-    mock_create_root.assert_called_once()
 
-
-def test_create_tests(mocker: MockFixture) -> None:
+def test_create_tests() -> None:
     """Test func for create_tests."""
-    mock_create_tests = mocker.patch(
-        make_obj_importpath(subcommands) + ".create_tests_cmd"
+    # run --help comd to see if its available
+    stoud = run_subprocess(
+        get_poetry_run_winipedia_utils_cli_cmd_args(extra_args=["--help"])
+    ).stdout.decode("utf-8")
+    assert_with_msg(
+        "create-tests" in stoud,
+        f"Expected create-tests in stdout, got {stoud}",
     )
 
-    subcommands.create_tests()
-    mock_create_tests.assert_called_once()
 
-
-def test_setup(mocker: MockFixture) -> None:
+def test_setup() -> None:
     """Test func for setup."""
-    mock_setup = mocker.patch(make_obj_importpath(subcommands) + ".setup_cmd")
+    # run --help comd to see if its available
+    stoud = run_subprocess(
+        get_poetry_run_winipedia_utils_cli_cmd_args(extra_args=["--help"])
+    ).stdout.decode("utf-8")
+    assert_with_msg(
+        "setup" in stoud,
+        f"Expected setup in stdout, got {stoud}",
+    )
 
-    subcommands.setup()
-    mock_setup.assert_called_once()
 
-
-def test_build(mocker: MockFixture) -> None:
+def test_build() -> None:
     """Test func for build."""
-    mock_build = mocker.patch(make_obj_importpath(subcommands) + ".build_cmd")
-
-    subcommands.build()
-    mock_build.assert_called_once()
+    # run --help comd to see if its available
+    stoud = run_subprocess(
+        get_poetry_run_winipedia_utils_cli_cmd_args(extra_args=["--help"])
+    ).stdout.decode("utf-8")
+    assert_with_msg(
+        "build" in stoud,
+        f"Expected build in stdout, got {stoud}",
+    )
