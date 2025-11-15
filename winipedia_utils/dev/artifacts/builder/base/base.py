@@ -13,8 +13,6 @@ from abc import abstractmethod
 from pathlib import Path
 from types import ModuleType
 
-from PyInstaller.__main__ import run
-
 import winipedia_utils
 from winipedia_utils.dev import artifacts
 from winipedia_utils.dev.configs.builder import BuilderConfigFile
@@ -198,6 +196,8 @@ class PyInstallerBuilder(Builder):
     @classmethod
     def create_artifacts(cls) -> None:
         """Build the project with pyinstaller."""
+        from PyInstaller.__main__ import run  # noqa: PLC0415
+
         with tempfile.TemporaryDirectory() as temp_build_dir:
             options = cls.get_pyinstaller_options(temp_build_dir)
 
