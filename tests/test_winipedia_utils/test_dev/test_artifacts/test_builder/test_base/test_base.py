@@ -3,7 +3,7 @@
 import platform
 from pathlib import Path
 
-import PyInstaller
+import PyInstaller.__main__ as pyinstaller_main
 import pytest
 from pytest_mock import MockFixture
 
@@ -194,6 +194,6 @@ class TestPyInstallerBuilder:
         self, my_test_pyinstaller_builder: type[PyInstallerBuilder], mocker: MockFixture
     ) -> None:
         """Test method for create_artifacts."""
-        mock_run = mocker.patch(make_obj_importpath(PyInstaller) + ".run")
+        mock_run = mocker.patch(make_obj_importpath(pyinstaller_main) + ".run")
         my_test_pyinstaller_builder.create_artifacts()
         mock_run.assert_called_once()
