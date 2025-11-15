@@ -412,6 +412,7 @@ class Workflow(YamlConfigFile):
             *cls.steps_core_setup(python_version=python_version, repo_token=repo_token),
             cls.step_add_poetry_to_windows_path(),
             cls.step_install_python_dependencies(),
+            cls.step_update_dependencies(),
             cls.step_setup_keyring(),
         ]
 
@@ -469,6 +470,32 @@ class Workflow(YamlConfigFile):
         return cls.get_step(
             step_func=cls.step_patch_version,
             run="poetry version patch && git add pyproject.toml",
+            step=step,
+        )
+
+    @classmethod
+    def step_update_dependencies(
+        cls,
+        *,
+        step: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Get the update dependencies step."""
+        return cls.get_step(
+            step_func=cls.step_update_dependencies,
+            run="poetry update --with dev",
+            step=step,
+        )
+
+    @classmethod
+    def step_add_dependency_updates_to_git(
+        cls,
+        *,
+        step: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Get the add dependency updates to git step."""
+        return cls.get_step(
+            step_func=cls.step_add_dependency_updates_to_git,
+            run="git add pyproject.toml poetry.lock",
             step=step,
         )
 
@@ -590,7 +617,7 @@ class Workflow(YamlConfigFile):
         """Get the install dependencies step."""
         return cls.get_step(
             step_func=cls.step_install_python_dependencies,
-            run="poetry install",
+            run="poetry install --with dev",
             step=step,
         )
 

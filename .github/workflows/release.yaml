@@ -49,11 +49,16 @@ jobs:
       if: ${{ runner.os }} == 'Windows'
     - name: Install Python Dependencies
       id: install_python_dependencies
-      run: poetry install
+      run: poetry install --with dev
+    - name: Update Dependencies
+      id: update_dependencies
+      run: poetry update --with dev
     - name: Setup Keyring
       id: setup_keyring
       run: poetry run pip install keyrings.alt && poetry run python -c "import keyring;
         from keyrings.alt.file import PlaintextKeyring; keyring.set_keyring(PlaintextKeyring());"
+      env:
+        REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
     - name: Protect Repository
       id: protect_repository
       run: poetry run python -m winipedia_utils.dev.git.github.repo.protect
@@ -62,6 +67,8 @@ jobs:
     - name: Run Pre Commit Hooks
       id: run_pre_commit_hooks
       run: poetry run pre-commit run --all-files
+      env:
+        REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
     - name: Run Tests
       id: run_tests
       run: poetry run pytest --log-cli-level=INFO
@@ -104,13 +111,20 @@ jobs:
       if: ${{ runner.os }} == 'Windows'
     - name: Install Python Dependencies
       id: install_python_dependencies
-      run: poetry install
+      run: poetry install --with dev
+    - name: Update Dependencies
+      id: update_dependencies
+      run: poetry update --with dev
     - name: Setup Keyring
       id: setup_keyring
       run: poetry run pip install keyrings.alt && poetry run python -c "import keyring;
         from keyrings.alt.file import PlaintextKeyring; keyring.set_keyring(PlaintextKeyring());"
     - name: Build Artifacts
       id: build_artifacts
+      uses: actions/upload-artifact@main
+      with:
+        name: winipedia_utils-${{ runner.os }}
+        path: artifacts
       run: poetry run python -m winipedia_utils.dev.artifacts.build
     - name: Upload Artifacts
       id: upload_artifacts
@@ -138,7 +152,13 @@ jobs:
       uses: snok/install-poetry@main
     - name: Install Python Dependencies
       id: install_python_dependencies
-      run: poetry install
+      run: poetry install --with dev
+    - name: Update Dependencies
+      id: update_dependencies
+      run: poetry update --with dev
+    - name: Add Dependency Updates To Git
+      id: add_dependency_updates_to_git
+      run: git add pyproject.toml poetry.lock
     - name: Setup Keyring
       id: setup_keyring
       run: poetry run pip install keyrings.alt && poetry run python -c "import keyring;

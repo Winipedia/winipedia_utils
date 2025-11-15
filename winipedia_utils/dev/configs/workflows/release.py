@@ -79,6 +79,8 @@ class ReleaseWorkflow(HealthCheckWorkflow):
         return [
             *cls.steps_core_setup(repo_token=True),
             cls.step_install_python_dependencies(),
+            cls.step_update_dependencies(),
+            cls.step_add_dependency_updates_to_git(),
             cls.step_setup_keyring(),
             cls.step_setup_git(),
             cls.step_add_version_patch(),

@@ -293,6 +293,18 @@ class TestWorkflow:
         result = my_test_workflow.step_patch_version()
         assert_with_msg("run" in result, "Expected 'run' in step")
 
+    def test_step_update_dependencies(self, my_test_workflow: type[Workflow]) -> None:
+        """Test method for step_update_dependencies."""
+        result = my_test_workflow.step_update_dependencies()
+        assert_with_msg("run" in result, "Expected 'run' in step")
+
+    def test_step_add_dependency_updates_to_git(
+        self, my_test_workflow: type[Workflow]
+    ) -> None:
+        """Test method for step_add_dependency_updates_to_git."""
+        result = my_test_workflow.step_add_dependency_updates_to_git()
+        assert_with_msg("run" in result, "Expected 'run' in step")
+
     def test_step_add_pypi_token_to_poetry(
         self, my_test_workflow: type[Workflow]
     ) -> None:
