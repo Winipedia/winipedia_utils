@@ -11,15 +11,30 @@ from winipedia_utils.dev.testing.create_tests import create_tests as create_test
 
 
 def create_root() -> None:
-    """Create the project root."""
+    """Creates the root of the project.
+
+    This inits all ConfigFiles and creates __init__.py files for the src
+    and tests package where they are missing. It does not overwrite any
+    existing files.
+    """
     create_root_cmd()
 
 
 def create_tests() -> None:
-    """Create all test files for the project."""
+    """Create all test files for the project.
+
+    This generates test skeletons for all functions and classes in the src
+    package. It does not overwrite any existing tests.
+    Tests are also automatically generated when missing by running pytest.
+    """
     create_tests_cmd()
 
 
 def setup() -> None:
-    """Set up the project."""
+    """Set up the project.
+
+    This is the setup command when you created the project from scratch.
+    It will init all config files, create the root, create tests, and run
+    all pre-commit hooks and tests.
+    """
     setup_cmd()

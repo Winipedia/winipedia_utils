@@ -637,7 +637,7 @@ class Workflow(YamlConfigFile):
         """
         return cls.get_step(
             step_func=cls.step_run_pre_commit_hooks,
-            run="poetry run pre-commit run --all-files --verbose",
+            run="poetry run pre-commit run --all-files",
             step=step,
         )
 

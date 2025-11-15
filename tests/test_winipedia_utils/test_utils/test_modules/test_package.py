@@ -31,6 +31,7 @@ from winipedia_utils.utils.modules.package import (
     get_main_package,
     get_modules_and_packages_from_package,
     get_src_package,
+    get_src_package_name,
     make_dir_with_init_file,
     make_init_module,
     make_init_modules_for_package,
@@ -56,6 +57,21 @@ def test_get_src_package(mocker: MockFixture) -> None:
     result = get_src_package()
 
     assert_with_msg(result == mock_package1, f"Expected {mock_package1}, got {result}")
+    mock_find_packages.assert_called_once()
+
+
+def test_get_src_package_name(mocker: MockFixture) -> None:
+    """Test func for get_src_package_name."""
+    # Mock the find_packages function
+    mock_find_packages = mocker.patch(
+        make_obj_importpath(find_packages),
+        return_value=["winipedia_utils", "tests"],
+    )
+
+    result = get_src_package_name()
+    assert_with_msg(
+        result == "winipedia_utils", f"Expected winipedia_utils, got {result}"
+    )
     mock_find_packages.assert_called_once()
 
 

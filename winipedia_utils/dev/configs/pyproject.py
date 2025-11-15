@@ -13,6 +13,7 @@ from winipedia_utils.dev.projects.poetry.dev_deps import DEV_DEPENDENCIES
 from winipedia_utils.dev.projects.poetry.versions import VersionConstraint
 from winipedia_utils.dev.testing.convention import TESTS_PACKAGE_NAME
 from winipedia_utils.utils.logging.logger import get_logger
+from winipedia_utils.utils.os.os import run_subprocess
 
 logger = get_logger(__name__)
 
@@ -66,11 +67,7 @@ class PyprojectConfigFile(TomlConfigFile):
                 "readme": "README.md",
                 "dynamic": ["dependencies"],
                 "scripts": {
-                    cls.get_project_name(): f"{
-                        cls.get_module_name_replacing_start_module(
-                            cli, cls.get_package_name()
-                        )
-                    }:{cli.main.__name__}"
+                    cls.get_project_name(): f"{cli.__name__}:{cli.main.__name__}"
                 },
             },
             "build-system": {
@@ -295,3 +292,8 @@ class PyprojectConfigFile(TomlConfigFile):
         return version_constraint.get_version_range(
             level="minor", upper_default=cls.fetch_latest_python_version()
         )
+
+    @classmethod
+    def update_dependencies(cls, *, check: bool = True) -> None:
+        """Update the dependencies."""
+        run_subprocess(["poetry", "update", "--with", "dev"], check=check)

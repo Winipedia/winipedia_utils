@@ -54,6 +54,16 @@ def get_src_package() -> ModuleType:
     return next(p for p in packages if p.__name__ != TESTS_PACKAGE_NAME)
 
 
+def get_src_package_name() -> str:
+    """Get the name of the source package."""
+    from winipedia_utils.dev.testing.convention import (  # noqa: PLC0415
+        TESTS_PACKAGE_NAME,  # avoid circular import
+    )
+
+    packages = find_packages(depth=0, include_namespace_packages=True)
+    return next(p for p in packages if p != TESTS_PACKAGE_NAME)
+
+
 def make_dir_with_init_file(path: str | Path) -> None:
     """Create a directory and initialize it as a Python package.
 

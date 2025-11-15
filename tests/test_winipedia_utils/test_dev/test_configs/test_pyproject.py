@@ -7,9 +7,11 @@ import pytest
 from packaging.version import Version
 from pytest_mock import MockFixture
 
+from winipedia_utils.dev.configs import pyproject
 from winipedia_utils.dev.configs.pyproject import (
     PyprojectConfigFile,
 )
+from winipedia_utils.utils.modules.module import make_obj_importpath
 from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 
@@ -406,3 +408,14 @@ class TestPyprojectConfigFile:
             first_version == "3.8.1",
             "Expected get_first_supported_python_version to return 3.8.1",
         )
+
+    def test_update_dependencies(
+        self,
+        my_test_pyproject_config_file: type[PyprojectConfigFile],
+        mocker: MockFixture,
+    ) -> None:
+        """Test method for update_dependencies."""
+        my_test_pyproject_config_file()
+        mock_run = mocker.patch(make_obj_importpath(pyproject) + ".run_subprocess")
+        my_test_pyproject_config_file.update_dependencies()
+        mock_run.assert_called()

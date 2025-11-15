@@ -5,6 +5,7 @@ tests.test_winipedia_utils.test_modules.test_module
 
 import os
 import sys
+from contextlib import chdir
 from importlib import import_module
 from pathlib import Path
 from types import ModuleType
@@ -21,6 +22,7 @@ from winipedia_utils.utils.modules.module import (
     get_module_content_as_str,
     get_module_of_obj,
     get_objs_from_obj,
+    import_module_from_path,
     import_module_with_default,
     import_obj_from_importpath,
     make_obj_importpath,
@@ -214,6 +216,28 @@ def test_create_module(tmp_path: Path) -> None:
         ]
         for module_name in modules_to_remove:
             del sys.modules[module_name]
+
+
+def test_import_module_from_path(tmp_path: Path) -> None:
+    """Test func for import_module_from_path."""
+    # Create a temporary module file with known content
+    with chdir(tmp_path):
+        module_content = '''"""Test module."""
+
+def test_function() -> str:
+    """Test function."""
+    return "test"
+
+class TestClass:
+    """Test class."""
+    pass
+'''
+        module_file = tmp_path / "test_module.py"
+        module_file.write_text(module_content)
+        module = import_module_from_path(module_file)
+        assert_with_msg(
+            module.__name__ == "test_module", f"Expected module name, got {module}"
+        )
 
 
 def test_make_obj_importpath() -> None:

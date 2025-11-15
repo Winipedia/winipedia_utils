@@ -12,19 +12,25 @@ from typing import Any
 from winipedia_utils.dev.configs.base.base import ConfigFile
 from winipedia_utils.dev.configs.conftest import ConftestConfigFile
 from winipedia_utils.dev.configs.pre_commit import PreCommitConfigConfigFile
-from winipedia_utils.dev.projects.poetry.poetry import POETRY_ARG
+from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
+from winipedia_utils.dev.projects.create_root import create_root
 from winipedia_utils.utils.logging.logger import get_logger
-from winipedia_utils.utils.os.os import run_subprocess
 
 logger = get_logger(__name__)
 
 
+def create_and_run_tests() -> None:
+    """Run and create tests."""
+    ConftestConfigFile().run_tests(check=False)  # creates tests
+    ConftestConfigFile.run_tests()
+
+
 SETUP_STEPS: list[Callable[..., Any]] = [
     ConfigFile.init_winipedia_utils_config_files,
-    lambda: run_subprocess([POETRY_ARG, "update", "--with", "dev"]),
+    create_root,
+    PyprojectConfigFile.update_dependencies,
     PreCommitConfigConfigFile.run_hooks,
-    lambda: ConftestConfigFile().run_tests(check=False),  # creates tests
-    ConftestConfigFile.run_tests,
+    create_and_run_tests,
 ]
 
 

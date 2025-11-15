@@ -9,6 +9,7 @@ The utilities support both runtime module manipulation and static analysis,
 making them suitable for code generation, testing frameworks, and dynamic imports.
 """
 
+import importlib.util
 import inspect
 import os
 import sys
@@ -165,6 +166,22 @@ def create_module(
     # use spec and importlib to import the module
     module_name = to_module_name(path)
     return import_module(module_name)
+
+
+def import_module_from_path(path: Path) -> ModuleType:
+    """Import a module from a path."""
+    name = path.with_suffix("").name
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None:
+        msg = f"Could not create spec for {path}"
+        raise ValueError(msg)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    if spec.loader is None:
+        msg = f"Could not create loader for {path}"
+        raise ValueError(msg)
+    spec.loader.exec_module(module)
+    return module
 
 
 def make_obj_importpath(obj: Callable[..., Any] | type | ModuleType) -> str:

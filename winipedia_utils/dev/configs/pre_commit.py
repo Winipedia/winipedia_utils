@@ -7,7 +7,6 @@ from winipedia_utils.dev.configs.base.base import YamlConfigFile
 from winipedia_utils.dev.projects.poetry.poetry import (
     POETRY_ARG,
     POETRY_RUN_ARGS,
-    get_poetry_run_winipedia_utils_cli_cmd_args,
     get_script_from_args,
 )
 from winipedia_utils.utils.logging.logger import get_logger
@@ -57,10 +56,6 @@ class PreCommitConfigConfigFile(YamlConfigFile):
     @classmethod
     def get_configs(cls) -> dict[str, Any]:
         """Get the config."""
-        from winipedia_utils.dev.cli.subcommands import (  # noqa: PLC0415
-            create_root,  # avoid circular import
-        )
-
         hooks: list[dict[str, Any]] = [
             cls.get_hook(
                 "update-package-manager",
@@ -78,10 +73,6 @@ class PreCommitConfigConfigFile(YamlConfigFile):
             cls.get_hook(
                 "check-package-manager-config",
                 ["poetry", "check", "--strict"],
-            ),
-            cls.get_hook(
-                "create-project-root",
-                get_poetry_run_winipedia_utils_cli_cmd_args(create_root),
             ),
             cls.get_hook(
                 "lint-code",
@@ -125,7 +116,6 @@ class PreCommitConfigConfigFile(YamlConfigFile):
         *,
         with_install: bool = True,
         all_files: bool = True,
-        verbose: bool = True,
         add_before_commit: bool = True,
     ) -> None:
         """Runs the pre-commit hooks."""
@@ -138,6 +128,4 @@ class PreCommitConfigConfigFile(YamlConfigFile):
         args = ["pre-commit", "run"]
         if all_files:
             args.append("--all-files")
-        if verbose:
-            args.append("--verbose")
         run_subprocess([*args])

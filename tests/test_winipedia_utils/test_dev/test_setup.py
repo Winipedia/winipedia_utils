@@ -7,6 +7,7 @@ from contextlib import chdir
 from pathlib import Path
 
 import pytest
+from pytest_mock import MockerFixture
 
 import winipedia_utils
 from winipedia_utils.dev import setup
@@ -14,6 +15,15 @@ from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.utils.modules.module import to_path
 from winipedia_utils.utils.os.os import run_subprocess
 from winipedia_utils.utils.testing.assertions import assert_with_msg
+
+
+def test_create_and_run_tests(mocker: MockerFixture) -> None:
+    """Test func for create_and_run_tests."""
+    # Test that the tests are created and run
+    # mock subprocess to avoid actually running tests
+    mock_run = mocker.patch("subprocess.run")
+    setup.create_and_run_tests()
+    mock_run.assert_called()
 
 
 @pytest.mark.skipif(
