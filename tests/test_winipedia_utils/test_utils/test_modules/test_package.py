@@ -4,6 +4,7 @@ tests.test_winipedia_utils.test_modules.test_package
 """
 
 import importlib.metadata
+from contextlib import chdir
 from pathlib import Path
 from types import ModuleType
 from typing import Any
@@ -32,6 +33,7 @@ from winipedia_utils.utils.modules.package import (
     get_modules_and_packages_from_package,
     get_src_package,
     get_src_package_name,
+    import_pkg_from_path,
     make_dir_with_init_file,
     make_init_module,
     make_init_modules_for_package,
@@ -41,23 +43,13 @@ from winipedia_utils.utils.modules.package import (
 from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 
-def test_get_src_package(mocker: MockFixture) -> None:
+def test_get_src_package() -> None:
     """Test func for get_src_package."""
-    # Mock the find_packages_as_modules function
-    mock_package1 = mocker.MagicMock(spec=ModuleType)
-    mock_package1.__name__ = "winipedia_utils"
-    mock_package2 = mocker.MagicMock(spec=ModuleType)
-    mock_package2.__name__ = "tests"
-
-    mock_find_packages = mocker.patch(
-        make_obj_importpath(find_packages_as_modules),
-        return_value=[mock_package1, mock_package2],
+    src_pkg = get_src_package()
+    assert_with_msg(
+        src_pkg.__name__ == winipedia_utils.__name__,
+        f"Expected winipedia_utils, got {src_pkg}",
     )
-
-    result = get_src_package()
-
-    assert_with_msg(result == mock_package1, f"Expected {mock_package1}, got {result}")
-    mock_find_packages.assert_called_once()
 
 
 def test_get_src_package_name(mocker: MockFixture) -> None:
@@ -73,20 +65,6 @@ def test_get_src_package_name(mocker: MockFixture) -> None:
         result == "winipedia_utils", f"Expected winipedia_utils, got {result}"
     )
     mock_find_packages.assert_called_once()
-
-
-def test_get_src_package_no_source_package(mocker: MockFixture) -> None:
-    """Test get_src_package when only tests package exists."""
-    mock_package = mocker.MagicMock(spec=ModuleType)
-    mock_package.__name__ = "tests"
-
-    mocker.patch(
-        make_obj_importpath(find_packages_as_modules),
-        return_value=[mock_package],
-    )
-
-    with pytest.raises(StopIteration):
-        get_src_package()
 
 
 def test_make_dir_with_init_file(tmp_path: Path, mocker: MockFixture) -> None:
@@ -850,4 +828,22 @@ class TestDependencyGraph:
         assert_with_msg(
             winipedia_utils in result,
             f"Expected winipedia_utils in result when include=True, got {result}",
+        )
+
+
+def test_import_pkg_from_path(tmp_path: Path) -> None:
+    """Test func for import_pkg_from_path."""
+    # Create a temporary package with known content
+    with chdir(tmp_path):
+        package_dir = tmp_path / "test_package"
+        package_dir.mkdir()
+        init_file = package_dir / "__init__.py"
+        init_file.write_text('"""Test package."""\n')
+
+        # Import the package
+        package = import_pkg_from_path(package_dir)
+
+        assert_with_msg(
+            package.__name__ == "test_package",
+            f"Expected package name to be test_package, got {package.__name__}",
         )

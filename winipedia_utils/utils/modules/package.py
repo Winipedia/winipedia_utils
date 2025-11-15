@@ -9,6 +9,7 @@ The utilities support both static package analysis and dynamic package manipulat
 making them suitable for code generation, testing frameworks, and package management.
 """
 
+import importlib.machinery
 import importlib.metadata
 import importlib.util
 import pkgutil
@@ -48,8 +49,11 @@ def get_src_package() -> ModuleType:
     from winipedia_utils.dev.testing.convention import (  # noqa: PLC0415
         TESTS_PACKAGE_NAME,  # avoid circular import
     )
+    from winipedia_utils.utils.modules.module import to_path  # noqa: PLC0415
 
-    packages = find_packages_as_modules(depth=0, include_namespace_packages=True)
+    package_names = find_packages(depth=0, include_namespace_packages=True)
+    package_paths = [to_path(p, is_package=True) for p in package_names]
+    packages = [import_pkg_from_path(p) for p in package_paths]
 
     return next(p for p in packages if p.__name__ != TESTS_PACKAGE_NAME)
 
@@ -174,7 +178,11 @@ def find_packages(
     )
 
     if exclude is None:
-        exclude = GitIgnoreConfigFile.load()
+        exclude = (
+            GitIgnoreConfigFile.load()
+            if GitIgnoreConfigFile.get_path().exists()
+            else []
+        )
         exclude = [
             p.replace("/", ".").removesuffix(".") for p in exclude if p.endswith("/")
         ]
@@ -479,3 +487,18 @@ class DependencyGraph(nx.DiGraph):  # type: ignore [type-arg]
         if include_winipedia_utils:
             deps.add(winipedia_utils)
         return deps
+
+
+def import_pkg_from_path(package_dir: Path) -> ModuleType:
+    """Import a package from a path."""
+    package_name = package_dir.name
+    loader = importlib.machinery.SourceFileLoader(
+        package_name, str(package_dir / "__init__.py")
+    )
+    spec = importlib.util.spec_from_loader(package_name, loader, is_package=True)
+    if spec is None:
+        msg = f"Could not create spec for {package_dir}"
+        raise ValueError(msg)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module

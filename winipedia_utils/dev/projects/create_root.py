@@ -3,6 +3,7 @@
 from winipedia_utils.dev.configs.base.base import ConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.dev.testing.convention import TESTS_PACKAGE_NAME
+from winipedia_utils.utils.modules.module import create_module
 from winipedia_utils.utils.modules.package import (
     make_init_modules_for_package,
 )
@@ -11,6 +12,8 @@ from winipedia_utils.utils.modules.package import (
 def create_root() -> None:
     """Create the project root."""
     src_package_name = PyprojectConfigFile.get_package_name()
+    create_module(PyprojectConfigFile.get_package_name(), is_package=True)
+    create_module(TESTS_PACKAGE_NAME, is_package=True)
     ConfigFile.init_config_files()
     make_init_modules_for_package(src_package_name)
     make_init_modules_for_package(TESTS_PACKAGE_NAME)

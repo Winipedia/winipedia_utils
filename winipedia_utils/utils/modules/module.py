@@ -32,6 +32,7 @@ from winipedia_utils.utils.modules.inspection import (
 )
 from winipedia_utils.utils.modules.package import (
     get_modules_and_packages_from_package,
+    import_pkg_from_path,
     make_dir_with_init_file,
     module_is_package,
 )
@@ -164,8 +165,9 @@ def create_module(
 
     time.sleep(0.1)
     # use spec and importlib to import the module
-    module_name = to_module_name(path)
-    return import_module(module_name)
+    if is_package:
+        return import_pkg_from_path(path)
+    return import_module_from_path(path)
 
 
 def import_module_from_path(path: Path) -> ModuleType:

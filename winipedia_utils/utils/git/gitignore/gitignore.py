@@ -28,6 +28,8 @@ def path_is_in_gitignore(relative_path: str | Path) -> bool:
         True if the path matches any pattern in .gitignore, False otherwise
 
     """
+    if not GitIgnoreConfigFile.get_path().exists():
+        return False
     as_path = Path(relative_path)
     is_dir = (
         bool(as_path.suffix == "") or as_path.is_dir() or str(as_path).endswith(os.sep)
