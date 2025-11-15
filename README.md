@@ -31,12 +31,14 @@ my-project
 ├── tests
 │   ├── base
 │   │   ├── fixtures
-│   │   │   ├── conftest.py
-│   │   │   └── __init__.py
-│   │   ├── __init__.py
+│   │   ├── utils
+│   │   │   ├── utils.py
 │   └── test_my_project
-│       ├── __init__.py
-│       └── test_builder.py
+│   │   ├── __init__.py
+│   │   └── test_builder.py
+│   └── conftest.py
+│   └── test_zero.py
+│   
 ├── .env
 ├── .gitignore
 ├── .pre-commit-config.yaml
