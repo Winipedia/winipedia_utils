@@ -12,7 +12,7 @@ from winipedia_utils.utils.modules.package import (
 def create_root() -> None:
     """Create the project root."""
     src_package_name = PyprojectConfigFile.get_package_name()
-    create_module(PyprojectConfigFile.get_package_name(), is_package=True)
+    create_module(src_package_name, is_package=True)
     create_module(TESTS_PACKAGE_NAME, is_package=True)
     ConfigFile.init_config_files()
     make_init_modules_for_package(src_package_name)

@@ -51,21 +51,11 @@ def get_src_package() -> ModuleType:
     )
     from winipedia_utils.utils.modules.module import to_path  # noqa: PLC0415
 
-    package_names = find_packages(depth=0, include_namespace_packages=True)
+    package_names = find_packages(depth=0, include_namespace_packages=False)
     package_paths = [to_path(p, is_package=True) for p in package_names]
-    packages = [import_pkg_from_path(p) for p in package_paths]
+    pkg = next(p for p in package_paths if p.name != TESTS_PACKAGE_NAME)
 
-    return next(p for p in packages if p.__name__ != TESTS_PACKAGE_NAME)
-
-
-def get_src_package_name() -> str:
-    """Get the name of the source package."""
-    from winipedia_utils.dev.testing.convention import (  # noqa: PLC0415
-        TESTS_PACKAGE_NAME,  # avoid circular import
-    )
-
-    packages = find_packages(depth=0, include_namespace_packages=True)
-    return next(p for p in packages if p != TESTS_PACKAGE_NAME)
+    return import_pkg_from_path(pkg)
 
 
 def make_dir_with_init_file(path: str | Path) -> None:
