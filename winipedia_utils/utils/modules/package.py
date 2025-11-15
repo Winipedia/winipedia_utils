@@ -11,7 +11,6 @@ making them suitable for code generation, testing frameworks, and package manage
 
 import importlib.metadata
 import importlib.util
-import os
 import pkgutil
 import re
 import sys
@@ -46,11 +45,12 @@ def get_src_package() -> ModuleType:
                        if only the test package exists
 
     """
-    from winipedia_utils.dev.testing.convention import (  # noqa: PLC0415  # avoid circular import
-        TESTS_PACKAGE_NAME,
+    from winipedia_utils.dev.testing.convention import (  # noqa: PLC0415
+        TESTS_PACKAGE_NAME,  # avoid circular import
     )
 
     packages = find_packages_as_modules(depth=0, include_namespace_packages=True)
+
     return next(p for p in packages if p.__name__ != TESTS_PACKAGE_NAME)
 
 
@@ -91,31 +91,6 @@ def module_is_package(obj: ModuleType) -> bool:
 
     """
     return hasattr(obj, "__path__")
-
-
-def package_name_to_path(package_name: str | Path | ModuleType) -> Path:
-    """Convert a Python package import name to its filesystem path.
-
-    Transforms a Python package name (with dots) into the corresponding
-    directory path by replacing dots with the appropriate directory separator
-    for the current operating system.
-
-    Args:
-        package_name: A Python package name to convert
-                      or a Path object or a ModuleType object
-
-    Returns:
-        A Path object representing the filesystem path to the package
-
-    Example:
-        package_name_to_path("package.subpackage") -> Path("package/subpackage")
-
-    """
-    if isinstance(package_name, ModuleType):
-        package_name = package_name.__name__
-    elif isinstance(package_name, Path):
-        package_name = package_name.as_posix()
-    return Path(package_name.replace(".", os.sep))
 
 
 def get_modules_and_packages_from_package(
@@ -297,9 +272,7 @@ def make_init_modules_for_package(path: str | Path | ModuleType) -> None:
 
     path = to_path(path, is_package=True)
 
-    for root, _dirs, files in walk_os_skipping_gitignore_patterns(path):
-        if "__init__.py" in files:
-            continue
+    for root, _dirs, _files in walk_os_skipping_gitignore_patterns(path):
         make_init_module(root)
 
 

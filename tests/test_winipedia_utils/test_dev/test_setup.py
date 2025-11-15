@@ -11,19 +11,9 @@ import pytest
 import winipedia_utils
 from winipedia_utils.dev import setup
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
-from winipedia_utils.dev.setup import SETUP_STEPS, get_setup_steps
 from winipedia_utils.utils.modules.module import to_path
 from winipedia_utils.utils.os.os import run_subprocess
 from winipedia_utils.utils.testing.assertions import assert_with_msg
-
-
-def test_get_setup_steps() -> None:
-    """Test func for _get_setup_steps."""
-    setup_steps = get_setup_steps()
-    assert_with_msg(
-        setup_steps == SETUP_STEPS,
-        f"Expected {SETUP_STEPS}, got {setup_steps}",
-    )
 
 
 @pytest.mark.skipif(
@@ -38,7 +28,7 @@ def test_setup(tmp_path: Path) -> None:
     # with a folder src that the setup works
 
     # copy the winipedia_utils package to tmp_path/winipedia_utils with shutil
-    winipedia_utils_temp_path = tmp_path / winipedia_utils.__name__
+    winipedia_utils_temp_path = tmp_path / PyprojectConfigFile.get_project_name()
     shutil.copytree(
         to_path(winipedia_utils.__name__, is_package=True).parent,
         winipedia_utils_temp_path,
@@ -51,7 +41,7 @@ def test_setup(tmp_path: Path) -> None:
     dist_files = list((winipedia_utils_temp_path / "dist").glob("*.whl"))
     wheel_path = dist_files[-1].as_posix()
 
-    src_project_dir = tmp_path / "src_project"
+    src_project_dir = tmp_path / "src-project"
     src_project_dir.mkdir()
 
     # Get the current Python version in major.minor format

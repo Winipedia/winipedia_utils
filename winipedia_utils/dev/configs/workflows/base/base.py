@@ -451,7 +451,7 @@ class Workflow(YamlConfigFile):
         """Get the run tests step."""
         if step is None:
             step = {}
-        if get_src_package().__name__ == winipedia_utils.__name__:
+        if PyprojectConfigFile.get_package_name() == winipedia_utils.__name__:
             step.setdefault("env", {})["REPO_TOKEN"] = cls.insert_repo_token()
         return cls.get_step(
             step_func=cls.step_run_tests,

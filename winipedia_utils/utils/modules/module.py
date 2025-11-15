@@ -161,9 +161,9 @@ def create_module(
     if not path.exists() and not is_package:
         path.write_text(get_default_module_content())
 
-    module_name = to_module_name(path)
-    # wait before importing the module
     time.sleep(0.1)
+    # use spec and importlib to import the module
+    module_name = to_module_name(path)
     return import_module(module_name)
 
 
@@ -317,7 +317,8 @@ def get_default_init_module_content() -> str:
         A string containing a properly formatted docstring for the __init__.py file
 
     """
-    return '''"""__init__ module."""'''
+    return '''"""__init__ module."""
+'''
 
 
 def get_default_module_content() -> str:
@@ -330,7 +331,8 @@ def get_default_module_content() -> str:
         A string containing a properly formatted docstring for the module file
 
     """
-    return '''"""module."""'''
+    return '''"""module."""
+'''
 
 
 def get_module_of_obj(obj: Any, default: ModuleType | None = None) -> ModuleType:

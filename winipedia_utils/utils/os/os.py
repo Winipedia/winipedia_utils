@@ -11,6 +11,10 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
+from winipedia_utils.utils.logging.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 def which_with_raise(cmd: str, *, raise_error: bool = True) -> str | None:
     """Give the path to the given command.
@@ -58,12 +62,28 @@ def run_subprocess(  # noqa: PLR0913
     """
     if cwd is None:
         cwd = Path.cwd()
-    return subprocess.run(  # noqa: S603  # nosec: B603
-        args,
-        check=check,
-        input=input_,
-        capture_output=capture_output,
-        timeout=timeout,
-        cwd=cwd,
-        **kwargs,
-    )
+    try:
+        return subprocess.run(  # noqa: S603  # nosec: B603
+            args,
+            check=check,
+            input=input_,
+            capture_output=capture_output,
+            timeout=timeout,
+            cwd=cwd,
+            **kwargs,
+        )
+    except subprocess.CalledProcessError as e:
+        logger.exception(
+            """
+Failed to run subprocess:
+    args: %s
+    returncode: %s
+    stdout: %s
+    stderr: %s
+""",
+            args,
+            e.returncode,
+            e.stdout.decode("utf-8"),
+            e.stderr.decode("utf-8"),
+        )
+        raise

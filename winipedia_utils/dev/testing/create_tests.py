@@ -264,15 +264,3 @@ class {test_class_name}:
         test_module_content = "".join(parts)
 
     return test_module_content
-
-
-def main() -> None:
-    """Entry point for the create_tests script.
-
-    Calls the create_tests function to generate all test files.
-    """
-    create_tests()
-
-
-if __name__ == "__main__":
-    main()

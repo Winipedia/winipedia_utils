@@ -1,4 +1,4 @@
-# Winipedia Utils
+# winipedia-utils
 
 A comprehensive Python utility package that enforces best practices, automates project setup, and provides a complete testing framework for modern Python projects.
 

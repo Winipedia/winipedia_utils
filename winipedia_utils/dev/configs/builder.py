@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-import winipedia_utils
 from winipedia_utils.dev.artifacts import builder
 from winipedia_utils.dev.configs.base.base import PythonConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
@@ -16,8 +15,8 @@ class BuilderConfigFile(PythonConfigFile):
     def get_parent_path(cls) -> Path:
         """Get the path to the config file."""
         src_package = PyprojectConfigFile.get_package_name()
-        builds_package = builder.__name__.replace(
-            winipedia_utils.__name__, src_package, 1
+        builds_package = cls.get_module_name_replacing_start_module(
+            builder, src_package
         )
         return to_path(builds_package, is_package=True)
 
@@ -27,4 +26,5 @@ class BuilderConfigFile(PythonConfigFile):
         return '''"""Build script.
 
 All subclasses of Builder in the builds package are automatically called.
-"""'''
+"""
+'''

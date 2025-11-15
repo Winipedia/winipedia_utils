@@ -3,9 +3,13 @@
 from pathlib import Path
 from typing import Any
 
-import winipedia_utils
 from winipedia_utils.dev.configs.base.base import YamlConfigFile
-from winipedia_utils.utils.data.structures.text.string import make_name_from_obj
+from winipedia_utils.dev.projects.poetry.poetry import (
+    POETRY_ARG,
+    POETRY_RUN_ARGS,
+    get_poetry_run_winipedia_utils_cli_cmd_args,
+    get_script_from_args,
+)
 from winipedia_utils.utils.logging.logger import get_logger
 from winipedia_utils.utils.os.os import run_subprocess
 
@@ -27,23 +31,80 @@ class PreCommitConfigConfigFile(YamlConfigFile):
         return Path()
 
     @classmethod
+    def get_hook(
+        cls,
+        name: str,
+        args: list[str],
+        *,
+        language: str = "system",
+        always_run: bool = True,
+        pass_filenames: bool = False,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Get a hook."""
+        if args[0] != POETRY_ARG:
+            args = POETRY_RUN_ARGS + args
+        return {
+            "id": name,
+            "name": name,
+            "entry": get_script_from_args(args),
+            "language": language,
+            "always_run": always_run,
+            "pass_filenames": pass_filenames,
+            **kwargs,
+        }
+
+    @classmethod
     def get_configs(cls) -> dict[str, Any]:
         """Get the config."""
-        hook_name = make_name_from_obj(winipedia_utils, capitalize=False)
+        from winipedia_utils.dev.cli.subcommands import (  # noqa: PLC0415
+            create_root,  # avoid circular import
+        )
+
+        hooks: list[dict[str, Any]] = [
+            cls.get_hook(
+                "update-package-manager",
+                ["poetry", "self", "update"],
+            ),
+            cls.get_hook(
+                "update-dependencies",
+                [
+                    "poetry",
+                    "update",
+                    "--with",
+                    "dev",
+                ],
+            ),
+            cls.get_hook(
+                "check-package-manager-config",
+                ["poetry", "check", "--strict"],
+            ),
+            cls.get_hook(
+                "create-project-root",
+                get_poetry_run_winipedia_utils_cli_cmd_args(create_root),
+            ),
+            cls.get_hook(
+                "lint-code",
+                ["ruff", "check", "--fix"],
+            ),
+            cls.get_hook(
+                "format-code",
+                ["ruff", "format"],
+            ),
+            cls.get_hook(
+                "check-static-types",
+                ["mypy", "--exclude-gitignore"],
+            ),
+            cls.get_hook(
+                "check-security",
+                ["bandit", "-c", "pyproject.toml", "-r", "."],
+            ),
+        ]
         return {
             "repos": [
                 {
                     "repo": "local",
-                    "hooks": [
-                        {
-                            "id": hook_name,
-                            "name": hook_name,
-                            "entry": cls.get_poetry_run_hooks_script(),
-                            "language": "system",
-                            "always_run": True,
-                            "pass_filenames": False,
-                        }
-                    ],
+                    "hooks": hooks,
                 },
             ]
         }
@@ -51,10 +112,32 @@ class PreCommitConfigConfigFile(YamlConfigFile):
     def __init__(self) -> None:
         """Init the file."""
         super().__init__()
-        self.install()
 
     @classmethod
     def install(cls) -> None:
         """Installs the pre commits in the config."""
         logger.info("Running pre-commit install")
-        run_subprocess(["pre-commit", "install"], check=True)
+        run_subprocess(["pre-commit", "install"])
+
+    @classmethod
+    def run_hooks(
+        cls,
+        *,
+        with_install: bool = True,
+        all_files: bool = True,
+        verbose: bool = True,
+        add_before_commit: bool = True,
+    ) -> None:
+        """Runs the pre-commit hooks."""
+        if add_before_commit:
+            logger.info("Adding all files to git")
+            run_subprocess(["git", "add", "."])
+        if with_install:
+            cls.install()
+        logger.info("Running pre-commit run")
+        args = ["pre-commit", "run"]
+        if all_files:
+            args.append("--all-files")
+        if verbose:
+            args.append("--verbose")
+        run_subprocess([*args])

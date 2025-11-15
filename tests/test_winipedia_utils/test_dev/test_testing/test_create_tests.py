@@ -18,7 +18,6 @@ from winipedia_utils.dev.testing.create_tests import (
     get_test_classes_content,
     get_test_functions_content,
     get_test_module_content,
-    main,
 )
 from winipedia_utils.utils.modules.module import make_obj_importpath
 from winipedia_utils.utils.testing.assertions import assert_with_msg
@@ -433,24 +432,3 @@ class TestCalculator:
             del sys.modules["source_module"]
         if "test_module" in sys.modules:
             del sys.modules["test_module"]
-
-
-def test_main(mocker: MockFixture) -> None:
-    """Test func for main."""
-    # Mock the create_tests function
-    mock_create_tests = mocker.patch(make_obj_importpath(create_tests))
-
-    # Call the function
-    main()
-
-    # Verify create_tests was called
-    assert_with_msg(
-        mock_create_tests.called,
-        "Expected create_tests to be called",
-    )
-
-    # Verify it was called exactly once
-    assert_with_msg(
-        mock_create_tests.call_count == 1,
-        f"Expected create_tests to be called once, got {mock_create_tests.call_count}",
-    )

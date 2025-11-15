@@ -10,9 +10,8 @@ from packaging.version import Version
 from winipedia_utils.dev.configs.base.base import TomlConfigFile
 from winipedia_utils.dev.configs.experiment import ExperimentConfigFile
 from winipedia_utils.dev.projects.poetry.dev_deps import DEV_DEPENDENCIES
-from winipedia_utils.dev.projects.poetry.poetry import VersionConstraint
+from winipedia_utils.dev.projects.poetry.versions import VersionConstraint
 from winipedia_utils.dev.testing.convention import TESTS_PACKAGE_NAME
-from winipedia_utils.utils.data.structures.text.string import make_name_from_obj
 from winipedia_utils.utils.logging.logger import get_logger
 
 logger = get_logger(__name__)
@@ -42,7 +41,7 @@ class PyprojectConfigFile(TomlConfigFile):
         return Path()
 
     @classmethod
-    def get_repository_name(cls) -> str:
+    def get_project_name_from_cwd(cls) -> str:
         """Get the repository name.
 
         Is the parent folder the project ives in and should be the same as the
@@ -52,13 +51,27 @@ class PyprojectConfigFile(TomlConfigFile):
         return cwd.name
 
     @classmethod
+    def get_project_description(cls) -> str:
+        """Get the project description."""
+        return str(cls.load().get("project", {}).get("description", ""))
+
+    @classmethod
     def get_configs(cls) -> dict[str, Any]:
         """Get the config."""
+        from winipedia_utils.dev.cli import cli  # noqa: PLC0415
+
         return {
             "project": {
-                "name": make_name_from_obj(cls.get_repository_name(), capitalize=False),
+                "name": cls.get_project_name_from_cwd(),
                 "readme": "README.md",
                 "dynamic": ["dependencies"],
+                "scripts": {
+                    cls.get_project_name(): f"{
+                        cls.get_module_name_replacing_start_module(
+                            cli, cls.get_package_name()
+                        )
+                    }:{cli.main.__name__}"
+                },
             },
             "build-system": {
                 "requires": ["poetry-core>=2.0.0,<3.0.0"],
@@ -66,7 +79,13 @@ class PyprojectConfigFile(TomlConfigFile):
             },
             "tool": {
                 "poetry": {
-                    "packages": [{"include": cls.get_repository_name()}],
+                    "packages": [
+                        {
+                            "include": cls.get_pkg_name_from_project_name(
+                                cls.get_project_name_from_cwd()
+                            )
+                        }
+                    ],
                     "dependencies": cls.make_dependency_to_version_dict(
                         cls.get_dependencies()
                     ),
@@ -135,9 +154,23 @@ class PyprojectConfigFile(TomlConfigFile):
     @classmethod
     def get_package_name(cls) -> str:
         """Get the package name."""
-        project_dict = cls.load().get("project", {})
-        package_name = str(project_dict.get("name", ""))
-        return package_name.replace("-", "_")
+        project_name = cls.get_project_name()
+        return cls.get_pkg_name_from_project_name(project_name)
+
+    @classmethod
+    def get_pkg_name_from_project_name(cls, project_name: str) -> str:
+        """Get the package name from the project name."""
+        return project_name.replace("-", "_")
+
+    @classmethod
+    def get_project_name_from_pkg_name(cls, pkg_name: str) -> str:
+        """Get the project name from the package name."""
+        return pkg_name.replace("_", "-")
+
+    @classmethod
+    def get_project_name(cls) -> str:
+        """Get the project name."""
+        return str(cls.load().get("project", {}).get("name", ""))
 
     @classmethod
     def remove_wrong_dependencies(cls, config: dict[str, Any]) -> dict[str, Any]:

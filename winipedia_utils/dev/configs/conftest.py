@@ -28,6 +28,6 @@ pytest_plugins = ["{make_obj_importpath(conftest)}"]
 '''
 
     @classmethod
-    def run_tests(cls) -> CompletedProcess[str]:
+    def run_tests(cls, *, check: bool = True) -> CompletedProcess[str]:
         """Run the tests."""
-        return run_subprocess(["poetry", "run", "pytest"])
+        return run_subprocess(["poetry", "run", "pytest"], check=check)

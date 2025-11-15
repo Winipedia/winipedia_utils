@@ -10,8 +10,8 @@ import os
 import platform
 import tempfile
 from abc import abstractmethod
-from importlib import import_module
 from pathlib import Path
+from types import ModuleType
 
 from PyInstaller.__main__ import run
 
@@ -24,6 +24,7 @@ from winipedia_utils.utils.modules.class_ import (
     get_all_nonabstract_subclasses,
 )
 from winipedia_utils.utils.modules.module import (
+    import_module_with_default,
     make_obj_importpath,
     to_module_name,
     to_path,
@@ -97,9 +98,9 @@ class Builder(ABCLoggingMixin):
         """Get all non-abstract subclasses of Builder."""
         path = BuilderConfigFile.get_parent_path()
         module_name = to_module_name(path)
-        if not to_path(module_name, is_package=True).exists():
+        builds_pkg = import_module_with_default(module_name)
+        if not isinstance(builds_pkg, ModuleType):
             return set()
-        builds_pkg = import_module(module_name)
         return get_all_nonabstract_subclasses(cls, load_package_before=builds_pkg)
 
     @classmethod

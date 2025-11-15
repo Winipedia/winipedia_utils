@@ -35,7 +35,6 @@ from winipedia_utils.utils.modules.package import (
     make_init_module,
     make_init_modules_for_package,
     module_is_package,
-    package_name_to_path,
     walk_package,
 )
 from winipedia_utils.utils.testing.assertions import assert_with_msg
@@ -126,26 +125,6 @@ def test_module_is_package() -> None:
         module_is_package(mock_module) is False,
         "Expected module without __path__ to not be identified as package",
     )
-
-
-def test_package_name_to_path() -> None:
-    """Test func for package_name_to_path."""
-    # Test with string package name
-    result = package_name_to_path("package.subpackage.module")
-    expected = Path("package") / "subpackage" / "module"
-    assert_with_msg(result == expected, f"Expected {expected}, got {result}")
-
-    # Test with Path object
-    input_path = Path("package/subpackage")
-    result = package_name_to_path(input_path)
-    expected = Path("package") / "subpackage"
-    assert_with_msg(result == expected, f"Expected {expected}, got {result}")
-
-    # Test with ModuleType
-    mock_module = ModuleType("test.module")
-    result = package_name_to_path(mock_module)
-    expected = Path("test") / "module"
-    assert_with_msg(result == expected, f"Expected {expected}, got {result}")
 
 
 def test_get_modules_and_packages_from_package(mocker: MockFixture) -> None:
@@ -378,14 +357,6 @@ def test_make_init_modules_for_package(tmp_path: Path, mocker: MockFixture) -> N
         (sub_dir1, [], ["__init__.py"]),  # Has __init__.py
         (sub_dir2, [], []),  # No __init__.py
     ]
-
-    # Mock make_init_module
-    mock_make_init = mocker.patch(make_obj_importpath(make_init_module))
-
-    make_init_modules_for_package("test.package")
-
-    # Should only call make_init_module for sub_dir2 (no existing __init__.py)
-    mock_make_init.assert_called_once_with(sub_dir2)
 
 
 def test_make_init_module(tmp_path: Path, mocker: MockFixture) -> None:

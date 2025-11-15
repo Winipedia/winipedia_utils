@@ -30,6 +30,26 @@ def my_test_pyproject_config_file(
 class TestPyprojectConfigFile:
     """Test class for PyprojectConfigFile."""
 
+    def test_get_project_description(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for get_project_description."""
+        my_test_pyproject_config_file()
+        description = my_test_pyproject_config_file.get_project_description()
+        assert_with_msg(
+            isinstance(description, str),
+            "Expected description to be a string",
+        )
+
+    def test_get_project_name_from_pkg_name(self) -> None:
+        """Test method for get_project_name_from_pkg_name."""
+        pkg_name = "winipedia_utils"
+        project_name = PyprojectConfigFile.get_project_name_from_pkg_name(pkg_name)
+        assert_with_msg(
+            project_name == "winipedia-utils",
+            "Expected project name to be winipedia-utils",
+        )
+
     def test_is_correct(
         self, my_test_pyproject_config_file: type[PyprojectConfigFile]
     ) -> None:
@@ -86,12 +106,12 @@ class TestPyprojectConfigFile:
             "Expected 'tool' key in configs",
         )
 
-    def test_get_repository_name(
+    def test_get_project_name_from_cwd(
         self, my_test_pyproject_config_file: type[PyprojectConfigFile]
     ) -> None:
         """Test method for get_repository_name."""
         my_test_pyproject_config_file()
-        repository_name = my_test_pyproject_config_file.get_repository_name()
+        repository_name = my_test_pyproject_config_file.get_project_name_from_cwd()
         assert_with_msg(
             len(repository_name) > 0,
             "Expected repository name to be non-empty",
@@ -106,6 +126,30 @@ class TestPyprojectConfigFile:
         assert_with_msg(
             len(package_name) > 0,
             "Expected package name to be non-empty",
+        )
+
+    def test_get_project_name(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for get_project_name."""
+        my_test_pyproject_config_file()
+        project_name = my_test_pyproject_config_file.get_project_name()
+        assert_with_msg(
+            len(project_name) > 0,
+            "Expected project name to be non-empty",
+        )
+
+    def test_get_pkg_name_from_project_name(
+        self, my_test_pyproject_config_file: type[PyprojectConfigFile]
+    ) -> None:
+        """Test method for get_pkg_name_from_project_name."""
+        my_test_pyproject_config_file()
+        pkg_name = my_test_pyproject_config_file.get_pkg_name_from_project_name(
+            "winipedia-utils"
+        )
+        assert_with_msg(
+            pkg_name == "winipedia_utils",
+            "Expected package name to be winipedia_utils",
         )
 
     def test_make_dependency_to_version_dict(

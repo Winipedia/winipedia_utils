@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from pathlib import Path
+from types import ModuleType
 from typing import Any, ClassVar
 
 import pytest
@@ -75,6 +76,22 @@ def my_test_config_file(
 
 class TestConfigFile:
     """Test class for ConfigFile."""
+
+    def test_get_module_name_replacing_start_module(
+        self,
+        my_test_config_file: type[ConfigFile],
+        mocker: MockFixture,
+    ) -> None:
+        """Test method for get_module_name_replacing_start_module."""
+        mock_module = mocker.MagicMock(spec=ModuleType)
+        mock_module.__name__ = "pkg1.pkg2.pkg3"
+
+        new_start_module_name = "new_pkg1"
+        expected = "new_pkg1.pkg2.pkg3"
+        actual = my_test_config_file.get_module_name_replacing_start_module(
+            mock_module, new_start_module_name
+        )
+        assert_with_msg(actual == expected, f"Expected {expected}, got {actual}")
 
     def test_get_parent_path(self, my_test_config_file: type[ConfigFile]) -> None:
         """Test method for get_parent_path."""
@@ -320,13 +337,19 @@ class TestConfigFile:
         num_created = len(list(tmp_path.rglob("*.*")))
         assert_with_msg(num_created == 1, "Expected other files to be created")
 
-    def test_get_poetry_run_hooks_script(
-        self, my_test_config_file: type[ConfigFile]
+    def test_init_winipedia_utils_config_files(
+        self, my_test_config_file: type[ConfigFile], mocker: MockFixture
     ) -> None:
-        """Test method for get_python_setup_script."""
-        expected = "run_hooks"
-        actual = my_test_config_file.get_poetry_run_hooks_script()
-        assert_with_msg(expected in actual, f"Expected {expected} in {actual}")
+        """Test method for init_winipedia_utils_config_files."""
+        mocker.patch(
+            ConfigFile.__module__ + "." + get_all_nonabstract_subclasses.__name__,
+            return_value={my_test_config_file},
+        )
+        ConfigFile.init_winipedia_utils_config_files()
+        assert_with_msg(
+            my_test_config_file.load() == my_test_config_file.get_configs(),
+            "Expected config to be correct",
+        )
 
 
 @pytest.fixture

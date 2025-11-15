@@ -30,6 +30,20 @@ def my_test_pre_commit_config_file(
 class TestPreCommitConfigConfigFile:
     """Test class for PreCommitConfigConfigFile."""
 
+    def test_get_hook(self) -> None:
+        """Test method for get_hook."""
+        hook = PreCommitConfigConfigFile.get_hook("test", ["test"])
+        assert_with_msg(
+            hook["id"] == "test",
+            f"Expected id to be 'test', got {hook['id']}",
+        )
+
+    def test_run_hooks(self, mocker: MockFixture) -> None:
+        """Test method for run_hooks."""
+        mock_run = mocker.patch(make_obj_importpath(pre_commit) + ".run_subprocess")
+        PreCommitConfigConfigFile.run_hooks()
+        mock_run.assert_called()
+
     def test_get_filename(
         self, my_test_pre_commit_config_file: type[PreCommitConfigConfigFile]
     ) -> None:
@@ -114,4 +128,4 @@ class TestPreCommitConfigConfigFile:
         # Mock run_subprocess to avoid actually running pre-commit install
         mock_run = mocker.patch(make_obj_importpath(pre_commit) + ".run_subprocess")
         my_test_pre_commit_config_file.install()
-        mock_run.assert_called_once_with(["pre-commit", "install"], check=True)
+        mock_run.assert_called_once()

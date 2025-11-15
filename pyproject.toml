@@ -4,14 +4,16 @@ name = "winipedia-utils"
 version = "0.7.18"
 description = "A package with many utility functions"
 readme = "README.md"
-license-files = ["LICENSE"]
 license = "MIT"
-
 requires-python = ">=3.12"
 authors = [
     { name = "Winipedia", email = "win.steveker@gmx.de"}
 ]
 dynamic = ["dependencies"]
+
+[project.scripts]
+winipedia-utils = "winipedia_utils.dev.cli.cli:main"
+
 
 [build-system]
 requires = [ "poetry-core>=2.0.0,<3.0.0",]
@@ -46,6 +48,7 @@ types-tqdm = "*"
 bandit = "*"
 mypy = "*"
 pytest = "*"
+typer = "*"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "*"

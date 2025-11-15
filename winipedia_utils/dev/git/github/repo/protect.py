@@ -23,12 +23,12 @@ def protect_repository() -> None:
 
 def set_secure_repo_settings() -> None:
     """Set standard settings for the repository."""
-    src_pkg_name = get_src_package().__name__
+    src_pkg_name = PyprojectConfigFile.get_project_name()
     owner = PyprojectConfigFile.get_main_author_name()
     token = get_github_repo_token()
     repo = get_repo(token, owner, src_pkg_name)
 
-    toml_description = PyprojectConfigFile.load()["project"]["description"]
+    toml_description = PyprojectConfigFile.get_project_description()
 
     repo.edit(
         name=src_pkg_name,

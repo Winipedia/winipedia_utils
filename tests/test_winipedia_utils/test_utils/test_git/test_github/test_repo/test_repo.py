@@ -67,18 +67,19 @@ def test_get_rules_payload() -> None:
 
 def test_get_repo() -> None:
     """Test func for get_repo."""
+    repo_name = PyprojectConfigFile.get_project_name()
     repo = get_repo(
         get_github_repo_token(),
         PyprojectConfigFile.get_main_author_name(),
-        winipedia_utils.__name__,
+        repo_name,
     )
     assert_with_msg(
         isinstance(repo, Repository),
         "Expected Repository object",
     )
     assert_with_msg(
-        repo.name == winipedia_utils.__name__,
-        f"Expected repo name {winipedia_utils.__name__}, got {repo.name}",
+        repo.name == repo_name,
+        f"Expected repo name {repo_name}, got {repo.name}",
     )
 
 

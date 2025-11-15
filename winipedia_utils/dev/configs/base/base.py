@@ -11,9 +11,6 @@ import yaml
 
 import winipedia_utils
 from winipedia_utils.dev import configs
-from winipedia_utils.dev.projects.poetry.poetry import (
-    get_poetry_run_module_script,
-)
 from winipedia_utils.dev.testing.convention import TESTS_PACKAGE_NAME
 from winipedia_utils.utils.data.structures.text.string import split_on_uppercase
 from winipedia_utils.utils.iterating.iterate import nested_structure_is_subset
@@ -154,16 +151,21 @@ class ConfigFile(ABC):
         return nested_structure_is_subset(expected_config, actual_config)
 
     @classmethod
-    def get_all_subclasses(cls) -> list[type["ConfigFile"]]:
+    def get_all_subclasses(
+        cls, *, only_winipedia_utils: bool = True
+    ) -> list[type["ConfigFile"]]:
         """Get all subclasses of ConfigFile."""
-        pkgs_depending_on_winipedia_utils = (
-            DependencyGraph().get_all_depending_on_winipedia_utils(
-                include_winipedia_utils=True
+        if not only_winipedia_utils:
+            pkgs_depending_on_winipedia_utils = (
+                DependencyGraph().get_all_depending_on_winipedia_utils(
+                    include_winipedia_utils=True
+                )
             )
-        )
+            pkgs_depending_on_winipedia_utils.add(get_src_package())
+        else:
+            pkgs_depending_on_winipedia_utils = {winipedia_utils}
 
         subclasses: set[type[ConfigFile]] = set()
-        pkgs_depending_on_winipedia_utils.add(get_src_package())
         for pkg in pkgs_depending_on_winipedia_utils:
             configs_pkg_name = configs.__name__.replace(
                 winipedia_utils.__name__, pkg.__name__, 1
@@ -197,19 +199,25 @@ class ConfigFile(ABC):
         return priorities + list(subclasses)
 
     @classmethod
-    def init_config_files(cls) -> None:
+    def init_config_files(cls, *, only_winipedia_utils: bool = True) -> None:
         """Initialize all subclasses."""
-        for subclass in cls.get_all_subclasses():
+        for subclass in cls.get_all_subclasses(
+            only_winipedia_utils=only_winipedia_utils
+        ):
             subclass()
 
-    @staticmethod
-    def get_poetry_run_hooks_script() -> str:
-        """Get the poetry run setup script."""
-        from winipedia_utils.dev.git.pre_commit import (  # noqa: PLC0415
-            run_hooks,  # avoid circular import
-        )
+    @classmethod
+    def init_winipedia_utils_config_files(cls) -> None:
+        """Initialize all subclasses."""
+        cls.init_config_files(only_winipedia_utils=True)
 
-        return get_poetry_run_module_script(run_hooks)
+    @classmethod
+    def get_module_name_replacing_start_module(
+        cls, module: ModuleType, new_start_module_name: str
+    ) -> str:
+        """Get the module name of a module replacing the start module."""
+        module_current_start = module.__name__.split(".")[0]
+        return module.__name__.replace(module_current_start, new_start_module_name, 1)
 
 
 class YamlConfigFile(ConfigFile):
