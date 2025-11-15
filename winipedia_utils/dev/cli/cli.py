@@ -8,7 +8,7 @@ from winipedia_utils.utils.modules.module import import_module_from_path
 
 app = typer.Typer()
 
-subcommands_module = import_module_from_path(SubcommandsConfigFile.get_path())
+subcommands_module = import_module_from_path(SubcommandsConfigFile().get_path())
 
 sub_cmds = get_all_functions_from_module(subcommands_module)
 
