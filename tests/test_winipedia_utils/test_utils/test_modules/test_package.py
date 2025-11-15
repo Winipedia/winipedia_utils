@@ -831,3 +831,13 @@ def test_import_pkg_from_path(tmp_path: Path) -> None:
             package.__name__ == "test_package",
             f"Expected package name to be test_package, got {package.__name__}",
         )
+        # test deeper path
+        subdir = package_dir / "subdir"
+        subdir.mkdir()
+        init_file = subdir / "__init__.py"
+        init_file.write_text('"""Test package."""\n')
+        package = import_pkg_from_path(subdir)
+        assert_with_msg(
+            package.__name__ == "test_package.subdir",
+            f"Expected package name to be test_package.subdir, got {package.__name__}",
+        )

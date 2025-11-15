@@ -184,6 +184,17 @@ class TestClass:
             module.__name__ == "test_module", f"Expected module name, got {module}"
         )
 
+        # test with deeper path
+        subdir = tmp_path / "subdir"
+        subdir.mkdir()
+        module_file = subdir / "test_module.py"
+        module_file.write_text(module_content)
+        module = import_module_from_path(module_file)
+        assert_with_msg(
+            module.__name__ == "subdir.test_module",
+            f"Expected module name, got {module}",
+        )
+
 
 def test_make_obj_importpath() -> None:
     """Test func for make_obj_importpath."""

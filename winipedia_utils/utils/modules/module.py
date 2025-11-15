@@ -172,7 +172,8 @@ def create_module(
 
 def import_module_from_path(path: Path) -> ModuleType:
     """Import a module from a path."""
-    name = path.with_suffix("").name
+    # name is dotted path relative to cwd
+    name = to_module_name(path)
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None:
         msg = f"Could not create spec for {path}"

@@ -481,7 +481,9 @@ class DependencyGraph(nx.DiGraph):  # type: ignore [type-arg]
 
 def import_pkg_from_path(package_dir: Path) -> ModuleType:
     """Import a package from a path."""
-    package_name = package_dir.name
+    from winipedia_utils.utils.modules.module import to_module_name  # noqa: PLC0415
+
+    package_name = to_module_name(package_dir)
     loader = importlib.machinery.SourceFileLoader(
         package_name, str(package_dir / "__init__.py")
     )
