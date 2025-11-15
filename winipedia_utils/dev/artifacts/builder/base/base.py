@@ -13,8 +13,10 @@ from abc import abstractmethod
 from pathlib import Path
 from types import ModuleType
 
-import winipedia_utils
+from PIL import Image
+
 from winipedia_utils.dev import artifacts
+from winipedia_utils.dev.configs.base.base import ConfigFile
 from winipedia_utils.dev.configs.builder import BuilderConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.utils.data.structures.text.string import make_name_from_obj
@@ -23,7 +25,6 @@ from winipedia_utils.utils.modules.class_ import (
 )
 from winipedia_utils.utils.modules.module import (
     import_module_with_default,
-    make_obj_importpath,
     to_module_name,
     to_path,
 )
@@ -107,6 +108,36 @@ class Builder(ABCLoggingMixin):
         for builder in cls.get_non_abstract_subclasses():
             builder()
 
+    @classmethod
+    def get_app_name(cls) -> str:
+        """Get the app name."""
+        pkg_name = PyprojectConfigFile.get_package_name()
+        return make_name_from_obj(pkg_name, split_on="_", join_on=" ")
+
+    @classmethod
+    def get_root_path(cls) -> Path:
+        """Get the root path."""
+        src_pkg = get_src_package()
+        return to_path(src_pkg, is_package=True).resolve().parent
+
+    @classmethod
+    def get_main_path(cls) -> Path:
+        """Get the main path."""
+        return cls.get_src_pkg_path() / cls.get_main_path_from_src_pkg()
+
+    @classmethod
+    def get_src_pkg_path(cls) -> Path:
+        """Get the src package path."""
+        return cls.get_root_path() / PyprojectConfigFile.get_package_name()
+
+    @classmethod
+    def get_main_path_from_src_pkg(cls) -> Path:
+        """Get the main path.
+
+        The path to main from the src package.
+        """
+        return Path("main.py")
+
 
 class PyInstallerBuilder(Builder):
     """Build the project with pyinstaller.
@@ -149,51 +180,6 @@ class PyInstallerBuilder(Builder):
         return options
 
     @classmethod
-    def get_app_icon_path(cls) -> Path:
-        """Get the app icon path.
-
-        Default is under dev/artifacts folder as icon.ico.
-        """
-        artifacts_path = to_path(
-            make_obj_importpath(artifacts).replace(
-                winipedia_utils.__name__, get_src_package().__name__, 1
-            ),
-            is_package=True,
-        )
-        return artifacts_path / "icon.ico"
-
-    @classmethod
-    def get_app_name(cls) -> str:
-        """Get the app name."""
-        pkg_name = PyprojectConfigFile.get_package_name()
-        return make_name_from_obj(pkg_name, split_on="_", join_on=" ")
-
-    @classmethod
-    def get_main_path_from_src_pkg(cls) -> Path:
-        """Get the main path.
-
-        The path to main from the src package.
-        """
-        return Path("main.py")
-
-    @classmethod
-    def get_root_path(cls) -> Path:
-        """Get the root path."""
-        src_pkg = get_src_package()
-        return to_path(src_pkg, is_package=True).resolve().parent
-
-    @classmethod
-    def get_src_pkg_path(cls) -> Path:
-        """Get the src package path."""
-        src_pkg = get_src_package()
-        return cls.get_root_path() / src_pkg.__name__
-
-    @classmethod
-    def get_main_path(cls) -> Path:
-        """Get the main path."""
-        return cls.get_src_pkg_path() / cls.get_main_path_from_src_pkg()
-
-    @classmethod
     def create_artifacts(cls) -> None:
         """Build the project with pyinstaller."""
         from PyInstaller.__main__ import run  # noqa: PLC0415
@@ -202,3 +188,36 @@ class PyInstallerBuilder(Builder):
             options = cls.get_pyinstaller_options(temp_build_dir)
 
             run(options)
+
+    @classmethod
+    def get_app_icon_path(cls) -> Path:
+        """Get the app icon path."""
+        if platform.system() == "Windows":
+            return cls.convert_png_to_format("ico")
+        if platform.system() == "Darwin":
+            return cls.convert_png_to_format("icns")
+        return cls.convert_png_to_format("png")
+
+    @classmethod
+    def convert_png_to_format(cls, file_format: str) -> Path:
+        """Convert a png to a format."""
+        output_path = cls.ARTIFACTS_PATH / f"icon.{file_format}"
+        png_path = cls.get_app_icon_png_path()
+        img = Image.open(png_path)
+        img.save(output_path, format=file_format.upper())
+        return output_path
+
+    @classmethod
+    def get_app_icon_png_path(cls) -> Path:
+        """Get the app icon path.
+
+        Default is under dev/artifacts folder as icon.png
+        You can override this method to change the icon location.
+        """
+        artifacts_path = to_path(
+            ConfigFile.get_module_name_replacing_start_module(
+                artifacts, PyprojectConfigFile.get_package_name()
+            ),
+            is_package=True,
+        )
+        return cls.get_root_path() / artifacts_path / "icon.png"

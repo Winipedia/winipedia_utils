@@ -49,6 +49,7 @@ bandit = "*"
 mypy = "*"
 pytest = "*"
 typer = "*"
+pillow = "*"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "*"

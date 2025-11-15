@@ -1,10 +1,12 @@
 """module."""
 
 import platform
+import random
 from pathlib import Path
 
 import PyInstaller.__main__ as pyinstaller_main
 import pytest
+from PIL import Image
 from pytest_mock import MockFixture
 
 from winipedia_utils.dev.artifacts.builder.base.base import Builder, PyInstallerBuilder
@@ -113,6 +115,31 @@ class TestBuilder:
             "Expected one artifact",
         )
 
+    def test_get_app_name(self, my_test_builder: type[Builder]) -> None:
+        """Test method for get_app_name."""
+        result = my_test_builder.get_app_name()
+        assert_with_msg(len(result) > 0, "Expected non-empty string")
+
+    def test_get_main_path_from_src_pkg(self, my_test_builder: type[Builder]) -> None:
+        """Test method for get_main_path_from_src_pkg."""
+        result = my_test_builder.get_main_path_from_src_pkg()
+        assert_with_msg(result == Path("main.py"), "Expected main.py")
+
+    def test_get_root_path(self, my_test_builder: type[Builder]) -> None:
+        """Test method for get_root_path."""
+        result = my_test_builder.get_root_path()
+        assert_with_msg(result.exists(), "Expected path to exist")
+
+    def test_get_src_pkg_path(self, my_test_builder: type[Builder]) -> None:
+        """Test method for get_src_pkg_path."""
+        result = my_test_builder.get_src_pkg_path()
+        assert_with_msg(result.exists(), "Expected path to exist")
+
+    def test_get_main_path(self, my_test_builder: type[Builder]) -> None:
+        """Test method for get_main_path."""
+        result = my_test_builder.get_main_path()
+        assert_with_msg(result.name == "main.py", "Expected main.py")
+
 
 @pytest.fixture
 def my_test_pyinstaller_builder(tmp_path: Path) -> type[PyInstallerBuilder]:
@@ -128,6 +155,19 @@ def my_test_pyinstaller_builder(tmp_path: Path) -> type[PyInstallerBuilder]:
             """Get add datas."""
             return [(Path("src"), Path("dest"))]
 
+        @classmethod
+        def get_app_icon_png_path(cls) -> Path:
+            """Get the app icon path."""
+            path = cls.ARTIFACTS_PATH / "icon.png"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            r = random.randint(0, 255)  # nosec: B311  # noqa: S311
+            g = random.randint(0, 255)  # nosec: B311  # noqa: S311
+            b = random.randint(0, 255)  # nosec: B311  # noqa: S311
+
+            img = Image.new("RGB", (256, 256), (r, g, b))
+            img.save(path, format="PNG")
+            return Path(path)
+
     return MyTestPyInstallerBuilder
 
 
@@ -142,58 +182,43 @@ class TestPyInstallerBuilder:
         assert_with_msg(len(result) == 1, "Expected one item")
 
     def test_get_pyinstaller_options(
-        self, my_test_pyinstaller_builder: type[PyInstallerBuilder], tmp_path: Path
+        self,
+        my_test_pyinstaller_builder: type[PyInstallerBuilder],
+        tmp_path: Path,
     ) -> None:
         """Test method for get_pyinstaller_options."""
         options = my_test_pyinstaller_builder.get_pyinstaller_options(str(tmp_path))
         assert_with_msg("--name" in options, "Expected --name option")
 
-    def test_get_app_icon_path(
+    def test_get_app_icon_png_path(
         self, my_test_pyinstaller_builder: type[PyInstallerBuilder]
     ) -> None:
         """Test method for get_app_icon_path."""
-        result = my_test_pyinstaller_builder.get_app_icon_path()
-        assert_with_msg(result.name == "icon.ico", "Expected icon.ico")
-
-    def test_get_app_name(
-        self, my_test_pyinstaller_builder: type[PyInstallerBuilder]
-    ) -> None:
-        """Test method for get_app_name."""
-        result = my_test_pyinstaller_builder.get_app_name()
-        assert_with_msg(len(result) > 0, "Expected non-empty string")
-
-    def test_get_main_path_from_src_pkg(
-        self, my_test_pyinstaller_builder: type[PyInstallerBuilder]
-    ) -> None:
-        """Test method for get_main_path_from_src_pkg."""
-        result = my_test_pyinstaller_builder.get_main_path_from_src_pkg()
-        assert_with_msg(result == Path("main.py"), "Expected main.py")
-
-    def test_get_root_path(
-        self, my_test_pyinstaller_builder: type[PyInstallerBuilder]
-    ) -> None:
-        """Test method for get_root_path."""
-        result = my_test_pyinstaller_builder.get_root_path()
-        assert_with_msg(result.exists(), "Expected path to exist")
-
-    def test_get_src_pkg_path(
-        self, my_test_pyinstaller_builder: type[PyInstallerBuilder]
-    ) -> None:
-        """Test method for get_src_pkg_path."""
-        result = my_test_pyinstaller_builder.get_src_pkg_path()
-        assert_with_msg(result.exists(), "Expected path to exist")
-
-    def test_get_main_path(
-        self, my_test_pyinstaller_builder: type[PyInstallerBuilder]
-    ) -> None:
-        """Test method for get_main_path."""
-        result = my_test_pyinstaller_builder.get_main_path()
-        assert_with_msg(result.name == "main.py", "Expected main.py")
+        result = my_test_pyinstaller_builder.get_app_icon_png_path()
+        assert_with_msg(result.name == "icon.png", "Expected icon.ico")
 
     def test_create_artifacts(
-        self, my_test_pyinstaller_builder: type[PyInstallerBuilder], mocker: MockFixture
+        self,
+        my_test_pyinstaller_builder: type[PyInstallerBuilder],
+        mocker: MockFixture,
     ) -> None:
         """Test method for create_artifacts."""
         mock_run = mocker.patch(make_obj_importpath(pyinstaller_main) + ".run")
         my_test_pyinstaller_builder.create_artifacts()
         mock_run.assert_called_once()
+
+    def test_convert_png_to_format(
+        self,
+        my_test_pyinstaller_builder: type[PyInstallerBuilder],
+    ) -> None:
+        """Test method for convert_png_to_format."""
+        result = my_test_pyinstaller_builder.convert_png_to_format("ico")
+        assert_with_msg(result.name == "icon.ico", "Expected icon.ico")
+
+    def test_get_app_icon_path(
+        self,
+        my_test_pyinstaller_builder: type[PyInstallerBuilder],
+    ) -> None:
+        """Test method for get_app_icon_path."""
+        result = my_test_pyinstaller_builder.get_app_icon_path()
+        assert_with_msg(result.stem == "icon", "Expected icon")
