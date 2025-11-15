@@ -187,7 +187,7 @@ class TestPyInstallerBuilder:
         tmp_path: Path,
     ) -> None:
         """Test method for get_pyinstaller_options."""
-        options = my_test_pyinstaller_builder.get_pyinstaller_options(str(tmp_path))
+        options = my_test_pyinstaller_builder.get_pyinstaller_options(tmp_path)
         assert_with_msg("--name" in options, "Expected --name option")
 
     def test_get_app_icon_png_path(
@@ -210,15 +210,17 @@ class TestPyInstallerBuilder:
     def test_convert_png_to_format(
         self,
         my_test_pyinstaller_builder: type[PyInstallerBuilder],
+        tmp_path: Path,
     ) -> None:
         """Test method for convert_png_to_format."""
-        result = my_test_pyinstaller_builder.convert_png_to_format("ico")
+        result = my_test_pyinstaller_builder.convert_png_to_format("ico", tmp_path)
         assert_with_msg(result.name == "icon.ico", "Expected icon.ico")
 
     def test_get_app_icon_path(
         self,
         my_test_pyinstaller_builder: type[PyInstallerBuilder],
+        tmp_path: Path,
     ) -> None:
         """Test method for get_app_icon_path."""
-        result = my_test_pyinstaller_builder.get_app_icon_path()
+        result = my_test_pyinstaller_builder.get_app_icon_path(tmp_path)
         assert_with_msg(result.stem == "icon", "Expected icon")

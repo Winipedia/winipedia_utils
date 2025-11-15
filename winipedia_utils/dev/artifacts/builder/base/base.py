@@ -156,8 +156,9 @@ class PyInstallerBuilder(Builder):
         """
 
     @classmethod
-    def get_pyinstaller_options(cls, temp_dir: str) -> list[str]:
+    def get_pyinstaller_options(cls, temp_dir: Path) -> list[str]:
         """Get the pyinstaller options."""
+        temp_dir_str = str(temp_dir)
         options = [
             str(cls.get_main_path()),
             "--name",
@@ -167,13 +168,13 @@ class PyInstallerBuilder(Builder):
             "--onefile",
             "--noconsole",
             "--workpath",
-            temp_dir,
+            temp_dir_str,
             "--specpath",
-            temp_dir,
+            temp_dir_str,
             "--distpath",
             str(cls.ARTIFACTS_PATH),
             "--icon",
-            str(cls.get_app_icon_path()),
+            str(cls.get_app_icon_path(temp_dir)),
         ]
         for src, dest in cls.get_add_datas():
             options.extend(["--add-data", f"{src}{os.pathsep}{dest}"])
@@ -185,23 +186,24 @@ class PyInstallerBuilder(Builder):
         from PyInstaller.__main__ import run  # noqa: PLC0415
 
         with tempfile.TemporaryDirectory() as temp_build_dir:
-            options = cls.get_pyinstaller_options(temp_build_dir)
+            temp_dir_path = Path(temp_build_dir)
+            options = cls.get_pyinstaller_options(temp_dir_path)
 
             run(options)
 
     @classmethod
-    def get_app_icon_path(cls) -> Path:
+    def get_app_icon_path(cls, temp_dir: Path) -> Path:
         """Get the app icon path."""
         if platform.system() == "Windows":
-            return cls.convert_png_to_format("ico")
+            return cls.convert_png_to_format("ico", temp_dir)
         if platform.system() == "Darwin":
-            return cls.convert_png_to_format("icns")
-        return cls.convert_png_to_format("png")
+            return cls.convert_png_to_format("icns", temp_dir)
+        return cls.convert_png_to_format("png", temp_dir)
 
     @classmethod
-    def convert_png_to_format(cls, file_format: str) -> Path:
+    def convert_png_to_format(cls, file_format: str, temp_dir_path: Path) -> Path:
         """Convert a png to a format."""
-        output_path = cls.ARTIFACTS_PATH / f"icon.{file_format}"
+        output_path = temp_dir_path / f"icon.{file_format}"
         png_path = cls.get_app_icon_png_path()
         img = Image.open(png_path)
         img.save(output_path, format=file_format.upper())
