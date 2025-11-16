@@ -80,7 +80,7 @@ def to_module_name(path: str | Path | ModuleType) -> str:
     if isinstance(path, Path):
         cwd = (
             Path.cwd()
-            if getattr(sys, "frozen", False)
+            if not getattr(sys, "frozen", False)
             else Path(getattr(sys, "_MEIPASS", ""))
         )
         if path.is_absolute():
