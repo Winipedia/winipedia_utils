@@ -12,7 +12,6 @@ from winipedia_utils.utils.git.github.repo.repo import (
     get_repo,
     get_rules_payload,
 )
-from winipedia_utils.utils.modules.package import get_src_package
 
 
 def protect_repository() -> None:
@@ -51,7 +50,7 @@ def create_or_update_default_branch_ruleset() -> None:
 
 def get_default_ruleset_params() -> dict[str, Any]:
     """Get the default ruleset parameters."""
-    src_pkg_name = get_src_package().__name__
+    repo_name = PyprojectConfigFile.get_project_name()
     token = get_github_repo_token()
 
     rules = get_rules_payload(
@@ -83,7 +82,7 @@ def get_default_ruleset_params() -> dict[str, Any]:
     return {
         "owner": PyprojectConfigFile.get_main_author_name(),
         "token": token,
-        "repo_name": src_pkg_name,
+        "repo_name": repo_name,
         "ruleset_name": DEFAULT_RULESET_NAME,
         "enforcement": "active",
         "bypass_actors": [
