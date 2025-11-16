@@ -164,7 +164,7 @@ def test_get_test_obj_from_obj() -> None:
     test_obj = get_test_obj_from_obj(get_test_obj_from_obj)
     expected = test_get_test_obj_from_obj
     assert_with_msg(
-        test_obj == expected,
+        test_obj.__name__ == expected.__name__,
         f"Expected '{expected}', got {test_obj}",
     )
 

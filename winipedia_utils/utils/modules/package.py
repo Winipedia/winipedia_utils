@@ -58,26 +58,6 @@ def get_src_package() -> ModuleType:
     return import_pkg_from_path(pkg)
 
 
-def make_dir_with_init_file(path: str | Path) -> None:
-    """Create a directory and initialize it as a Python package.
-
-    Creates the specified directory (including any necessary parent directories)
-    and adds __init__.py files to make it a proper Python package. Optionally
-    writes custom content to the __init__.py file.
-
-    Args:
-        path: The directory path to create and initialize as a package
-
-    Note:
-        If the directory already exists, it will not be modified, but __init__.py
-        files will still be added if missing.
-
-    """
-    path = Path(path)
-    path.mkdir(parents=True, exist_ok=True)
-    make_init_modules_for_package(path)
-
-
 def module_is_package(obj: ModuleType) -> bool:
     """Determine if a module object represents a package.
 
@@ -116,12 +96,19 @@ def get_modules_and_packages_from_package(
         All discovered modules and packages are imported during this process.
 
     """
+    from winipedia_utils.utils.modules.module import (  # noqa: PLC0415
+        import_module_from_path,
+        to_path,
+    )
+
+    modules_and_packages = list(
+        pkgutil.iter_modules(package.__path__, prefix=package.__name__ + ".")
+    )
     packages: list[ModuleType] = []
     modules: list[ModuleType] = []
-    for _, name, is_pkg in pkgutil.iter_modules(
-        package.__path__, prefix=package.__name__ + "."
-    ):
-        mod = import_module(name)
+    for _finder, name, is_pkg in modules_and_packages:
+        path = to_path(name, is_package=is_pkg)
+        mod = import_module_from_path(path)
         if is_pkg:
             packages.append(mod)
         else:
@@ -253,70 +240,6 @@ def walk_package(
     yield package, submodules
     for subpackage in subpackages:
         yield from walk_package(subpackage)
-
-
-def make_init_modules_for_package(path: str | Path | ModuleType) -> None:
-    """Create __init__.py files in all subdirectories of a package.
-
-    Ensures that all subdirectories of the given package have __init__.py files,
-    effectively converting them into proper Python packages. Skips directories
-    that match patterns in .gitignore.
-
-    Args:
-        path: The package path or module object to process
-
-    Note:
-        Does not modify directories that already have __init__.py files.
-        Uses the default content for __init__.py files
-        from get_default_init_module_content.
-
-    """
-    from winipedia_utils.utils.git.gitignore.gitignore import (  # noqa: PLC0415
-        walk_os_skipping_gitignore_patterns,  # avoid circular import
-    )
-    from winipedia_utils.utils.modules.module import (  # noqa: PLC0415
-        to_path,  # avoid circular import
-    )
-
-    path = to_path(path, is_package=True)
-
-    for root, _dirs, _files in walk_os_skipping_gitignore_patterns(path):
-        make_init_module(root)
-
-
-def make_init_module(path: str | Path) -> None:
-    """Create an __init__.py file in the specified directory.
-
-    Creates an __init__.py file with default content in the given directory,
-    making it a proper Python package.
-
-    Args:
-        path: The directory path where the __init__.py file should be created
-
-    Note:
-        If the path already points to an __init__.py file, that file will be
-        overwritten with the default content.
-        Creates parent directories if they don't exist.
-
-    """
-    from winipedia_utils.utils.modules.module import (  # noqa: PLC0415  # avoid circular import
-        get_default_init_module_content,
-        to_path,
-    )
-
-    path = to_path(path, is_package=True)
-
-    # if __init__.py not in path add it
-    if path.name != "__init__.py":
-        path = path / "__init__.py"
-
-    if path.exists():
-        return
-
-    content = get_default_init_module_content()
-
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content)
 
 
 def copy_package(
@@ -483,7 +406,7 @@ def import_pkg_from_path(package_dir: Path) -> ModuleType:
     """Import a package from a path."""
     from winipedia_utils.utils.modules.module import to_module_name  # noqa: PLC0415
 
-    package_name = to_module_name(package_dir)
+    package_name = to_module_name(package_dir.resolve().relative_to(Path.cwd()))
     loader = importlib.machinery.SourceFileLoader(
         package_name, str(package_dir / "__init__.py")
     )

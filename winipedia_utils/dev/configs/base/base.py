@@ -17,7 +17,11 @@ from winipedia_utils.utils.iterating.iterate import nested_structure_is_subset
 from winipedia_utils.utils.modules.class_ import (
     get_all_nonabstract_subclasses,
 )
-from winipedia_utils.utils.modules.module import import_module_with_default
+from winipedia_utils.utils.modules.module import (
+    import_module_from_path,
+    make_pkg_dir,
+    to_path,
+)
 from winipedia_utils.utils.modules.package import DependencyGraph, get_src_package
 
 
@@ -151,37 +155,40 @@ class ConfigFile(ABC):
         return nested_structure_is_subset(expected_config, actual_config)
 
     @classmethod
-    def get_all_subclasses(
-        cls, *, only_winipedia_utils: bool = True
-    ) -> list[type["ConfigFile"]]:
+    def get_all_subclasses(cls) -> set[type["ConfigFile"]]:
         """Get all subclasses of ConfigFile."""
-        if not only_winipedia_utils:
-            pkgs_depending_on_winipedia_utils = (
-                DependencyGraph().get_all_depending_on_winipedia_utils(
-                    include_winipedia_utils=True
-                )
+        pkgs_depending_on_winipedia_utils = (
+            DependencyGraph().get_all_depending_on_winipedia_utils(
+                include_winipedia_utils=True
             )
-            pkgs_depending_on_winipedia_utils.add(get_src_package())
-        else:
-            pkgs_depending_on_winipedia_utils = {winipedia_utils}
+        )
+        pkgs_depending_on_winipedia_utils.add(get_src_package())
 
         subclasses: set[type[ConfigFile]] = set()
         for pkg in pkgs_depending_on_winipedia_utils:
             configs_pkg_name = configs.__name__.replace(
                 winipedia_utils.__name__, pkg.__name__, 1
             )
-            configs_pkg = import_module_with_default(configs_pkg_name)
-            if not isinstance(configs_pkg, ModuleType):
-                continue
+            configs_pkg_path = to_path(configs_pkg_name, is_package=True)
+            configs_pkg = import_module_from_path(configs_pkg_path)
             subclasses.update(
                 get_all_nonabstract_subclasses(cls, load_package_before=configs_pkg)
             )
+
+        return subclasses
+
+    @classmethod
+    def init_config_files(cls) -> None:
+        """Initialize all subclasses."""
         # Some must be first:
+        from winipedia_utils.dev.configs.builder import (  # noqa: PLC0415
+            BuilderConfigFile,
+        )
+        from winipedia_utils.dev.configs.configs import (  # noqa: PLC0415
+            ConfigsConfigFile,
+        )
         from winipedia_utils.dev.configs.gitignore import (  # noqa: PLC0415
             GitIgnoreConfigFile,
-        )
-        from winipedia_utils.dev.configs.py_typed import (  # noqa: PLC0415
-            PyTypedConfigFile,
         )
         from winipedia_utils.dev.configs.pyproject import (  # noqa: PLC0415
             PyprojectConfigFile,
@@ -190,26 +197,16 @@ class ConfigFile(ABC):
         priorities: list[type[ConfigFile]] = [
             GitIgnoreConfigFile,
             PyprojectConfigFile,
-            PyTypedConfigFile,
+            ConfigsConfigFile,
+            BuilderConfigFile,
         ]
-        # remove prioritized from subclasses
-        for priority in priorities:
-            subclasses.discard(priority)
-        # add them to the beginning
-        return priorities + list(subclasses)
-
-    @classmethod
-    def init_config_files(cls, *, only_winipedia_utils: bool = False) -> None:
-        """Initialize all subclasses."""
-        for subclass in cls.get_all_subclasses(
-            only_winipedia_utils=only_winipedia_utils
-        ):
+        for subclass in priorities:
             subclass()
 
-    @classmethod
-    def init_winipedia_utils_config_files(cls) -> None:
-        """Initialize all subclasses."""
-        cls.init_config_files(only_winipedia_utils=True)
+        subclasses = cls.get_all_subclasses()
+        subclasses = subclasses - set(priorities)
+        for subclass in subclasses:
+            subclass()
 
     @classmethod
     def get_module_name_replacing_start_module(
@@ -321,6 +318,19 @@ class PythonConfigFile(TextConfigFile):
     def get_file_extension(cls) -> str:
         """Get the file extension of the config file."""
         return "py"
+
+
+class PythonPackageConfigFile(PythonConfigFile):
+    """Base class for python package config files.
+
+    They create an init file.
+    """
+
+    @classmethod
+    def dump(cls, config: dict[str, Any] | list[Any]) -> None:
+        """Dump the config file."""
+        super().dump(config)
+        make_pkg_dir(cls.get_path().parent)
 
 
 class TypedConfigFile(ConfigFile):

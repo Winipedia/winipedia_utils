@@ -3,12 +3,12 @@
 from pathlib import Path
 
 from winipedia_utils.dev.artifacts import builder
-from winipedia_utils.dev.configs.base.base import PythonConfigFile
+from winipedia_utils.dev.configs.base.base import PythonPackageConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.utils.modules.module import to_path
 
 
-class BuilderConfigFile(PythonConfigFile):
+class BuilderConfigFile(PythonPackageConfigFile):
     """Config File subclass that creates the dirs folder."""
 
     @classmethod

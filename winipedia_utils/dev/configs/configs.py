@@ -6,12 +6,12 @@ All subclasses of ConfigFile in the configs package are automatically called.
 from pathlib import Path
 
 from winipedia_utils.dev import configs
-from winipedia_utils.dev.configs.base.base import PythonConfigFile
+from winipedia_utils.dev.configs.base.base import PythonPackageConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.utils.modules.module import to_path
 
 
-class ConfigsConfigFile(PythonConfigFile):
+class ConfigsConfigFile(PythonPackageConfigFile):
     """Config file for configs.py."""
 
     @classmethod

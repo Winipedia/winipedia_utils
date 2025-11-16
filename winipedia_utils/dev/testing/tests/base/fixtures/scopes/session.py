@@ -21,7 +21,10 @@ from winipedia_utils.dev.testing.convention import (
 )
 from winipedia_utils.dev.testing.create_tests import create_tests
 from winipedia_utils.utils.logging.logger import get_logger
-from winipedia_utils.utils.modules.module import import_module_with_default, to_path
+from winipedia_utils.utils.modules.module import (
+    import_module_with_default,
+    to_path,
+)
 from winipedia_utils.utils.modules.package import (
     find_packages,
     get_src_package,
@@ -73,8 +76,15 @@ def assert_config_files_are_correct() -> None:
         ImportError: If a dev dependency is not installed
 
     """
+    subclasses = ConfigFile.get_all_subclasses()
+    all_correct = all(subclass.is_correct() for subclass in subclasses)
     # subclasses of ConfigFile
     ConfigFile.init_config_files()
+
+    assert_with_msg(
+        all_correct,
+        "Config files are not correct. Corrected the files. Please verify the changes.",
+    )
 
 
 @autouse_session_fixture
@@ -159,13 +169,13 @@ def assert_all_modules_tested() -> None:
     for package, modules in walk_package(src_package):
         test_package_name = make_test_obj_importpath_from_obj(package)
         test_package = import_module_with_default(test_package_name)
-        if not test_package:
+        if test_package is None:
             missing_tests_to_module[test_package_name] = package
 
         for module in modules:
             test_module_name = make_test_obj_importpath_from_obj(module)
             test_module = import_module_with_default(test_module_name)
-            if not test_module:
+            if test_module is None:
                 missing_tests_to_module[test_module_name] = module
 
     if missing_tests_to_module:

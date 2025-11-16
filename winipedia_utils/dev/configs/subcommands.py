@@ -3,12 +3,12 @@
 from pathlib import Path
 
 from winipedia_utils.dev import cli
-from winipedia_utils.dev.configs.base.base import PythonConfigFile
+from winipedia_utils.dev.configs.base.base import PythonPackageConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.utils.modules.module import to_path
 
 
-class SubcommandsConfigFile(PythonConfigFile):
+class SubcommandsConfigFile(PythonPackageConfigFile):
     """Config file for subcommands.py."""
 
     @classmethod

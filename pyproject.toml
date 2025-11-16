@@ -3,13 +3,13 @@
 name = "winipedia-utils"
 version = "0.7.27"
 description = "A package with many utility functions"
-readme = "README.md"
 license = "MIT"
 requires-python = ">=3.12"
 authors = [
     { name = "Winipedia", email = "win.steveker@gmx.de"}
 ]
 dynamic = ["dependencies"]
+readme = "README.md"
 
 [project.scripts]
 winipedia-utils = "winipedia_utils.dev.cli.winipedia_utils_cli:main"

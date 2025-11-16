@@ -183,7 +183,7 @@ def test_get_all_cls_from_module() -> None:
     classes = get_all_cls_from_module(module)
 
     # expected classes in order of definition
-    expected_classes = [
+    expected_classes: list[type] = [
         ParentClass,
         TestClass,
         DecoratedClass,
@@ -191,9 +191,11 @@ def test_get_all_cls_from_module() -> None:
         ConcreteChild,
         AnotherAbstractChild,
     ]
+    expected_classes_names: list[str] = [c.__name__ for c in expected_classes]
+    classes_names = [c.__name__ for c in classes]
     assert_with_msg(
-        classes == expected_classes,
-        f"Expected classes {expected_classes}, got {classes}",
+        classes_names == expected_classes_names,
+        f"Expected classes {expected_classes_names}, got {classes_names}",
     )
 
 

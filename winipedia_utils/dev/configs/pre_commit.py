@@ -62,17 +62,12 @@ class PreCommitConfigConfigFile(YamlConfigFile):
                 ["poetry", "self", "update"],
             ),
             cls.get_hook(
-                "update-dependencies",
-                [
-                    "poetry",
-                    "update",
-                    "--with",
-                    "dev",
-                ],
-            ),
-            cls.get_hook(
                 "check-package-manager-config",
                 ["poetry", "check", "--strict"],
+            ),
+            cls.get_hook(
+                "create-root",
+                ["winipedia-utils", "create-root"],
             ),
             cls.get_hook(
                 "lint-code",

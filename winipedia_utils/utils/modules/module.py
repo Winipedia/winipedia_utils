@@ -32,7 +32,6 @@ from winipedia_utils.utils.modules.inspection import (
 from winipedia_utils.utils.modules.package import (
     get_modules_and_packages_from_package,
     import_pkg_from_path,
-    make_dir_with_init_file,
     module_is_package,
 )
 
@@ -129,6 +128,17 @@ def to_path(module_name: str | ModuleType | Path, *, is_package: bool) -> Path:
     return path.with_suffix(".py")
 
 
+def make_dir_with_init_file(path: Path) -> None:
+    """Create a directory and add __init__.py files to make it a package.
+
+    Args:
+        path: The directory path to create and initialize as a package
+
+    """
+    path.mkdir(parents=True, exist_ok=True)
+    make_init_modules_for_package(path)
+
+
 def create_module(
     module_name: str | Path | ModuleType, *, is_package: bool
 ) -> ModuleType:
@@ -153,25 +163,46 @@ def create_module(
     """
     path = to_path(module_name, is_package=is_package)
     if path == Path():
-        msg = f"Cannot create module {module_name=} because it is the current directory"
+        msg = f"Cannot create module {module_name=} because it is the CWD"
         logger.error(msg)
         raise ValueError(msg)
 
     make_dir_with_init_file(path if is_package else path.parent)
-    # create the module file if not exists
-    if not path.exists() and not is_package:
-        path.write_text(get_default_module_content())
 
     # use spec and importlib to import the module
     if is_package:
         return import_pkg_from_path(path)
-    return import_module_from_path(path)
+
+    if not path.exists():
+        path.write_text(get_default_module_content())
+    return import_module_from_file(path)
 
 
 def import_module_from_path(path: Path) -> ModuleType:
     """Import a module from a path."""
+    module_name = to_module_name(path)
+    module = import_module_with_default(module_name)
+    if module is not None:
+        return module
+    if path.is_dir():
+        return import_pkg_from_path(path)
+    return import_module_from_file(path)
+
+
+def import_module_from_path_with_default(
+    path: Path, default: Any = None
+) -> ModuleType | Any:
+    """Import a module from a path."""
+    try:
+        return import_module_from_path(path)
+    except FileNotFoundError:
+        return default
+
+
+def import_module_from_file(path: Path) -> ModuleType:
+    """Import a module from a path."""
     # name is dotted path relative to cwd
-    name = to_module_name(path)
+    name = to_module_name(path.resolve().relative_to(Path.cwd()))
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None:
         msg = f"Could not create spec for {path}"
@@ -416,3 +447,76 @@ def import_module_with_default(
         return import_module(module_name)
     except ImportError:
         return default
+
+
+def make_init_module(path: Path) -> None:
+    """Create an __init__.py file in the specified directory.
+
+    Creates an __init__.py file with default content in the given directory,
+    making it a proper Python package.
+
+    Args:
+        path: The directory path where the __init__.py file should be created
+
+    Note:
+        If the path already points to an __init__.py file, that file will be
+        overwritten with the default content.
+        Creates parent directories if they don't exist.
+
+    """
+    init_path = path / "__init__.py"
+
+    if init_path.exists():
+        return
+
+    content = get_default_init_module_content()
+    init_path.write_text(content)
+
+
+def make_init_modules_for_package(path: Path) -> None:
+    """Create __init__.py files in all subdirectories of a package.
+
+    Ensures that all subdirectories of the given package have __init__.py files,
+    effectively converting them into proper Python packages. Skips directories
+    that match patterns in .gitignore.
+
+    Args:
+        path: The package path or module object to process
+
+    Note:
+        Does not modify directories that already have __init__.py files.
+        Uses the default content for __init__.py files
+        from get_default_init_module_content.
+
+    """
+    # create init files in all subdirectories and in the root
+    make_init_module(path)
+    for p in path.rglob("*"):
+        if p.is_dir():
+            make_init_module(p)
+
+
+def make_pkg_dir(path: Path) -> None:
+    """Create __init__.py files in all parent directories of a path.
+
+    It does not include the CWD.
+
+    Args:
+        path: The path to create __init__.py files for
+
+    Note:
+        Does not modify directories that already have __init__.py files.
+        Uses the default content for __init__.py files
+        from get_default_init_module_content.
+
+    """
+    if path.is_absolute():
+        path = path.relative_to(Path.cwd())
+    # mkdir all parents
+    path.mkdir(parents=True, exist_ok=True)
+
+    make_init_module(path)
+    for p in path.parents:
+        if p in (Path.cwd(), Path()):
+            continue
+        make_init_module(p)

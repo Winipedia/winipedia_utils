@@ -13,12 +13,8 @@ import pytest
 from pytest_mock import MockFixture
 
 import winipedia_utils
-from winipedia_utils.utils.git.gitignore.gitignore import (
-    walk_os_skipping_gitignore_patterns,
-)
 from winipedia_utils.utils.modules.module import (
     create_module,
-    get_default_init_module_content,
     get_isolated_obj_name,
     get_module_content_as_str,
     make_obj_importpath,
@@ -33,9 +29,6 @@ from winipedia_utils.utils.modules.package import (
     get_modules_and_packages_from_package,
     get_src_package,
     import_pkg_from_path,
-    make_dir_with_init_file,
-    make_init_module,
-    make_init_modules_for_package,
     module_is_package,
     walk_package,
 )
@@ -49,40 +42,6 @@ def test_get_src_package() -> None:
         src_pkg.__name__ == winipedia_utils.__name__,
         f"Expected winipedia_utils, got {src_pkg}",
     )
-
-
-def test_make_dir_with_init_file(tmp_path: Path, mocker: MockFixture) -> None:
-    """Test func for make_dir_with_init_file."""
-    test_dir = tmp_path / "test_package"
-
-    # Mock make_init_modules_for_package
-    mock_make_init = mocker.patch(make_obj_importpath(make_init_modules_for_package))
-
-    make_dir_with_init_file(test_dir)
-
-    assert_with_msg(
-        test_dir.exists() and test_dir.is_dir(),
-        f"Expected directory {test_dir} to be created",
-    )
-    mock_make_init.assert_called_once_with(test_dir)
-
-
-def test_make_dir_with_init_file_existing_dir(
-    tmp_path: Path, mocker: MockFixture
-) -> None:
-    """Test make_dir_with_init_file with existing directory."""
-    test_dir = tmp_path / "existing_package"
-    test_dir.mkdir()
-
-    mock_make_init = mocker.patch(make_obj_importpath(make_init_modules_for_package))
-
-    make_dir_with_init_file(test_dir)
-
-    assert_with_msg(
-        test_dir.exists() and test_dir.is_dir(),
-        f"Expected directory {test_dir} to still exist",
-    )
-    mock_make_init.assert_called_once_with(test_dir)
 
 
 def test_module_is_package() -> None:
@@ -105,49 +64,28 @@ def test_module_is_package() -> None:
     )
 
 
-def test_get_modules_and_packages_from_package(mocker: MockFixture) -> None:
+def test_get_modules_and_packages_from_package(tmp_path: Path) -> None:
     """Test func for get_modules_and_packages_from_package."""
-    # Create mock package
-    mock_package = ModuleType("test_package")
-    mock_package.__path__ = ["test_package"]
-    mock_package.__name__ = "test_package"
+    # Create a temporary package with known content
+    with chdir(tmp_path):
+        package_dir = tmp_path / "test_package"
+        package_dir.mkdir()
+        init_file = package_dir / "__init__.py"
+        init_file.write_text('"""Test package."""\n')
+        module_file = package_dir / "test_module.py"
+        module_file.write_text('"""Test module."""\n')
+        package = import_pkg_from_path(package_dir)
 
-    # Mock pkgutil.iter_modules to return some modules and packages
-    mock_iter_modules = mocker.patch("pkgutil.iter_modules")
-    mock_iter_modules.return_value = [
-        (None, "test_package.subpackage", True),  # is_pkg=True
-        (None, "test_package.module1", False),  # is_pkg=False
-        (None, "test_package.module2", False),  # is_pkg=False
-    ]
-
-    # Mock import_module
-    mock_subpackage = ModuleType("test_package.subpackage")
-    mock_module1 = ModuleType("test_package.module1")
-    mock_module2 = ModuleType("test_package.module2")
-
-    mock_import = mocker.patch("winipedia_utils.utils.modules.package.import_module")
-    mock_import.side_effect = [mock_subpackage, mock_module1, mock_module2] * 2
-
-    packages, modules = get_modules_and_packages_from_package(mock_package)
-
-    assert_with_msg(
-        packages == [mock_subpackage],
-        f"Expected packages [mock_subpackage], got {packages}",
-    )
-    assert_with_msg(
-        modules == [mock_module1, mock_module2],
-        f"Expected modules [mock_module1, mock_module2], got {modules}",
-    )
-
-    mock_iter_modules.assert_called_once_with(
-        mock_package.__path__, prefix="test_package."
-    )
-
-    # test order is consistent so that
-    assert_with_msg(
-        get_modules_and_packages_from_package(mock_package) == (packages, modules),
-        "Expected consistent order of packages and modules",
-    )
+        packages, modules = get_modules_and_packages_from_package(package)
+        assert_with_msg(
+            packages == [],
+            f"Expected no packages, got {packages}",
+        )
+        modules_names = [m.__name__ for m in modules]
+        assert_with_msg(
+            modules_names == [package.__name__ + ".test_module"],
+            f"Expected [package.test_module], got {modules}",
+        )
 
 
 def test_find_packages(mocker: MockFixture) -> None:
@@ -311,78 +249,6 @@ def test_walk_package(mocker: MockFixture) -> None:
             modules == expected_modules,
             f"Expected modules {expected_modules}, got {modules} at index {i}",
         )
-
-
-def test_make_init_modules_for_package(tmp_path: Path, mocker: MockFixture) -> None:
-    """Test func for make_init_modules_for_package."""
-    # Create test directory structure
-    test_package = tmp_path / "test_package"
-    sub_dir1 = test_package / "subdir1"
-    sub_dir2 = test_package / "subdir2"
-    sub_dir1.mkdir(parents=True)
-    sub_dir2.mkdir(parents=True)
-
-    # Create an existing __init__.py in one directory
-    (sub_dir1 / "__init__.py").write_text("# existing")
-
-    # Mock to_path
-    mock_to_path = mocker.patch(make_obj_importpath(to_path))
-    mock_to_path.return_value = test_package
-
-    # Mock walk_os_skipping_gitignore_patterns
-    mock_walk = mocker.patch(make_obj_importpath(walk_os_skipping_gitignore_patterns))
-    mock_walk.return_value = [
-        (sub_dir1, [], ["__init__.py"]),  # Has __init__.py
-        (sub_dir2, [], []),  # No __init__.py
-    ]
-
-
-def test_make_init_module(tmp_path: Path, mocker: MockFixture) -> None:
-    """Test func for make_init_module."""
-    test_dir = tmp_path / "test_package"
-
-    # Mock to_path to return the test directory
-    mock_to_path = mocker.patch(make_obj_importpath(to_path))
-    mock_to_path.return_value = test_dir
-
-    # Mock get_default_init_module_content
-    mock_content = mocker.patch(make_obj_importpath(get_default_init_module_content))
-    mock_content.return_value = '"""__init__ module."""'
-
-    make_init_module(test_dir)
-
-    init_file = test_dir / "__init__.py"
-    assert_with_msg(
-        init_file.exists(), f"Expected __init__.py file to be created at {init_file}"
-    )
-    assert_with_msg(
-        init_file.read_text() == '"""__init__ module."""',
-        "Expected correct content in __init__.py",
-    )
-
-
-def test_make_init_module_with_init_path(tmp_path: Path, mocker: MockFixture) -> None:
-    """Test make_init_module when path already points to __init__.py."""
-    test_dir = tmp_path / "test_package"
-    init_path = test_dir / "__init__.py"
-
-    # Mock to_path to return the init file path directly
-    mock_to_path = mocker.patch(make_obj_importpath(to_path))
-    mock_to_path.return_value = init_path
-
-    # Mock get_default_init_module_content
-    mock_content = mocker.patch(make_obj_importpath(get_default_init_module_content))
-    mock_content.return_value = '"""__init__ module."""'
-
-    make_init_module(init_path)
-
-    assert_with_msg(
-        init_path.exists(), f"Expected __init__.py file to be created at {init_path}"
-    )
-    assert_with_msg(
-        init_path.read_text() == '"""__init__ module."""',
-        "Expected correct content in __init__.py",
-    )
 
 
 def test_copy_package(mocker: MockFixture) -> None:

@@ -11,7 +11,6 @@ import platform
 import tempfile
 from abc import abstractmethod
 from pathlib import Path
-from types import ModuleType
 
 from PIL import Image
 
@@ -24,8 +23,7 @@ from winipedia_utils.utils.modules.class_ import (
     get_all_nonabstract_subclasses,
 )
 from winipedia_utils.utils.modules.module import (
-    import_module_with_default,
-    to_module_name,
+    import_module_from_path,
     to_path,
 )
 from winipedia_utils.utils.modules.package import get_src_package
@@ -116,10 +114,7 @@ class Builder(ABCLoggingMixin):
     def get_non_abstract_subclasses(cls) -> set[type["Builder"]]:
         """Get all non-abstract subclasses of Builder."""
         path = BuilderConfigFile.get_parent_path()
-        module_name = to_module_name(path)
-        builds_pkg = import_module_with_default(module_name)
-        if not isinstance(builds_pkg, ModuleType):
-            return set()
+        builds_pkg = import_module_from_path(path)
         return get_all_nonabstract_subclasses(cls, load_package_before=builds_pkg)
 
     @classmethod

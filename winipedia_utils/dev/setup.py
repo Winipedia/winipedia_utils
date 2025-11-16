@@ -9,28 +9,23 @@ This script is intended to be called once at the beginning of a project.
 from collections.abc import Callable
 from typing import Any
 
-from winipedia_utils.dev.configs.base.base import ConfigFile
 from winipedia_utils.dev.configs.conftest import ConftestConfigFile
 from winipedia_utils.dev.configs.pre_commit import PreCommitConfigConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.dev.projects.create_root import create_root
+from winipedia_utils.dev.testing.create_tests import create_tests
 from winipedia_utils.utils.logging.logger import get_logger
 
 logger = get_logger(__name__)
 
 
-def create_and_run_tests() -> None:
-    """Run and create tests."""
-    ConftestConfigFile().run_tests(check=False)  # creates tests
-    ConftestConfigFile.run_tests()
-
-
 SETUP_STEPS: list[Callable[..., Any]] = [
-    ConfigFile.init_winipedia_utils_config_files,
     create_root,
+    create_tests,
+    create_root,  # second time to make sure __init__.py files are created
     PyprojectConfigFile.update_dependencies,
     PreCommitConfigConfigFile.run_hooks,
-    create_and_run_tests,
+    ConftestConfigFile.run_tests,
 ]
 
 
@@ -40,7 +35,3 @@ def setup() -> None:
         logger.info("Running setup step: %s", step.__name__)
         step()
     logger.info("Setup complete!")
-
-
-if __name__ == "__main__":
-    setup()

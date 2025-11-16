@@ -11,7 +11,11 @@ from pathlib import Path
 from types import ModuleType
 
 import pytest
+from pytest_mock import MockFixture
 
+from winipedia_utils.utils.git.gitignore.gitignore import (
+    walk_os_skipping_gitignore_patterns,
+)
 from winipedia_utils.utils.modules.module import (
     create_module,
     execute_all_functions_from_module,
@@ -22,10 +26,16 @@ from winipedia_utils.utils.modules.module import (
     get_module_content_as_str,
     get_module_of_obj,
     get_objs_from_obj,
+    import_module_from_file,
     import_module_from_path,
+    import_module_from_path_with_default,
     import_module_with_default,
     import_obj_from_importpath,
+    make_dir_with_init_file,
+    make_init_module,
+    make_init_modules_for_package,
     make_obj_importpath,
+    make_pkg_dir,
     to_module_name,
     to_path,
 )
@@ -162,6 +172,14 @@ def test_create_module(tmp_path: Path) -> None:
             f"Expected module to be ModuleType, got {type(module)}",
         )
 
+        # Test creating a package
+        package_name = "test_package2"
+        package = create_module(package_name, is_package=True)
+        assert_with_msg(
+            isinstance(package, ModuleType),
+            f"Expected package to be ModuleType, got {type(package)}",
+        )
+
 
 def test_import_module_from_path(tmp_path: Path) -> None:
     """Test func for import_module_from_path."""
@@ -183,13 +201,89 @@ class TestClass:
         assert_with_msg(
             module.__name__ == "test_module", f"Expected module name, got {module}"
         )
+        assert_with_msg(
+            module.test_function() == "test",
+            f"Expected test_function to return 'test', got {module.test_function()}",
+        )
+
+        # Test creating a package
+        package_dir = tmp_path / "test_package"
+        package_dir.mkdir()
+        init_file = package_dir / "__init__.py"
+        init_file.write_text('"""Test package."""\n')
+        package = import_module_from_path(package_dir)
+        assert_with_msg(
+            package.__name__ == "test_package", f"Expected package name, got {package}"
+        )
+
+        # test with deeper path
+        subdir = package_dir / "subdir"
+        subdir.mkdir()
+        init_file = subdir / "__init__.py"
+        init_file.write_text('"""Test package."""\n')
+        package = import_module_from_path(subdir)
+        assert_with_msg(
+            package.__name__ == "test_package.subdir",
+            f"Expected package name, got {package}",
+        )
+
+
+def test_import_module_from_path_with_default(tmp_path: Path) -> None:
+    """Test func for import_module_from_path_with_default."""
+    # Create a temporary module file with known content
+    with chdir(tmp_path):
+        module_content = '''"""Test module."""
+
+def test_function() -> str:
+    """Test function."""
+    return "test"
+
+class TestClass:
+    """Test class."""
+    pass
+'''
+
+        module_file = tmp_path / "test_module.py"
+        module_file.write_text(module_content)
+        module = import_module_from_path_with_default(module_file)
+        assert_with_msg(
+            module.__name__ == "test_module", f"Expected module name, got {module}"
+        )
+
+        non_existing_file = tmp_path / "non_existing.py"
+        module = import_module_from_path_with_default(
+            non_existing_file, default="default"
+        )
+        assert_with_msg(module == "default", f"Expected default, got {module}")
+
+
+def test_import_module_from_file(tmp_path: Path) -> None:
+    """Test func for import_module_from_path."""
+    # Create a temporary module file with known content
+    with chdir(tmp_path):
+        module_content = '''"""Test module."""
+
+def test_function() -> str:
+    """Test function."""
+    return "test"
+
+class TestClass:
+    """Test class."""
+    pass
+'''
+        module_file = tmp_path / "test_module.py"
+        module_file.write_text(module_content)
+        module = import_module_from_file(module_file)
+        assert_with_msg(
+            module.__name__ == "test_module", f"Expected module name, got {module}"
+        )
 
         # test with deeper path
         subdir = tmp_path / "subdir"
         subdir.mkdir()
         module_file = subdir / "test_module.py"
         module_file.write_text(module_content)
-        module = import_module_from_path(module_file)
+        module = import_module_from_file(module_file)
         assert_with_msg(
             module.__name__ == "subdir.test_module",
             f"Expected module name, got {module}",
@@ -507,3 +601,72 @@ def test_import_module_with_default() -> None:
     # Test importing a non-existent module with a default
     result = import_module_with_default("nonexistent", default="default")
     assert_with_msg(result == "default", f"Expected default, got {result}")
+
+
+def test_make_init_module(tmp_path: Path) -> None:
+    """Test func for make_init_module."""
+    with chdir(tmp_path):
+        make_init_module(Path.cwd())
+        assert_with_msg(
+            (Path.cwd() / "__init__.py").exists(),
+            "Expected __init__.py file to be created",
+        )
+
+
+def test_make_init_modules_for_package(tmp_path: Path, mocker: MockFixture) -> None:
+    """Test func for make_init_modules_for_package."""
+    # Create test directory structure
+    test_package = tmp_path / "test_package"
+    sub_dir1 = test_package / "subdir1"
+    sub_dir2 = test_package / "subdir2"
+    sub_dir1.mkdir(parents=True)
+    sub_dir2.mkdir(parents=True)
+
+    # Create an existing __init__.py in one directory
+    (sub_dir1 / "__init__.py").write_text("# existing")
+
+    # Mock to_path
+    mock_to_path = mocker.patch(make_obj_importpath(to_path))
+    mock_to_path.return_value = test_package
+
+    # Mock walk_os_skipping_gitignore_patterns
+    mock_walk = mocker.patch(make_obj_importpath(walk_os_skipping_gitignore_patterns))
+    mock_walk.return_value = [
+        (sub_dir1, [], ["__init__.py"]),  # Has __init__.py
+        (sub_dir2, [], []),  # No __init__.py
+    ]
+
+
+def test_make_dir_with_init_file(tmp_path: Path, mocker: MockFixture) -> None:
+    """Test func for make_dir_with_init_file."""
+    test_dir = tmp_path / "test_package"
+
+    # Mock make_init_modules_for_package
+    mock_make_init = mocker.patch(make_obj_importpath(make_init_modules_for_package))
+
+    make_dir_with_init_file(test_dir)
+
+    assert_with_msg(
+        test_dir.exists() and test_dir.is_dir(),
+        f"Expected directory {test_dir} to be created",
+    )
+    mock_make_init.assert_called_once_with(test_dir)
+
+
+def test_make_pkg_dir(tmp_path: Path) -> None:
+    """Test func for make_init_modules_for_path."""
+    with chdir(tmp_path):
+        mpath = Path.cwd() / "test" / "package"
+        make_pkg_dir(mpath)
+        assert_with_msg(
+            (Path.cwd() / "test" / "__init__.py").exists(),
+            "Expected __init__.py file to be created",
+        )
+        assert_with_msg(
+            (Path.cwd() / "test" / "package" / "__init__.py").exists(),
+            "Expected __init__.py file to be created",
+        )
+        assert_with_msg(
+            not (Path.cwd() / "__init__.py").exists(),
+            "Did not expect __init__.py file to be created",
+        )

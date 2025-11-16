@@ -4,11 +4,11 @@ import typer
 
 from winipedia_utils.dev.configs.subcommands import SubcommandsConfigFile
 from winipedia_utils.utils.modules.function import get_all_functions_from_module
-from winipedia_utils.utils.modules.module import import_module_from_path
+from winipedia_utils.utils.modules.module import import_module_from_file
 
 app = typer.Typer()
 
-subcommands_module = import_module_from_path(SubcommandsConfigFile().get_path())
+subcommands_module = import_module_from_file(SubcommandsConfigFile().get_path())
 
 sub_cmds = get_all_functions_from_module(subcommands_module)
 

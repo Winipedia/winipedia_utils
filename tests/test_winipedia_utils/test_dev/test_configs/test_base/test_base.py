@@ -1,6 +1,7 @@
 """module."""
 
 from collections.abc import Callable
+from contextlib import chdir
 from pathlib import Path
 from types import ModuleType
 from typing import Any, ClassVar
@@ -11,6 +12,7 @@ from pytest_mock import MockFixture
 from winipedia_utils.dev.configs.base.base import (
     ConfigFile,
     PythonConfigFile,
+    PythonPackageConfigFile,
     PythonTestsConfigFile,
     TextConfigFile,
     TomlConfigFile,
@@ -337,20 +339,6 @@ class TestConfigFile:
         num_created = len(list(tmp_path.rglob("*.*")))
         assert_with_msg(num_created == 1, "Expected other files to be created")
 
-    def test_init_winipedia_utils_config_files(
-        self, my_test_config_file: type[ConfigFile], mocker: MockFixture
-    ) -> None:
-        """Test method for init_winipedia_utils_config_files."""
-        mocker.patch(
-            ConfigFile.__module__ + "." + get_all_nonabstract_subclasses.__name__,
-            return_value={my_test_config_file},
-        )
-        ConfigFile.init_winipedia_utils_config_files()
-        assert_with_msg(
-            my_test_config_file.load() == my_test_config_file.get_configs(),
-            "Expected config to be correct",
-        )
-
 
 @pytest.fixture
 def my_test_yaml_config_file(
@@ -605,6 +593,53 @@ class TestPythonTestsConfigFile:
         expected = Path(TESTS_PACKAGE_NAME)
         actual = my_test_python_tests_config_file.get_parent_path()
         assert_with_msg(actual == expected, f"Expected {expected}, got {actual}")
+
+
+@pytest.fixture
+def my_test_python_package_config_file(
+    config_file_factory: Callable[
+        [type[PythonPackageConfigFile]], type[PythonPackageConfigFile]
+    ],
+    tmp_path: Path,
+) -> type[PythonPackageConfigFile]:
+    """Create a test python package config file class with tmp_path."""
+
+    class MyTestPythonPackageConfigFile(config_file_factory(PythonPackageConfigFile)):  # type: ignore [misc]
+        """Test python package config file with tmp_path override."""
+
+        @classmethod
+        def get_parent_path(cls) -> Path:
+            """Get the parent path."""
+            return Path()
+
+        @classmethod
+        def get_content_str(cls) -> str:
+            """Get the content string."""
+            return '"""Test content."""\n'
+
+        @classmethod
+        def dump(cls, config: dict[str, Any] | list[Any]) -> None:
+            """Dump the config file."""
+            with chdir(tmp_path):
+                super().dump(config)
+
+    return MyTestPythonPackageConfigFile
+
+
+class TestPythonPackageConfigFile:
+    """Test class for PythonPackageConfigFile."""
+
+    def test_dump(
+        self, my_test_python_package_config_file: type[PythonPackageConfigFile]
+    ) -> None:
+        """Test method for dump."""
+        my_test_python_package_config_file()
+        assert_with_msg(
+            (
+                my_test_python_package_config_file.get_path().parent / "__init__.py"
+            ).exists(),
+            "Expected __init__.py to be created",
+        )
 
 
 @pytest.fixture
