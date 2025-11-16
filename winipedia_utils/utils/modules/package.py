@@ -26,6 +26,7 @@ from setuptools import find_namespace_packages as _find_namespace_packages
 from setuptools import find_packages as _find_packages
 
 import winipedia_utils
+from winipedia_utils.utils.git.gitignore.gitignore import path_is_in_gitignore
 from winipedia_utils.utils.logging.logger import get_logger
 
 logger = get_logger(__name__)
@@ -108,6 +109,8 @@ def get_modules_and_packages_from_package(
     modules: list[ModuleType] = []
     for _finder, name, is_pkg in modules_and_packages:
         path = to_path(name, is_package=is_pkg)
+        if path_is_in_gitignore(path):
+            continue
         mod = import_module_from_path(path)
         if is_pkg:
             packages.append(mod)

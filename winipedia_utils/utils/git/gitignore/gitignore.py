@@ -12,7 +12,6 @@ from pathlib import Path
 
 import pathspec
 
-from winipedia_utils.dev.configs.gitignore import GitIgnoreConfigFile
 from winipedia_utils.utils.logging.logger import get_logger
 
 logger = get_logger(__name__)
@@ -28,6 +27,10 @@ def path_is_in_gitignore(relative_path: str | Path) -> bool:
         True if the path matches any pattern in .gitignore, False otherwise
 
     """
+    from winipedia_utils.dev.configs.gitignore import (  # noqa: PLC0415
+        GitIgnoreConfigFile,
+    )
+
     if not GitIgnoreConfigFile.get_path().exists():
         return False
     as_path = Path(relative_path)
