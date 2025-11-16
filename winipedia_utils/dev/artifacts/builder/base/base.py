@@ -43,14 +43,13 @@ class Builder(ABCLoggingMixin):
     """
 
     ARTIFACTS_DIR_NAME = "artifacts"
-    ARTIFACTS_PATH = Path(ARTIFACTS_DIR_NAME)
 
     @classmethod
     @abstractmethod
-    def create_artifacts(cls) -> None:
+    def create_artifacts(cls, temp_artifacts_dir: Path) -> None:
         """Build the project.
 
-        This method should create all artifacts in the ARTIFACTS_PATH folder.
+        This method should create all artifacts in the given folder.
 
         Returns:
             None
@@ -62,6 +61,11 @@ class Builder(ABCLoggingMixin):
         cls.build()
 
     @classmethod
+    def get_artifacts_dir(cls) -> Path:
+        """Get the artifacts directory."""
+        return Path(cls.ARTIFACTS_DIR_NAME)
+
+    @classmethod
     def build(cls) -> None:
         """Build the project.
 
@@ -69,28 +73,44 @@ class Builder(ABCLoggingMixin):
         It takes all the files and renames them with -platform.system()
         and puts them in the artifacts folder.
         """
-        cls.ARTIFACTS_PATH.mkdir(parents=True, exist_ok=True)
-        cls.create_artifacts()
-        artifacts = cls.get_artifacts()
-        for artifact in artifacts:
-            parent = artifact.parent
-            if parent != cls.ARTIFACTS_PATH:
-                msg = f"You must create {artifact} in {cls.ARTIFACTS_PATH}"
-                raise FileNotFoundError(msg)
+        with tempfile.TemporaryDirectory() as temp_build_dir:
+            temp_dir_path = Path(temp_build_dir)
+            temp_artifacts_dir = cls.get_temp_artifacts_path(temp_dir_path)
+            cls.create_artifacts(temp_artifacts_dir)
+            artifacts = cls.get_temp_artifacts(temp_artifacts_dir)
+            cls.rename_artifacts(artifacts)
 
+    @classmethod
+    def rename_artifacts(cls, artifacts: list[Path]) -> None:
+        """Rename the artifacts in a non temporary folder."""
+        artifacts_dir = cls.get_artifacts_dir()
+        artifacts_dir.mkdir(parents=True, exist_ok=True)
+        for artifact in artifacts:
             # rename the files with -platform.system()
             new_name = f"{artifact.stem}-{platform.system()}{artifact.suffix}"
-            new_path = cls.ARTIFACTS_PATH / new_name
+            new_path = artifacts_dir / new_name
             artifact.rename(new_path)
+
+    @classmethod
+    def get_temp_artifacts(cls, temp_artifacts_dir: Path) -> list[Path]:
+        """Get the built artifacts."""
+        paths = list(temp_artifacts_dir.glob("*"))
+        if not paths:
+            msg = f"Expected {temp_artifacts_dir} to contain files"
+            raise FileNotFoundError(msg)
+        return paths
 
     @classmethod
     def get_artifacts(cls) -> list[Path]:
         """Get the built artifacts."""
-        paths = list(cls.ARTIFACTS_PATH.glob("*"))
-        if not paths:
-            msg = f"Expected {cls.ARTIFACTS_PATH} to contain files"
-            raise FileNotFoundError(msg)
-        return paths
+        return list(cls.get_artifacts_dir().glob("*"))
+
+    @classmethod
+    def get_temp_artifacts_path(cls, temp_dir: Path) -> Path:
+        """Get the built artifacts."""
+        path = temp_dir / cls.ARTIFACTS_DIR_NAME
+        path.mkdir(parents=True, exist_ok=True)
+        return path
 
     @classmethod
     def get_non_abstract_subclasses(cls) -> set[type["Builder"]]:
@@ -146,6 +166,14 @@ class PyInstallerBuilder(Builder):
     """
 
     @classmethod
+    def create_artifacts(cls, temp_artifacts_dir: Path) -> None:
+        """Build the project with pyinstaller."""
+        from PyInstaller.__main__ import run  # noqa: PLC0415
+
+        options = cls.get_pyinstaller_options(temp_artifacts_dir)
+        run(options)
+
+    @classmethod
     @abstractmethod
     def get_add_datas(cls) -> list[tuple[Path, Path]]:
         """Get the add data paths.
@@ -156,9 +184,10 @@ class PyInstallerBuilder(Builder):
         """
 
     @classmethod
-    def get_pyinstaller_options(cls, temp_dir: Path) -> list[str]:
+    def get_pyinstaller_options(cls, temp_artifacts_dir: Path) -> list[str]:
         """Get the pyinstaller options."""
-        temp_dir_str = str(temp_dir)
+        temp_dir = temp_artifacts_dir.parent
+
         options = [
             str(cls.get_main_path()),
             "--name",
@@ -168,11 +197,11 @@ class PyInstallerBuilder(Builder):
             "--onefile",
             "--noconsole",
             "--workpath",
-            temp_dir_str,
+            str(cls.get_temp_workpath(temp_dir)),
             "--specpath",
-            temp_dir_str,
+            str(cls.get_temp_specpath(temp_dir)),
             "--distpath",
-            str(cls.ARTIFACTS_PATH),
+            str(cls.get_temp_distpath(temp_dir)),
             "--icon",
             str(cls.get_app_icon_path(temp_dir)),
         ]
@@ -181,15 +210,23 @@ class PyInstallerBuilder(Builder):
         return options
 
     @classmethod
-    def create_artifacts(cls) -> None:
-        """Build the project with pyinstaller."""
-        from PyInstaller.__main__ import run  # noqa: PLC0415
+    def get_temp_distpath(cls, temp_dir: Path) -> Path:
+        """Get the distpath option."""
+        return cls.get_temp_artifacts_path(temp_dir)
 
-        with tempfile.TemporaryDirectory() as temp_build_dir:
-            temp_dir_path = Path(temp_build_dir)
-            options = cls.get_pyinstaller_options(temp_dir_path)
+    @classmethod
+    def get_temp_workpath(cls, temp_dir: Path) -> Path:
+        """Get the workpath option."""
+        path = temp_dir / "workpath"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
 
-            run(options)
+    @classmethod
+    def get_temp_specpath(cls, temp_dir: Path) -> Path:
+        """Get the specpath option."""
+        path = temp_dir / "specpath"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
 
     @classmethod
     def get_app_icon_path(cls, temp_dir: Path) -> Path:

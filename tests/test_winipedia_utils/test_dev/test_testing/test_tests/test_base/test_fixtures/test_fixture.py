@@ -6,6 +6,7 @@ from typing import Any
 
 import pytest
 
+from winipedia_utils.dev.artifacts.builder.base.base import Builder
 from winipedia_utils.dev.configs.base.base import ConfigFile
 from winipedia_utils.utils.testing.assertions import assert_with_msg
 
@@ -72,4 +73,41 @@ def test_config_file_factory(
     assert_with_msg(
         path.name == "sample.test",
         f"Expected filename 'sample.test', got {path.name}",
+    )
+
+
+@pytest.fixture
+def sample_builder(
+    builder_factory: Callable[[type[Builder]], type[Builder]],
+) -> type[Builder]:
+    """Create a sample builder class for testing the factory."""
+
+    class SampleBuilder(builder_factory(Builder)):  # type: ignore [misc]
+        """Sample builder for testing."""
+
+        @classmethod
+        def create_artifacts(cls, temp_artifacts_dir: Path) -> None:
+            """Create artifacts."""
+            (temp_artifacts_dir / "sample.txt").write_text("Hello World!")
+
+    return SampleBuilder
+
+
+def test_builder_factory(sample_builder: type[Builder], tmp_path: Path) -> None:
+    """Test func for builder_factory."""
+    # check the cls
+    assert_with_msg(
+        issubclass(sample_builder, Builder),
+        "Expected sample_builder to be a class",
+    )
+    # check get_artifacts_dir returns tmp_path / ARTIFACTS_DIR_NAME
+    assert_with_msg(
+        sample_builder.get_artifacts_dir() == tmp_path / Builder.ARTIFACTS_DIR_NAME,
+        "Expected artifacts dir to be in tmp_path",
+    )
+    # check artifacts are created in tmp_path
+    sample_builder()
+    assert_with_msg(
+        (sample_builder.get_artifacts_dir() / "sample-Linux.txt").exists(),
+        "Expected artifact to be created",
     )

@@ -2,6 +2,7 @@
 
 import platform
 import random
+from collections.abc import Callable
 from pathlib import Path
 
 import PyInstaller.__main__ as pyinstaller_main
@@ -16,19 +17,17 @@ from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 @pytest.fixture
 def my_test_builder(
-    tmp_path: Path,
+    builder_factory: Callable[[type[Builder]], type[Builder]],
 ) -> type[Builder]:
     """Create a test build class."""
 
-    class MyTestBuilder(Builder):
+    class MyTestBuilder(builder_factory(Builder)):  # type: ignore [misc]
         """Test build class."""
 
-        ARTIFACTS_PATH = Path(tmp_path / str(Builder.ARTIFACTS_PATH))
-
         @classmethod
-        def create_artifacts(cls) -> None:
+        def create_artifacts(cls, temp_artifacts_dir: Path) -> None:
             """Build the project."""
-            paths = [Path(cls.ARTIFACTS_PATH / "build.txt")]
+            paths = [temp_artifacts_dir / "build.txt"]
             for path in paths:
                 path.write_text("Hello World!")
 
@@ -36,15 +35,49 @@ def my_test_builder(
 
 
 class TestBuilder:
-    """Test class for Build."""
+    """Test class for Builder."""
+
+    def test_get_artifacts_dir(self) -> None:
+        """Test method for get_artifacts_dir."""
+        # just assert it returns a path
+        assert_with_msg(
+            isinstance(Builder.get_artifacts_dir(), Path),
+            "Expected Path",
+        )
+
+    def test_rename_artifacts(
+        self, tmp_path: Path, my_test_pyinstaller_builder: type[PyInstallerBuilder]
+    ) -> None:
+        """Test method for rename_artifacts."""
+        # write a file to the temp dir
+        (tmp_path / "test.txt").write_text("Hello World!")
+        my_test_pyinstaller_builder.rename_artifacts([tmp_path / "test.txt"])
+        assert_with_msg(
+            (
+                my_test_pyinstaller_builder.get_artifacts_dir()
+                / f"test-{platform.system()}.txt"
+            ).exists(),
+            "Expected renamed file",
+        )
+
+    def test_get_artifacts(self, my_test_builder: type[Builder]) -> None:
+        """Test method for get_artifacts."""
+        my_build = my_test_builder()
+        artifacts = my_build.get_artifacts()
+        assert_with_msg(
+            artifacts[0].name == f"build-{platform.system()}.txt",
+            "Expected artifact to be built",
+        )
+
+    def test_get_temp_artifacts_path(self, tmp_path: Path) -> None:
+        """Test method for get_temp_artifacts_path."""
+        result = Builder.get_temp_artifacts_path(tmp_path)
+        assert_with_msg(result.exists(), "Expected path to exist")
 
     def test_create_artifacts(
         self, my_test_builder: type[Builder], mocker: MockFixture
     ) -> None:
         """Test method for get_artifacts."""
-        with pytest.raises(FileNotFoundError):
-            my_test_builder.create_artifacts()
-
         # spy on create_artifacts
         spy = mocker.spy(my_test_builder, my_test_builder.create_artifacts.__name__)
 
@@ -54,37 +87,40 @@ class TestBuilder:
 
         artifacts = my_build.get_artifacts()
         assert_with_msg(
-            len(artifacts) == 1,
-            f"Expected {1} artifact, got {len(artifacts)}",
+            artifacts[0].name == f"build-{platform.system()}.txt",
+            "Expected artifact to be built",
         )
 
-    def test___init__(self, my_test_builder: type[Builder]) -> None:
+    def test___init__(
+        self, my_test_builder: type[Builder], mocker: MockFixture
+    ) -> None:
         """Test method for __init__."""
+        # spy on build and assert its called
+        my_build_spy = mocker.spy(my_test_builder, my_test_builder.build.__name__)
         my_test_builder()
-        build_txt = my_test_builder.ARTIFACTS_PATH / f"build-{platform.system()}.txt"
-        assert_with_msg(
-            build_txt.exists(),
-            "Expected artifact to be built",
-        )
-        assert_with_msg(
-            build_txt.read_text() == "Hello World!",
-            "Expected correct artifact content",
-        )
+        my_build_spy.assert_called_once()
 
-    def test_build(self, my_test_builder: type[Builder]) -> None:
+    def test_build(self, my_test_builder: type[Builder], mocker: MockFixture) -> None:
         """Test method for build."""
-        my_test_builder.build()
-        assert_with_msg(
-            (
-                my_test_builder.ARTIFACTS_PATH / f"build-{platform.system()}.txt"
-            ).exists(),
-            "Expected artifact to be built",
+        create_spy = mocker.spy(
+            my_test_builder, my_test_builder.create_artifacts.__name__
         )
-
-    def test_get_artifacts(self, my_test_builder: type[Builder]) -> None:
-        """Test method for get_artifacts."""
+        get_artifacts_spy = mocker.spy(
+            my_test_builder, my_test_builder.get_temp_artifacts.__name__
+        )
+        rename_spy = mocker.spy(
+            my_test_builder, my_test_builder.rename_artifacts.__name__
+        )
         my_test_builder.build()
-        artifacts = my_test_builder.get_artifacts()
+        create_spy.assert_called_once()
+        get_artifacts_spy.assert_called_once()
+        rename_spy.assert_called_once()
+
+    def test_get_temp_artifacts(self, tmp_path: Path) -> None:
+        """Test method for get_artifacts."""
+        # write a file to the temp dir
+        (tmp_path / "test.txt").write_text("Hello World!")
+        artifacts = Builder.get_temp_artifacts(tmp_path)
         assert_with_msg(
             len(artifacts) == 1,
             "Expected one artifact",
@@ -111,8 +147,8 @@ class TestBuilder:
         Builder.init_all_non_abstract_subclasses()
         artifacts = my_test_builder.get_artifacts()
         assert_with_msg(
-            len(artifacts) == 1,
-            "Expected one artifact",
+            artifacts[0].name == f"build-{platform.system()}.txt",
+            "Expected artifact to be built",
         )
 
     def test_get_app_name(self, my_test_builder: type[Builder]) -> None:
@@ -142,13 +178,14 @@ class TestBuilder:
 
 
 @pytest.fixture
-def my_test_pyinstaller_builder(tmp_path: Path) -> type[PyInstallerBuilder]:
+def my_test_pyinstaller_builder(
+    builder_factory: Callable[[type[PyInstallerBuilder]], type[PyInstallerBuilder]],
+    tmp_path: Path,
+) -> type[PyInstallerBuilder]:
     """Create a test PyInstaller builder class."""
 
-    class MyTestPyInstallerBuilder(PyInstallerBuilder):
+    class MyTestPyInstallerBuilder(builder_factory(PyInstallerBuilder)):  # type: ignore [misc]
         """Test PyInstaller builder class."""
-
-        ARTIFACTS_PATH = Path(tmp_path / str(Builder.ARTIFACTS_PATH))
 
         @classmethod
         def get_add_datas(cls) -> list[tuple[Path, Path]]:
@@ -158,7 +195,7 @@ def my_test_pyinstaller_builder(tmp_path: Path) -> type[PyInstallerBuilder]:
         @classmethod
         def get_app_icon_png_path(cls) -> Path:
             """Get the app icon path."""
-            path = cls.ARTIFACTS_PATH / "icon.png"
+            path = tmp_path / "icon.png"
             path.parent.mkdir(parents=True, exist_ok=True)
             r = random.randint(0, 255)  # nosec: B311  # noqa: S311
             g = random.randint(0, 255)  # nosec: B311  # noqa: S311
@@ -173,6 +210,21 @@ def my_test_pyinstaller_builder(tmp_path: Path) -> type[PyInstallerBuilder]:
 
 class TestPyInstallerBuilder:
     """Test class for PyInstallerBuilder."""
+
+    def test_get_temp_distpath(self, tmp_path: Path) -> None:
+        """Test method for get_temp_distpath."""
+        result = PyInstallerBuilder.get_temp_distpath(tmp_path)
+        assert_with_msg(result.exists(), "Expected path to exist")
+
+    def test_get_temp_workpath(self, tmp_path: Path) -> None:
+        """Test method for get_temp_workpath."""
+        result = PyInstallerBuilder.get_temp_workpath(tmp_path)
+        assert_with_msg(result.exists(), "Expected path to exist")
+
+    def test_get_temp_specpath(self, tmp_path: Path) -> None:
+        """Test method for get_temp_specpath."""
+        result = PyInstallerBuilder.get_temp_specpath(tmp_path)
+        assert_with_msg(result.exists(), "Expected path to exist")
 
     def test_get_add_datas(
         self, my_test_pyinstaller_builder: type[PyInstallerBuilder]
@@ -204,7 +256,14 @@ class TestPyInstallerBuilder:
     ) -> None:
         """Test method for create_artifacts."""
         mock_run = mocker.patch(make_obj_importpath(pyinstaller_main) + ".run")
-        my_test_pyinstaller_builder.create_artifacts()
+        spy = mocker.spy(
+            my_test_pyinstaller_builder,
+            my_test_pyinstaller_builder.create_artifacts.__name__,
+        )
+        with pytest.raises(FileNotFoundError):
+            my_test_pyinstaller_builder()
+
+        spy.assert_called_once()
         mock_run.assert_called_once()
 
     def test_convert_png_to_format(

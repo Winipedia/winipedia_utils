@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from winipedia_utils.dev.artifacts.builder.base.base import Builder
 from winipedia_utils.dev.configs.base.base import ConfigFile
 
 
@@ -40,3 +41,23 @@ def config_file_factory[T: ConfigFile](
         return TestConfigFile
 
     return _make_test_config
+
+
+@pytest.fixture
+def builder_factory[T: Builder](tmp_path: Path) -> Callable[[type[T]], type[T]]:
+    """Factory fixture for creating builder classes with tmp_path."""
+
+    def _make_test_builder(base_class: type[T]) -> type[T]:
+        """Create a test builder class that uses tmp_path."""
+
+        class TestBuilder(base_class):  # type: ignore [misc, valid-type]
+            """Test builder with tmp_path override."""
+
+            @classmethod
+            def get_artifacts_dir(cls) -> Path:
+                """Get the artifacts directory."""
+                return Path(tmp_path / cls.ARTIFACTS_DIR_NAME)
+
+        return TestBuilder
+
+    return _make_test_builder

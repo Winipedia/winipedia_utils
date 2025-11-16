@@ -28,8 +28,8 @@ class Workflow(YamlConfigFile):
     WINDOWS_LATEST = "windows-latest"
     MACOS_LATEST = "macos-latest"
 
-    ARTIFACTS_PATH = Builder.ARTIFACTS_PATH
-    ARTIFACTS_PATTERN = f"{ARTIFACTS_PATH}/*"
+    ARTIFACTS_DIR_NAME = Builder.ARTIFACTS_DIR_NAME
+    ARTIFACTS_PATTERN = f"{ARTIFACTS_DIR_NAME}/*"
 
     EMPTY_CONFIG: ClassVar[dict[str, Any]] = {
         "on": {
@@ -754,7 +754,7 @@ class Workflow(YamlConfigFile):
         cls,
         *,
         name: str | None = None,
-        path: str | Path = ARTIFACTS_PATH,
+        path: str | Path = ARTIFACTS_DIR_NAME,
         step: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Get the upload artifacts step."""
@@ -785,7 +785,7 @@ class Workflow(YamlConfigFile):
         cls,
         *,
         name: str | None = None,
-        path: str | Path = ARTIFACTS_PATH,
+        path: str | Path = ARTIFACTS_DIR_NAME,
         step: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Get the download artifacts step."""
