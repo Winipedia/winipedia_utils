@@ -1,7 +1,7 @@
 # Project section
 [project]
 name = "winipedia-utils"
-version = "0.7.27"
+version = "0.7.28"
 description = "A package with many utility functions"
 license = "MIT"
 requires-python = ">=3.12"
