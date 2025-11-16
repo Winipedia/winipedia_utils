@@ -78,12 +78,12 @@ def to_module_name(path: str | Path | ModuleType) -> str:
     if isinstance(path, ModuleType):
         return path.__name__
     if isinstance(path, Path):
-        abs_path = path.resolve()
-        rel_path = abs_path.relative_to(Path.cwd())
-        if rel_path.suffix:
-            rel_path = rel_path.with_suffix("")
+        if path.is_absolute():
+            path = path.relative_to(Path.cwd())
+        if path.suffix:
+            path = path.with_suffix("")
         # return joined on . parts
-        return ".".join(rel_path.parts)
+        return ".".join(path.parts)
     if path in (".", "./", ""):
         return ""
     # we get a str that can either be a dotted module name or a path
