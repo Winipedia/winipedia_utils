@@ -50,7 +50,6 @@ mypy = "*"
 pytest = "*"
 typer = "*"
 pillow = "*"
-logdecorator = "*"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "*"

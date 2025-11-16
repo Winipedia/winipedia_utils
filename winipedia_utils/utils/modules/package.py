@@ -47,14 +47,11 @@ def get_src_package() -> ModuleType:
                        if only the test package exists
 
     """
-    from winipedia_utils.dev.testing.convention import (  # noqa: PLC0415
-        TESTS_PACKAGE_NAME,  # avoid circular import
-    )
     from winipedia_utils.utils.modules.module import to_path  # noqa: PLC0415
 
     package_names = find_packages(depth=0, include_namespace_packages=False)
     package_paths = [to_path(p, is_package=True) for p in package_names]
-    pkg = next(p for p in package_paths if p.name != TESTS_PACKAGE_NAME)
+    pkg = next(p for p in package_paths if p.name != "tests")
 
     return import_pkg_from_path(pkg)
 
@@ -153,14 +150,11 @@ def find_packages(
         find_packages(depth=1) might return ["package1", "package2"]
 
     """
-    from winipedia_utils.dev.configs.gitignore import (  # noqa: PLC0415
-        GitIgnoreConfigFile,  # avoid circular import
-    )
-
+    gitignore_path = Path(".gitignore")
     if exclude is None:
         exclude = (
-            GitIgnoreConfigFile.load()
-            if GitIgnoreConfigFile.get_path().exists()
+            gitignore_path.read_text(encoding="utf-8").splitlines()
+            if gitignore_path.exists()
             else []
         )
         exclude = [

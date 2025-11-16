@@ -3,7 +3,7 @@
 tests.test_winipedia_utils.test_testing.test_tests.test_base.test_scopes.test_session
 """
 
-from winipedia_utils.utils.testing.skip import skip_fixture_test
+from winipedia_utils.dev.testing.skip import skip_fixture_test
 
 
 @skip_fixture_test

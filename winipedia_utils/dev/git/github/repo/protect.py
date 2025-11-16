@@ -3,7 +3,7 @@
 from typing import Any
 
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
-from winipedia_utils.utils.git.github.github import get_github_repo_token
+from winipedia_utils.dev.git.github.github import get_github_repo_token
 from winipedia_utils.utils.git.github.repo.repo import (
     DEFAULT_BRANCH,
     DEFAULT_RULESET_NAME,

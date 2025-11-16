@@ -4,7 +4,7 @@ import functools
 
 import pytest
 
-from winipedia_utils.utils.git.github.github import running_in_github_actions
+from winipedia_utils.dev.git.github.github import running_in_github_actions
 
 skip_fixture_test: pytest.MarkDecorator = functools.partial(
     pytest.mark.skip,

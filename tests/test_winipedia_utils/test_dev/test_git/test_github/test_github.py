@@ -2,7 +2,7 @@
 
 import os
 
-from winipedia_utils.utils.git.github.github import (
+from winipedia_utils.dev.git.github.github import (
     get_github_repo_token,
     running_in_github_actions,
 )

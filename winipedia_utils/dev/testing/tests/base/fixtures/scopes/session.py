@@ -141,7 +141,7 @@ def assert_src_package_correctly_named() -> None:
 
     """
     src_package = get_src_package().__name__
-    config = PyprojectConfigFile()
+    config = PyprojectConfigFile
     expected_package = config.get_package_name()
     assert_with_msg(
         src_package == expected_package,

@@ -27,11 +27,8 @@ def path_is_in_gitignore(relative_path: str | Path) -> bool:
         True if the path matches any pattern in .gitignore, False otherwise
 
     """
-    from winipedia_utils.dev.configs.gitignore import (  # noqa: PLC0415
-        GitIgnoreConfigFile,
-    )
-
-    if not GitIgnoreConfigFile.get_path().exists():
+    gitignore_path = Path(".gitignore")
+    if not gitignore_path.exists():
         return False
     as_path = Path(relative_path)
     is_dir = (
@@ -45,7 +42,7 @@ def path_is_in_gitignore(relative_path: str | Path) -> bool:
 
     spec = pathspec.PathSpec.from_lines(
         "gitwildmatch",
-        GitIgnoreConfigFile.load(),
+        gitignore_path.read_text(encoding="utf-8").splitlines(),
     )
 
     return spec.match_file(as_posix)
