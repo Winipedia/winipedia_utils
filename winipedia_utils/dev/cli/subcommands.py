@@ -5,11 +5,13 @@ IMPORTANT: All funcs in this file will be added as subcommands.
 So best to define the logic elsewhere and just call it here in a wrapper.
 """
 
-from winipedia_utils.dev import setup as setup_cmd
-from winipedia_utils.dev.artifacts import build as build_cmd
-from winipedia_utils.dev.git.github.repo import protect
-from winipedia_utils.dev.projects import create_root as create_root_cmd
-from winipedia_utils.dev.testing import create_tests as create_tests_cmd
+from winipedia_utils.dev.artifacts.build import build as build_cmd
+from winipedia_utils.dev.git.github.repo.protect import (
+    protect_repository as protect_repo_cmd,
+)
+from winipedia_utils.dev.projects.create_root import create_root as create_root_cmd
+from winipedia_utils.dev.setup import setup as setup_cmd
+from winipedia_utils.dev.testing.create_tests import create_tests as create_tests_cmd
 
 
 def create_root() -> None:
@@ -19,7 +21,7 @@ def create_root() -> None:
     and tests package where they are missing. It does not overwrite any
     existing files.
     """
-    create_root_cmd.create_root()
+    create_root_cmd()
 
 
 def create_tests() -> None:
@@ -29,7 +31,7 @@ def create_tests() -> None:
     package. It does not overwrite any existing tests.
     Tests are also automatically generated when missing by running pytest.
     """
-    create_tests_cmd.create_tests()
+    create_tests_cmd()
 
 
 def setup() -> None:
@@ -39,7 +41,7 @@ def setup() -> None:
     It will init all config files, create the root, create tests, and run
     all pre-commit hooks and tests.
     """
-    setup_cmd.setup()
+    setup_cmd()
 
 
 def build() -> None:
@@ -47,7 +49,7 @@ def build() -> None:
 
     Invokes every subclass of Builder in the builder package.
     """
-    build_cmd.build()
+    build_cmd()
 
 
 def protect_repo() -> None:
@@ -55,4 +57,4 @@ def protect_repo() -> None:
 
     This will set secure repo settings and add a branch protection rulesets.
     """
-    protect.protect_repository()
+    protect_repo_cmd()

@@ -19,7 +19,6 @@ from winipedia_utils.dev import artifacts
 from winipedia_utils.dev.configs.base.base import ConfigFile
 from winipedia_utils.dev.configs.builder import BuilderConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
-from winipedia_utils.utils.data.structures.text.string import make_name_from_obj
 from winipedia_utils.utils.modules.class_ import (
     get_all_nonabstract_subclasses,
 )
@@ -127,8 +126,7 @@ class Builder(ABCLoggingMixin):
     @classmethod
     def get_app_name(cls) -> str:
         """Get the app name."""
-        pkg_name = PyprojectConfigFile.get_package_name()
-        return make_name_from_obj(pkg_name, split_on="_", join_on=" ")
+        return PyprojectConfigFile.get_project_name()
 
     @classmethod
     def get_root_path(cls) -> Path:

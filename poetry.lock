@@ -585,6 +585,18 @@ test = ["pyfakefs", "pytest (>=6,!=8.1.*)"]
 type = ["pygobject-stubs", "pytest-mypy", "shtab", "types-pywin32"]
 
 [[package]]
+name = "logdecorator"
+version = "2.5"
+description = "Move logging code out of your business logic with decorators"
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "logdecorator-2.5-py3-none-any.whl", hash = "sha256:c893e00866ddb92163e063945412bfadc41207ff1610ef9045df126a00a5c84d"},
+    {file = "logdecorator-2.5.tar.gz", hash = "sha256:aa3486b586efa932c56da0b2bfd73d1a93946887220315500bc8e49c55bb864a"},
+]
+
+[[package]]
 name = "macholib"
 version = "1.16.3"
 description = "Mach-O header analysis and editing"
@@ -1743,4 +1755,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12"
-content-hash = "9b87620ea9e567402df91eff3861e8150f61f386572260b28a19c574089b86cb"
+content-hash = "6bcfd71cd5691330a0d2986f2dec6347ed81bbac559c0bcba16c6b2b86e2bbb2"
