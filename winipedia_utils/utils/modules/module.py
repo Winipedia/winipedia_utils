@@ -78,8 +78,13 @@ def to_module_name(path: str | Path | ModuleType) -> str:
     if isinstance(path, ModuleType):
         return path.__name__
     if isinstance(path, Path):
+        cwd = (
+            Path.cwd()
+            if getattr(sys, "frozen", False)
+            else Path(getattr(sys, "_MEIPASS", ""))
+        )
         if path.is_absolute():
-            path = path.relative_to(Path.cwd())
+            path = path.relative_to(cwd)
         if path.suffix:
             path = path.with_suffix("")
         # return joined on . parts
