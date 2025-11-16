@@ -3,7 +3,6 @@
 from typing import Any
 
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
-from winipedia_utils.dev.configs.workflows.health_check import HealthCheckWorkflow
 from winipedia_utils.utils.git.github.github import get_github_repo_token
 from winipedia_utils.utils.git.github.repo.repo import (
     DEFAULT_BRANCH,
@@ -50,6 +49,10 @@ def create_or_update_default_branch_ruleset() -> None:
 
 def get_default_ruleset_params() -> dict[str, Any]:
     """Get the default ruleset parameters."""
+    from winipedia_utils.dev.configs.workflows.health_check import (  # noqa: PLC0415
+        HealthCheckWorkflow,  # avoid circular import
+    )
+
     repo_name = PyprojectConfigFile.get_project_name()
     token = get_github_repo_token()
 
@@ -96,7 +99,3 @@ def get_default_ruleset_params() -> dict[str, Any]:
         "conditions": {"ref_name": {"include": ["~DEFAULT_BRANCH"], "exclude": []}},
         "rules": rules,
     }
-
-
-if __name__ == "__main__":
-    protect_repository()

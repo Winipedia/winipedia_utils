@@ -7,7 +7,7 @@ from typing import Any, ClassVar
 
 import winipedia_utils
 from winipedia_utils.dev.artifacts.builder.base.base import Builder
-from winipedia_utils.dev.cli.subcommands import build
+from winipedia_utils.dev.cli.subcommands import build, protect_repo
 from winipedia_utils.dev.configs.base.base import YamlConfigFile
 from winipedia_utils.dev.configs.pyproject import PyprojectConfigFile
 from winipedia_utils.dev.projects.poetry.poetry import (
@@ -17,7 +17,6 @@ from winipedia_utils.utils.data.structures.text.string import (
     make_name_from_obj,
     split_on_uppercase,
 )
-from winipedia_utils.utils.modules.module import make_obj_importpath
 from winipedia_utils.utils.modules.package import get_src_package
 
 
@@ -645,11 +644,11 @@ class Workflow(YamlConfigFile):
         step: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Get the protect repository step."""
-        from winipedia_utils.dev.git.github.repo import protect  # noqa: PLC0415
-
         return cls.get_step(
             step_func=cls.step_protect_repository,
-            run=f"poetry run python -m {make_obj_importpath(protect)}",
+            run=get_poetry_run_winipedia_utils_cli_cmd_script(
+                cmd=protect_repo,
+            ),
             env={"REPO_TOKEN": cls.insert_repo_token()},
             step=step,
         )

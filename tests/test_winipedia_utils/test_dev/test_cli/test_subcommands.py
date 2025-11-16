@@ -53,3 +53,15 @@ def test_build() -> None:
         "build" in stoud,
         f"Expected build in stdout, got {stoud}",
     )
+
+
+def test_protect_repo() -> None:
+    """Test func for protect_repo."""
+    # run --help comd to see if its available
+    stoud = run_subprocess(
+        get_poetry_run_winipedia_utils_cli_cmd_args(extra_args=["--help"])
+    ).stdout.decode("utf-8")
+    assert_with_msg(
+        "protect-repo" in stoud,
+        f"Expected protect-repo in stdout, got {stoud}",
+    )

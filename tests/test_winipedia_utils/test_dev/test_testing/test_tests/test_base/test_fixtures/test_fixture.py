@@ -1,5 +1,6 @@
 """test module."""
 
+import platform
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -108,6 +109,8 @@ def test_builder_factory(sample_builder: type[Builder], tmp_path: Path) -> None:
     # check artifacts are created in tmp_path
     sample_builder()
     assert_with_msg(
-        (sample_builder.get_artifacts_dir() / "sample-Linux.txt").exists(),
+        (
+            sample_builder.get_artifacts_dir() / f"sample-{platform.system()}.txt"
+        ).exists(),
         "Expected artifact to be created",
     )

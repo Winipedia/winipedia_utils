@@ -7,6 +7,7 @@ So best to define the logic elsewhere and just call it here in a wrapper.
 
 from winipedia_utils.dev import setup as setup_cmd
 from winipedia_utils.dev.artifacts import build as build_cmd
+from winipedia_utils.dev.git.github.repo import protect
 from winipedia_utils.dev.projects import create_root as create_root_cmd
 from winipedia_utils.dev.testing import create_tests as create_tests_cmd
 
@@ -47,3 +48,11 @@ def build() -> None:
     Invokes every subclass of Builder in the builder package.
     """
     build_cmd.build()
+
+
+def protect_repo() -> None:
+    """Protect the repository.
+
+    This will set secure repo settings and add a branch protection rulesets.
+    """
+    protect.protect_repository()
