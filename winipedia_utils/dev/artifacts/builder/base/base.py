@@ -8,6 +8,7 @@ distribution of project code.
 
 import os
 import platform
+import shutil
 import tempfile
 from abc import abstractmethod
 from pathlib import Path
@@ -87,7 +88,7 @@ class Builder(ABCLoggingMixin):
             # rename the files with -platform.system()
             new_name = f"{artifact.stem}-{platform.system()}{artifact.suffix}"
             new_path = artifacts_dir / new_name
-            artifact.rename(new_path)
+            shutil.move(str(artifact), str(new_path))
 
     @classmethod
     def get_temp_artifacts(cls, temp_artifacts_dir: Path) -> list[Path]:
