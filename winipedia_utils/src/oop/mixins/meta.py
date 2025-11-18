@@ -7,6 +7,7 @@ with enhanced capabilities and stricter implementation requirements.
 
 """
 
+import logging
 import time
 from abc import ABCMeta
 from collections.abc import Callable
@@ -16,9 +17,8 @@ from typing import Any
 from pyrig.src.modules.function import is_func
 
 from winipedia_utils.src.data.structures.text.string import value_to_truncated_string
-from winipedia_utils.src.logging.logger import get_logger
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class ABCLoggingMeta(ABCMeta):

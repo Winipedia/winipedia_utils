@@ -6,6 +6,7 @@ These utilities simplify common string manipulation tasks throughout the applica
 """
 
 import hashlib
+import logging
 import textwrap
 from io import StringIO
 
@@ -14,9 +15,8 @@ from defusedxml import ElementTree as DefusedElementTree
 from winipedia_utils.src.iterating.concurrent.multiprocessing import (
     cancel_on_timeout,
 )
-from winipedia_utils.src.logging.logger import get_logger
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def ask_for_input_with_timeout(prompt: str, timeout: int) -> str:

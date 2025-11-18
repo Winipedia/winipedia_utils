@@ -21,12 +21,13 @@ from typing import TYPE_CHECKING, Any, cast
 from tqdm import tqdm
 
 from winipedia_utils.src.iterating.iterate import get_len_with_default
-from winipedia_utils.src.logging.logger import get_logger
 
 if TYPE_CHECKING:
     from multiprocessing.pool import Pool
 
-logger = get_logger(__name__)
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_order_and_func_result(

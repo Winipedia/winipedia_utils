@@ -9,6 +9,7 @@ Returns:
 
 """
 
+import logging
 import multiprocessing
 from collections.abc import Callable, Iterable
 from functools import wraps
@@ -16,9 +17,8 @@ from multiprocessing.pool import Pool
 from typing import Any
 
 from winipedia_utils.src.iterating.concurrent.concurrent import concurrent_loop
-from winipedia_utils.src.logging.logger import get_logger
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def get_spwan_pool(*args: Any, **kwargs: Any) -> Pool:

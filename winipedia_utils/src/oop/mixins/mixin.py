@@ -10,10 +10,11 @@ These utilities help create robust class hierarchies with proper implementation
 enforcement and built-in logging capabilities.
 """
 
-from winipedia_utils.src.logging.logger import get_logger
+import logging
+
 from winipedia_utils.src.oop.mixins.meta import ABCLoggingMeta
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class ABCLoggingMixin(metaclass=ABCLoggingMeta):
