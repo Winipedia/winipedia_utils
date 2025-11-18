@@ -2,21 +2,18 @@
 
 import hashlib
 from io import StringIO
-from types import ModuleType
 
+from pyrig.src.modules.module import make_obj_importpath
+from pyrig.src.testing.assertions import assert_with_msg
 from pytest_mock import MockFixture
 
-from winipedia_utils.utils.data.structures.text import string
-from winipedia_utils.utils.data.structures.text.string import (
+from winipedia_utils.src.data.structures.text import string
+from winipedia_utils.src.data.structures.text.string import (
     ask_for_input_with_timeout,
     find_xml_namespaces,
     get_reusable_hash,
-    make_name_from_obj,
-    split_on_uppercase,
     value_to_truncated_string,
 )
-from winipedia_utils.utils.modules.module import make_obj_importpath
-from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 
 def test_ask_for_input_with_timeout(mocker: MockFixture) -> None:
@@ -256,78 +253,4 @@ def test_get_reusable_hash() -> None:
     assert_with_msg(
         none_hash == expected_none_hash,
         f"Expected {expected_none_hash}, got {none_hash}",
-    )
-
-
-def test_split_on_uppercase() -> None:
-    """Test func for split_on_uppercase."""
-    # Test with simple string
-    result = split_on_uppercase("HelloWorld")
-    assert_with_msg(
-        result == ["Hello", "World"],
-        f"Expected ['Hello', 'World'], got {result}",
-    )
-
-    # Test with multiple uppercase letters
-    result = split_on_uppercase("SplitCamelCase")
-    assert_with_msg(
-        result == ["Split", "Camel", "Case"],
-        f"Expected ['Split', 'Camel', 'Case'], got {result}",
-    )
-
-    # Test with all uppercase
-    result = split_on_uppercase("ALLUPPERCASE")
-    assert_with_msg(
-        result == list("ALLUPPERCASE"),
-        f"Expected {list('ALLUPPERCASE')}, got {result}",
-    )
-
-    # Test with all lowercase
-    result = split_on_uppercase("alllowercase")
-    assert_with_msg(
-        result == ["alllowercase"],
-        f"Expected ['alllowercase'], got {result}",
-    )
-
-    # test with numbers
-    result = split_on_uppercase("split1Camel2Case")
-    assert_with_msg(
-        result == ["split1", "Camel2", "Case"],
-        f"Expected ['split1', 'Camel2', 'Case'], got {result}",
-    )
-
-
-def test_make_name_from_obj() -> None:
-    """Test func for make_project_name."""
-    # Create mock source package
-    mock_src_package = ModuleType("winipedia_utils")
-    mock_src_package.__name__ = "winipedia_utils"
-
-    result = make_name_from_obj(mock_src_package)
-    expected = "Winipedia-Utils"
-    assert_with_msg(
-        result == expected,
-        f"Expected '{expected}', got '{result}'",
-    )
-
-    result = make_name_from_obj(mock_src_package, split_on="-", join_on="_")
-    expected = "Winipedia_utils"
-    assert_with_msg(
-        result == expected,
-        f"Expected '{expected}', got '{result}'",
-    )
-    result = make_name_from_obj(mock_src_package, capitalize=False)
-    expected = "winipedia-utils"
-    assert_with_msg(
-        result == expected,
-        f"Expected '{expected}', got '{result}'",
-    )
-
-    result = make_name_from_obj(
-        mock_src_package, split_on="-", join_on="_", capitalize=False
-    )
-    expected = "winipedia_utils"
-    assert_with_msg(
-        result == expected,
-        f"Expected '{expected}', got '{result}'",
     )

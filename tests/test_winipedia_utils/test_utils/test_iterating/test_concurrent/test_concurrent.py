@@ -6,14 +6,15 @@ This module tests the functionality of the concurrent processing utilities.
 import os
 from typing import Any
 
-from winipedia_utils.utils.iterating.concurrent.concurrent import (
+from pyrig.src.testing.assertions import assert_with_msg
+
+from winipedia_utils.src.iterating.concurrent.concurrent import (
     concurrent_loop,
     find_max_pools,
     generate_process_args,
     get_multiprocess_results_with_tqdm,
     get_order_and_func_result,
 )
-from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 
 def test_get_order_and_func_result() -> None:

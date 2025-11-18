@@ -1,7 +1,8 @@
 """module."""
 
-from winipedia_utils.utils.data.structures.dicts import reverse_dict
-from winipedia_utils.utils.testing.assertions import assert_with_msg
+from pyrig.src.testing.assertions import assert_with_msg
+
+from winipedia_utils.src.data.structures.dicts import reverse_dict
 
 
 def test_reverse_dict() -> None:

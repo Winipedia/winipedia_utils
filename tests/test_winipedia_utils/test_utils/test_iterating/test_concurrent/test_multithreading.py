@@ -7,12 +7,13 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
-from winipedia_utils.utils.iterating.concurrent.multithreading import (
+from pyrig.src.testing.assertions import assert_with_msg
+
+from winipedia_utils.src.iterating.concurrent.multithreading import (
     get_future_results_as_completed,
     imap_unordered,
     multithread_loop,
 )
-from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 
 def test_get_future_results_as_completed() -> None:

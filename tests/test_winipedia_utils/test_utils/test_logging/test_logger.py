@@ -7,12 +7,12 @@ import importlib
 import logging
 
 import pytest
+from pyrig.src.testing.assertions import assert_with_msg
 from pytest_mock import MockFixture
 
-import winipedia_utils.utils.logging.logger
-from winipedia_utils.utils.logging.config import LOGGING_CONFIG
-from winipedia_utils.utils.logging.logger import get_logger
-from winipedia_utils.utils.testing.assertions import assert_with_msg
+import winipedia_utils.src.logging.logger
+from winipedia_utils.src.logging.config import LOGGING_CONFIG
+from winipedia_utils.src.logging.logger import get_logger
 
 
 def test_get_logger(caplog: pytest.LogCaptureFixture, mocker: MockFixture) -> None:
@@ -87,5 +87,5 @@ def test_get_logger(caplog: pytest.LogCaptureFixture, mocker: MockFixture) -> No
 
     # Force a reload of the module to trigger the dictConfig call
 
-    importlib.reload(winipedia_utils.utils.logging.logger)
+    importlib.reload(winipedia_utils.src.logging.logger)
     mock_dict_config.assert_called_once_with(LOGGING_CONFIG)

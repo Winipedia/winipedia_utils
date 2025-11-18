@@ -46,19 +46,19 @@ jobs:
     - name: Install Python Dependencies
       id: install_python_dependencies
       run: poetry install --with dev
+    - name: Setup Keyring
+      id: setup_keyring
+      run: poetry run pip install keyrings.alt && poetry run python -c "import keyring;
+        from keyrings.alt.file import PlaintextKeyring; keyring.set_keyring(PlaintextKeyring());"
     - name: Update Dependencies
       id: update_dependencies
       run: poetry update --with dev
     - name: Add Dependency Updates To Git
       id: add_dependency_updates_to_git
       run: git add pyproject.toml poetry.lock
-    - name: Setup Keyring
-      id: setup_keyring
-      run: poetry run pip install keyrings.alt && poetry run python -c "import keyring;
-        from keyrings.alt.file import PlaintextKeyring; keyring.set_keyring(PlaintextKeyring());"
     - name: Protect Repository
       id: protect_repository
-      run: poetry run winipedia-utils protect-repo
+      run: poetry run pyrig protect-repo
       env:
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
     - name: Run Pre Commit Hooks
@@ -67,8 +67,6 @@ jobs:
     - name: Run Tests
       id: run_tests
       run: poetry run pytest --log-cli-level=INFO
-      env:
-        REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
   health_check:
     needs:
     - health_check_matrix

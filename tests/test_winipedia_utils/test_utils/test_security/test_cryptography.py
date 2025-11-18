@@ -3,13 +3,13 @@
 import pytest
 from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from pyrig.src.testing.assertions import assert_with_msg
 
-from winipedia_utils.utils.security.cryptography import (
+from winipedia_utils.src.security.cryptography import (
     IV_LEN,
     decrypt_with_aes_gcm,
     encrypt_with_aes_gcm,
 )
-from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 
 def test_encrypt_with_aes_gcm() -> None:

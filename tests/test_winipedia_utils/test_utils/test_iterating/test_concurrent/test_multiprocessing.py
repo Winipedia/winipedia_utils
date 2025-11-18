@@ -4,12 +4,13 @@ import multiprocessing
 import time
 from typing import Any
 
-from winipedia_utils.utils.iterating.concurrent.multiprocessing import (
+from pyrig.src.testing.assertions import assert_with_msg
+
+from winipedia_utils.src.iterating.concurrent.multiprocessing import (
     cancel_on_timeout,
     get_spwan_pool,
     multiprocess_loop,
 )
-from winipedia_utils.utils.testing.assertions import assert_with_msg
 
 
 # Module-level functions for multiprocessing tests (must be pickle-able)
