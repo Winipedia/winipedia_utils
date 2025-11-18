@@ -1,7 +1,7 @@
 # Project section
 [project]
 name = "winiutils"
-version = "0.7.34"
+version = "1.0.0"
 description = "A package with many utility functions"
 license = "MIT"
 requires-python = ">=3.12"
