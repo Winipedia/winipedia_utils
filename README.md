@@ -1,3 +1,3 @@
 # winiutils
 
-(This project was created with [pyrig](https://github.com/Winipedia/pyrig))
+(This project uses [pyrig](https://github.com/Winipedia/pyrig))

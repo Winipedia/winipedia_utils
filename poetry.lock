@@ -1263,14 +1263,14 @@ tests = ["hypothesis (>=3.27.0)", "pytest (>=7.4.0)", "pytest-cov (>=2.10.1)", "
 
 [[package]]
 name = "pyrig"
-version = "1.1.13"
+version = "1.1.14"
 description = "A dev kit that standardizes configurations and testing"
 optional = false
 python-versions = ">=3.12"
 groups = ["main"]
 files = [
-    {file = "pyrig-1.1.13-py3-none-any.whl", hash = "sha256:7b5b1150d3970f8813290f97195946c80f6ed767b714d2ed76922143b321f959"},
-    {file = "pyrig-1.1.13.tar.gz", hash = "sha256:3a65bb4e764d7a813910514ec379766f3dd06265e12f9dc2094da38e25523de9"},
+    {file = "pyrig-1.1.14-py3-none-any.whl", hash = "sha256:85397b77534cbc2d0015f674f770b13bdc00aa4cd5c5617f182ca8e0c908337e"},
+    {file = "pyrig-1.1.14.tar.gz", hash = "sha256:4a9292ff687383e027aca4389e81f9629240c313fb716f09e30f78f8e6331082"},
 ]
 
 [package.dependencies]
