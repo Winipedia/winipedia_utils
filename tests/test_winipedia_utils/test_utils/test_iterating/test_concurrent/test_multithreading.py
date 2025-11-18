@@ -9,7 +9,7 @@ from typing import Any
 
 from pyrig.src.testing.assertions import assert_with_msg
 
-from winipedia_utils.src.iterating.concurrent.multithreading import (
+from winiutils.src.iterating.concurrent.multithreading import (
     get_future_results_as_completed,
     imap_unordered,
     multithread_loop,

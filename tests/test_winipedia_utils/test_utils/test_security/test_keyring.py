@@ -8,8 +8,8 @@ from pyrig.src.modules.module import make_obj_importpath
 from pyrig.src.testing.assertions import assert_with_msg
 from pytest_mock import MockerFixture
 
-from winipedia_utils.src.security import keyring
-from winipedia_utils.src.security.keyring import (
+from winiutils.src.security import keyring
+from winiutils.src.security.keyring import (
     get_key_as_str,
     get_or_create_aes_gcm,
     get_or_create_fernet,

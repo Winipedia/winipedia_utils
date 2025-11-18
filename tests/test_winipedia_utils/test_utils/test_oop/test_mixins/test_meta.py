@@ -10,9 +10,9 @@ from pyrig.src.modules.module import make_obj_importpath
 from pyrig.src.testing.assertions import assert_with_msg
 from pytest_mock import MockFixture
 
-from winipedia_utils.src.data.structures.text.string import value_to_truncated_string
-from winipedia_utils.src.oop.mixins import meta
-from winipedia_utils.src.oop.mixins.meta import (
+from winiutils.src.data.structures.text.string import value_to_truncated_string
+from winiutils.src.oop.mixins import meta
+from winiutils.src.oop.mixins.meta import (
     ABCLoggingMeta,
 )
 

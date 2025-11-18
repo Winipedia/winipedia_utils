@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from tqdm import tqdm
 
-from winipedia_utils.src.iterating.iterate import get_len_with_default
+from winiutils.src.iterating.iterate import get_len_with_default
 
 if TYPE_CHECKING:
     from multiprocessing.pool import Pool
@@ -209,10 +209,10 @@ def concurrent_loop(  # noqa: PLR0913
     Returns:
         list[Any]: Results from the process_function executions
     """
-    from winipedia_utils.src.iterating.concurrent.multiprocessing import (  # noqa: PLC0415  # avoid circular import
+    from winiutils.src.iterating.concurrent.multiprocessing import (  # noqa: PLC0415  # avoid circular import
         get_spwan_pool,
     )
-    from winipedia_utils.src.iterating.concurrent.multithreading import (  # noqa: PLC0415  # avoid circular import
+    from winiutils.src.iterating.concurrent.multithreading import (  # noqa: PLC0415  # avoid circular import
         imap_unordered,
     )
 

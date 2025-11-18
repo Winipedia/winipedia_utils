@@ -2,7 +2,7 @@
 
 from pyrig.src.testing.assertions import assert_with_msg
 
-from winipedia_utils.src.data.structures.dicts import reverse_dict
+from winiutils.src.data.structures.dicts import reverse_dict
 
 
 def test_reverse_dict() -> None:

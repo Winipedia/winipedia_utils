@@ -1,7 +1,7 @@
 # Project section
 [project]
-name = "winipedia-utils"
-version = "0.7.34"
+name = "winiutils"
+version = "0.7.33"
 description = "A package with many utility functions"
 license = "MIT"
 requires-python = ">=3.12"
@@ -13,6 +13,7 @@ readme = "README.md"
 
 [project.scripts]
 winipedia-utils = "pyrig.dev.cli.cli:main"
+winiutils = "pyrig.dev.cli.cli:main"
 
 
 [build-system]
@@ -21,7 +22,7 @@ build-backend = "poetry.core.masonry.api"
 
 # Poetry section
 [[tool.poetry.packages]]
-include = "winipedia_utils"
+include = "winiutils"
 
 [tool.poetry.dependencies]
 polars = "*"

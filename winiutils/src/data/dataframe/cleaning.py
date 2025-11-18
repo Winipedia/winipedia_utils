@@ -12,8 +12,8 @@ from typing import Any
 import polars as pl
 from polars.datatypes.classes import FloatType
 
-from winipedia_utils.src.data.structures.dicts import reverse_dict
-from winipedia_utils.src.oop.mixins.mixin import ABCLoggingMixin
+from winiutils.src.data.structures.dicts import reverse_dict
+from winiutils.src.oop.mixins.mixin import ABCLoggingMixin
 
 
 class CleaningDF(ABCLoggingMixin):

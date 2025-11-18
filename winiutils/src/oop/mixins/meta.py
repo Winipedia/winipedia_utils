@@ -16,7 +16,7 @@ from typing import Any
 
 from pyrig.src.modules.function import is_func
 
-from winipedia_utils.src.data.structures.text.string import value_to_truncated_string
+from winiutils.src.data.structures.text.string import value_to_truncated_string
 
 logger = logging.getLogger(__name__)
 

@@ -15,7 +15,7 @@ from collections.abc import Callable, Generator, Iterable
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from typing import Any
 
-from winipedia_utils.src.iterating.concurrent.concurrent import concurrent_loop
+from winiutils.src.iterating.concurrent.concurrent import concurrent_loop
 
 
 def get_future_results_as_completed(

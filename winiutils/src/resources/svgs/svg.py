@@ -4,7 +4,7 @@ from importlib.resources import as_file, files
 from pathlib import Path
 from types import ModuleType
 
-from winipedia_utils.src.resources import svgs
+from winiutils.src.resources import svgs
 
 
 def get_svg_path(svg_name: str, package: ModuleType | None = None) -> Path:

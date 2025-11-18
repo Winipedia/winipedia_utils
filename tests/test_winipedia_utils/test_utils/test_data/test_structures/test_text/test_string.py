@@ -7,8 +7,8 @@ from pyrig.src.modules.module import make_obj_importpath
 from pyrig.src.testing.assertions import assert_with_msg
 from pytest_mock import MockFixture
 
-from winipedia_utils.src.data.structures.text import string
-from winipedia_utils.src.data.structures.text.string import (
+from winiutils.src.data.structures.text import string
+from winiutils.src.data.structures.text.string import (
     ask_for_input_with_timeout,
     find_xml_namespaces,
     get_reusable_hash,

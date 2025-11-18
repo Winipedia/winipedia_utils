@@ -10,7 +10,7 @@ from polars.exceptions import ColumnNotFoundError
 from pyrig.src.testing.assertions import assert_with_msg
 from pytest_mock import MockerFixture
 
-from winipedia_utils.src.data.dataframe.cleaning import CleaningDF
+from winiutils.src.data.dataframe.cleaning import CleaningDF
 
 
 class MyCleaningDF(CleaningDF):

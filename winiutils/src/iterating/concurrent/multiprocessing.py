@@ -16,7 +16,7 @@ from functools import wraps
 from multiprocessing.pool import Pool
 from typing import Any
 
-from winipedia_utils.src.iterating.concurrent.concurrent import concurrent_loop
+from winiutils.src.iterating.concurrent.concurrent import concurrent_loop
 
 logger = logging.getLogger(__name__)
 

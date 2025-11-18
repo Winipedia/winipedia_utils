@@ -2,8 +2,8 @@
 
 from pyrig.src.testing.assertions import assert_with_msg
 
-from winipedia_utils.src.resources import svgs
-from winipedia_utils.src.resources.svgs.svg import get_svg_path
+from winiutils.src.resources import svgs
+from winiutils.src.resources.svgs.svg import get_svg_path
 
 
 def test_get_svg_path() -> None:

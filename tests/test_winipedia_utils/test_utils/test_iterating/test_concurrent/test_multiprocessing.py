@@ -6,7 +6,7 @@ from typing import Any
 
 from pyrig.src.testing.assertions import assert_with_msg
 
-from winipedia_utils.src.iterating.concurrent.multiprocessing import (
+from winiutils.src.iterating.concurrent.multiprocessing import (
     cancel_on_timeout,
     get_spwan_pool,
     multiprocess_loop,

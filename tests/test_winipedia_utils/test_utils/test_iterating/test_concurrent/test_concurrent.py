@@ -8,7 +8,7 @@ from typing import Any
 
 from pyrig.src.testing.assertions import assert_with_msg
 
-from winipedia_utils.src.iterating.concurrent.concurrent import (
+from winiutils.src.iterating.concurrent.concurrent import (
     concurrent_loop,
     find_max_pools,
     generate_process_args,

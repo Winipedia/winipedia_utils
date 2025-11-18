@@ -12,7 +12,7 @@ enforcement and built-in logging capabilities.
 
 import logging
 
-from winipedia_utils.src.oop.mixins.meta import ABCLoggingMeta
+from winiutils.src.oop.mixins.meta import ABCLoggingMeta
 
 logger = logging.getLogger(__name__)
 

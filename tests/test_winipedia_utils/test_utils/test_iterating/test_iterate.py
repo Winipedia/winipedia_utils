@@ -3,7 +3,7 @@
 import pytest
 from pyrig.src.testing.assertions import assert_with_msg
 
-from winipedia_utils.src.iterating.iterate import (
+from winiutils.src.iterating.iterate import (
     get_len_with_default,
 )
 

@@ -12,7 +12,7 @@ from io import StringIO
 
 from defusedxml import ElementTree as DefusedElementTree
 
-from winipedia_utils.src.iterating.concurrent.multiprocessing import (
+from winiutils.src.iterating.concurrent.multiprocessing import (
     cancel_on_timeout,
 )
 
